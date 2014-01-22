@@ -81,7 +81,13 @@
 
 (defmethod coerce ((object string) output-type-spec)
   (ecase output-type-spec
-    (integer (parse-integer object :junk-allowed t))))
+    (integer (parse-integer object :junk-allowed t))
+    (symbol  (intern string))
+    (keyword (intern string :keyword))))
+
+(defmethod coerce ((object symbol) output-type-spec)
+  (ecase output-type-spec
+    (string (symbol-name object))))
 
 (defgeneric push (value place)
   (:method (value place)
