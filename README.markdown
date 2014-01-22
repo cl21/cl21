@@ -213,9 +213,6 @@ All external symbols of Closer MOP.
 * vector-push & vector-push-extend (Use new `push`)
 * vector-pop (Use new `pop`)
 
-## Redefined Classes
-* hash-table
-
 ## Redefined as Generic functions
 * equal
 * equalp
@@ -234,23 +231,18 @@ All external symbols of Closer MOP.
 * coerce
 * getf
 * remf
-* gethash
-* remhash
-* maphash
-* clrhash
-* hash-table-count
 * push
 * pushnew
 
 ## Setting the startup package of SLIME
 
-1. Load CL21 in your Lisp init file.
+1) Load CL21 in your Lisp init file.
 
 ```common-lisp
 (ql:quickload :cl21)
 ```
 
-2. Add this to you .emacs.el.
+2) Add this to you .emacs.el.
 
 ```common-lisp
 (add-hook 'slime-connected-hook (lambda ()

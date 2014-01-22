@@ -9,10 +9,6 @@
            :pushnew
            :pop
            :remf)
-  (:shadowing-import-from :cl21.hash-table
-                          :hash-table
-                          :gethash
-                          :hash-table-count)
   (:shadowing-import-from :cl21.mop
                           :standard-class)
   (:import-from :cl21.types
@@ -79,11 +75,9 @@
 (defmethod coerce ((object hash-table) output-type-spec)
   (ecase output-type-spec
     (plist
-     (alexandria:hash-table-plist (slot-value object 'cl21.hash-table::%real-hash)))
+     (alexandria:hash-table-plist object))
     (alist
-     (alexandria:hash-table-alist (slot-value object 'cl21.hash-table::%real-hash)))
-    (cl:hash-table
-     (slot-value object 'cl21.hash-table::%real-hash))))
+     (alexandria:hash-table-alist object))))
 
 (defmethod coerce ((object string) output-type-spec)
   (ecase output-type-spec
@@ -113,6 +107,4 @@
 
 (defgeneric remf (place indicator)
   (:method (place indicator)
-    (cl:remf place indicator))
-  (:method ((place hash-table) indicator)
-    (remf (slot-value place 'cl21.hash-table::%real-hash) indicator)))
+    (cl:remf place indicator)))

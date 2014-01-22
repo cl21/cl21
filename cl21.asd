@@ -51,7 +51,7 @@
                  (:file "system")
                  (:file "mop")
                  (:file "types")
-                 (:file "generic" :depends-on ("hash-table" "mop" "types"))
+                 (:file "generic" :depends-on ("mop" "types"))
                  (:file "environment")
                  (:file "misc")
                  (:file "cl21"))))
