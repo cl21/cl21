@@ -78,14 +78,8 @@ This is an experimental project redesigning Common Lisp.
 
 ## Installation
 
-```
-cd ~/quicklisp/local-projects
-git clone https://github.com/fukamachi/cl21.git
-```
-
-You can `ql:quickload` it like a Common Lisp library.
-
 ```common-lisp
+(ql-dist:install-dist "http://qldists.8arrow.org/cl21.txt")
 (ql:quickload :cl21)
 ```
 
