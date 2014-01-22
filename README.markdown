@@ -216,6 +216,30 @@ All external symbols of Closer MOP.
 * vector-pop (Use new `pop`)
 * string-upcase (Use `upcase`)
 * string-downcase (Use `downcase`)
+* caaar
+* caadr
+* cadar
+* caddr
+* cdaar
+* cdadr
+* cddar
+* cdddr
+* caaaar
+* caaadr
+* caadar
+* caaddr
+* cadaar
+* cadadr
+* caddar
+* cadddr
+* cdaaar
+* cdaadr
+* cdadar
+* cdaddr
+* cddaar
+* cddadr
+* cdddar
+* cddddr
 
 ## Redefined as Generic functions
 * equal
