@@ -1,4 +1,4 @@
-# CL21 - Common Lisp in 21th Century.
+# CL21 - Common Lisp in the 21st Century.
 
 This is an experimental project redesigning Common Lisp.
 
@@ -75,6 +75,19 @@ This is an experimental project redesigning Common Lisp.
 * POSIX.
 * Functions to run shell commands.
 * Regular expression.
+
+## Installation
+
+```
+cd ~/quicklisp/local-projects
+git clone https://github.com/fukamachi/cl21.git
+```
+
+You can `ql:quickload` it like a Common Lisp library.
+
+```common-lisp
+(ql:quickload :cl21)
+```
 
 ## Added Symbols
 

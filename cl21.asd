@@ -4,7 +4,7 @@
 |#
 
 #|
-  Common Lisp in 21th Century.
+  Common Lisp in the 21st Century.
 
   Author: Eitarow Fukamachi (e.arrows@gmail.com)
 |#
@@ -55,5 +55,5 @@
                  (:file "environment")
                  (:file "misc")
                  (:file "cl21"))))
-  :description "Common Lisp in 21th Century."
+  :description "Common Lisp in the 21st Century."
   :in-order-to ((test-op (test-op cl21-test))))
