@@ -1,7 +1,6 @@
 (in-package :cl-user)
 (defpackage cl21.control
   (:use :cl)
-  (:shadow :let)
   (:import-from :alexandria
                 :if-let
                 :when-let
