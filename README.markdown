@@ -125,6 +125,8 @@ You can `ql:quickload` it like a Common Lisp library.
 
 ### Sequence
 * concat
+* upcase
+* downcase
 * split-sequence
 * split-sequence-if
 * copy-array
@@ -212,6 +214,8 @@ All external symbols of Closer MOP.
 * remove-if-not (Use `filter`)
 * vector-push & vector-push-extend (Use new `push`)
 * vector-pop (Use new `pop`)
+* string-upcase (Use `upcase`)
+* string-downcase (Use `downcase`)
 
 ## Redefined as Generic functions
 * equal

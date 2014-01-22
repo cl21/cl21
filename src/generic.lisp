@@ -20,6 +20,8 @@
            :emptyp
            :getf
            :coerce
+           :upcase
+           :downcase
            :push
            :pushnew
            :pop
@@ -88,6 +90,22 @@
 (defmethod coerce ((object symbol) output-type-spec)
   (ecase output-type-spec
     (string (symbol-name object))))
+
+(defgeneric upcase (object &key start end)
+  (:method ((object string) &key (start 0) end)
+    (string-upcase object :start start :end end))
+  (:method ((object symbol) &key (start 0) end)
+    (nth-value 0
+               (intern (string-upcase object :start start :end end)
+                       (symbol-package object)))))
+
+(defgeneric downcase (object &key start end)
+  (:method ((object string) &key (start 0) end)
+    (string-downcase object :start start :end end))
+  (:method ((object symbol) &key (start 0) end)
+    (nth-value 0
+               (intern (string-downcase object :start start :end end)
+                       (symbol-package object)))))
 
 (defgeneric push (value place)
   (:method (value place)
