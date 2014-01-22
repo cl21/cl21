@@ -113,11 +113,11 @@
                         (:method ((seq sequence))
                           (elt seq ,n)))))
 
-(defgeneric last (seq)
-  (:method ((seq list))
-    (cl:last seq))
-  (:method ((seq sequence))
-    (elt seq (1- (length seq)))))
+(defgeneric last (seq &optional n)
+  (:method ((seq list) &optional (n 1))
+    (cl:last seq n))
+  (:method ((seq sequence) &optional (n 1))
+    (elt seq (- (length seq) n))))
 
 (setf (symbol-function 'filter) (symbol-function 'remove-if-not))
 
