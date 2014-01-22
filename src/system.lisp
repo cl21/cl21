@@ -13,7 +13,4 @@
            :*compile-print*
            :*compile-verbose*
            :*load-print*
-           :*load-verbose*
-           :*modules*
-           :provide
-           :require))
+           :*load-verbose*))

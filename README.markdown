@@ -204,6 +204,11 @@ All external symbols of Closer MOP.
 * assoc-if-not
 * rassoc-if-not
 * count-if-not
+* gentemp
+* provide
+* require
+* set
+* \*modules\*
 
 ## Deprecated Symbols
 * elt (Use new `nth`)

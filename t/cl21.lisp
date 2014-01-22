@@ -17,7 +17,12 @@
     nsubst-if-not
     assoc-if-not
     rassoc-if-not
-    count-if-not))
+    count-if-not
+    gentemp
+    provide
+    require
+    set
+    *modules*))
 
 (let ((cl21 (find-package :cl21)))
   (let (symbols)

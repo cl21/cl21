@@ -13,14 +13,12 @@
            :copy-symbol
            :gensym
            :*gensym-counter*
-           :gentemp
            :symbol-function
            :symbol-name
            :symbol-package
            :symbol-plist
            :symbol-value
            :get
-           :set
            :remprop
            :boundp
            :makunbound
