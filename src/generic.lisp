@@ -85,10 +85,15 @@
      (alexandria:hash-table-alist object))))
 
 (defmethod coerce ((object string) output-type-spec)
-  (ecase output-type-spec
-    (integer (parse-integer object :junk-allowed t))
-    (symbol  (intern string))
-    (keyword (intern string :keyword))))
+  (case output-type-spec
+    (integer (nth-value 0 (parse-integer object :junk-allowed t)))
+    (number (let ((read (read-from-string object)))
+              (if (numberp read)
+                  read
+                  0)))
+    (symbol  (intern object))
+    (keyword (intern object :keyword))
+    (T (cl:coerce object output-type-spec))))
 
 (defmethod coerce ((object symbol) output-type-spec)
   (ecase output-type-spec
