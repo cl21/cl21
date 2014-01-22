@@ -64,7 +64,6 @@
            :nreconc
            :butlast
            :nbutlast
-           :last
            :ldiff
            :tailp
            :nthcdr
