@@ -73,6 +73,10 @@
   (:method ((object t) output-type-spec)
     (cl:coerce object output-type-spec)))
 
+(defmethod coerce ((object number) output-type-spec)
+  (ecase output-type-spec
+    (string (write-to-string object))))
+
 (defmethod coerce ((object hash-table) output-type-spec)
   (ecase output-type-spec
     (plist
