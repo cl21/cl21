@@ -258,9 +258,6 @@ All external symbols of Closer MOP.
 * last
 * coerce
 * getf
-* remf
-* push
-* pushnew
 
 ## Setting the startup package of SLIME
 

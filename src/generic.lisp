@@ -7,8 +7,7 @@
            :coerce
            :push
            :pushnew
-           :pop
-           :remf)
+           :pop)
   (:shadowing-import-from :cl21.mop
                           :standard-class)
   (:import-from :cl21.types
@@ -107,28 +106,18 @@
                (intern (string-downcase object :start start :end end)
                        (symbol-package object)))))
 
-(defgeneric push (value place)
-  (:method (value place)
-    (cl:push value place))
-  (:method (value (place vector))
-    (vector-push-extend value place)))
+(defmacro push (value place)
+  `(typecase ,place
+     (vector (vector-push-extend ,value ,place))
+     (T (cl:push ,value ,place))))
 
-(defgeneric pushnew (value place &key key test test-not)
-  (:method (value place &key key test test-not)
-    (cl:pushnew value place
-                :key key
-                :test test
-                :test-not test-not))
-  (:method (value (place vector) &key key test test-not)
-    (or (find value place :key key :test test :test test-not)
-        (vector-push-extend place value))))
+(defmacro pushnew (value place &rest keys)
+  `(typecase ,place
+     (vector (or (find ,value ,place ,@keys)
+                 (vector-push-extend ,place ,value)))
+     (T (cl:pushnew ,value ,place ,@keys))))
 
-(defgeneric pop (place)
-  (:method (place)
-    (cl:pop place))
-  (:method ((place vector))
-    (cl:vector-pop place)))
-
-(defgeneric remf (place indicator)
-  (:method (place indicator)
-    (cl:remf place indicator)))
+(defmacro pop (place)
+  `(typecase ,place
+     (vector (cl:vector-pop ,place))
+     (T (cl:pop ,place))))
