@@ -100,4 +100,22 @@
            :iota
            :remove-from-plist
            :delete-from-plist
-           :ensure-list))
+           :ensure-list
+
+           :cons-last
+           :list-nth
+           :list-push
+           :list-pushnew
+           :list-pop))
+(in-package :cl21.core.cons)
+
+(setf (symbol-function 'cons-last) (symbol-function 'last))
+(setf (symbol-function 'list-nth) (symbol-function 'nth))
+(defun (setf list-nth) (new-value n sequence)
+  (setf (cl:nth n sequence) new-value))
+(defmacro list-push (value place)
+  `(cl:push ,value ,place))
+(defmacro list-pushnew (value place &rest keys)
+  `(cl:pushnew ,value ,place ,@keys))
+(defmacro list-pop (place)
+  `(cl:pop ,place))

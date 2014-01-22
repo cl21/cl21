@@ -137,6 +137,11 @@ You can `ql:quickload` it like a Common Lisp library.
 * delete-from-plist
 * ensure-list
 * filter (Same as `remove-if-not`)
+* cons-last (Same as `cl:last`)
+* list-nth (Same as `cl:nth`)
+* list-push (Same as `cl:push`)
+* list-pushnew (Same as `cl:pushnew`)
+* list-pop (Same as `cl:pop`)
 
 ### Stream
 * make-null-stream
@@ -246,7 +251,7 @@ All external symbols of Closer MOP.
 * cdddar
 * cddddr
 
-## Redefined as Generic functions
+## Redefined
 * equal
 * equalp
 * nth
@@ -263,6 +268,9 @@ All external symbols of Closer MOP.
 * last
 * coerce
 * getf
+* push
+* pushnew
+* pop
 
 ## Setting the startup package of SLIME
 
