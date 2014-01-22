@@ -83,6 +83,12 @@
   (:method (n (seq vector))
     (elt seq n)))
 
+(defgeneric (setf nth) (val n sequence)
+  (:method (val n seq)
+    (setf (cl:nth n seq) val))
+  (:method (val n (seq vector))
+    (setf (aref seq n) val)))
+
 #.`(progn
      ,@(loop for (function . n) in '((first . 0)
                                      (second . 1)
