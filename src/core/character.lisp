@@ -1,5 +1,5 @@
 (in-package :cl-user)
-(defpackage cl21.character
+(defpackage cl21.core.character
   (:use :cl)
   (:export :character
            :base-char

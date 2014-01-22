@@ -1,5 +1,5 @@
 (in-package :cl-user)
-(defpackage cl21.io
+(defpackage cl21.core.io
   (:use :cl)
   (:import-from :alexandria
                 :with-input-from-file
@@ -15,6 +15,4 @@
            :write-string-into-file
            :read-file-into-byte-vector
            :write-byte-vector-into-file
-           :copy-file
-
-           :write))
+           :copy-file))

@@ -1,5 +1,5 @@
 (in-package :cl-user)
-(defpackage cl21.array
+(defpackage cl21.core.array
   (:use :cl)
   (:import-from :alexandria
                 :copy-array)

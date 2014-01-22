@@ -1,5 +1,5 @@
 (in-package :cl-user)
-(defpackage cl21.number
+(defpackage cl21.core.number
   (:use :cl)
   (:export :number
            :complex
@@ -191,7 +191,7 @@
            :ii
            :exponential-e
            :ee))
-(in-package :cl21.number)
+(in-package :cl21.core.number)
 
 (defconstant imaginary-i #C(0 1) "The imaginary number `i = sqrt(-1)`.")
 (defconstant ii #C(0 1) "The imaginary number `i = sqrt(-1)`.")

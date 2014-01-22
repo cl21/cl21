@@ -1,5 +1,5 @@
 (in-package :cl-user)
-(defpackage cl21.types
+(defpackage cl21.core.types
   (:use :cl)
   (:import-from :trivial-types
                 :proper-list-p
@@ -19,9 +19,32 @@
                 :string-designator
 
                 :file-associated-stream-p
-                :file-associated-stream
-
-                :non-nil)
+                :file-associated-stream)
+  (:shadowing-import-from :c2mop
+                          :class
+                          :built-in-class
+                          :slot-definition
+                          :direct-slot-definition
+                          :effective-slot-definition
+                          :specializer
+                          :eql-specializer
+                          :metaobject
+                          :method
+                          :method-combination
+                          :standard-accessor-method
+                          :standard-class
+                          :standard-generic-function
+                          :standard-direct-slot-definition
+                          :standard-effective-slot-definition
+                          :standard-method
+                          :standard-object
+                          :standard-reader-method
+                          :standard-slot-definition
+                          :standard-writer-method
+                          :classp
+                          :subclassp
+                          :typep
+                          :subtypep)
   (:export :deftype
            :type-of
            :type-error
@@ -29,11 +52,16 @@
            :type-error-expected-type
            :simple-type-error
 
-           :structure
-           :structure-class
-           :structure-object
+           :classp
+           :subclassp
+           :typep
+           :subtypep
 
            :compiled-function
+           :octet
+           :boolean
+
+           :satisfies
 
            :proper-list-p
            :proper-list
@@ -41,14 +69,6 @@
            :plistp
            :alist
            :alistp
-
-           :octet
-
-           :boolean
-           :t
-           :nil
-
-           :satisfies
 
            :character-designator
            :function-designator
@@ -61,7 +81,7 @@
 
            :file-associated-stream-p
            :file-associated-stream))
-(in-package :cl21.types)
+(in-package :cl21.core.types)
 
 (loop for (alias . original) in '((plistp . property-list-p)
                                   (alistp . association-list-p))

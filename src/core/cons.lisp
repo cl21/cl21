@@ -1,5 +1,5 @@
 (in-package :cl-user)
-(defpackage cl21.cons
+(defpackage cl21.core.cons
   (:use :cl)
   (:import-from :alexandria
                 :iota
@@ -84,6 +84,7 @@
            :rassoc
            :rassoc-if
            :get-properties
+           :remf
            :intersection
            :nintersection
            :adjoin

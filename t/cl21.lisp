@@ -4,7 +4,7 @@
         :cl-test-more))
 (in-package :cl21-test)
 
-(plan 967)
+(plan 962)
 
 (defvar *ignore-symbols*
   '(prog2

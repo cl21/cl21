@@ -1,5 +1,5 @@
 (in-package :cl-user)
-(defpackage cl21.hash-table
+(defpackage cl21.core.hash-table
   (:use :cl)
   (:import-from :alexandria
                 :plist-hash-table
@@ -28,7 +28,7 @@
            :copy-hash-table
            :plist-hash-table
            :alist-hash-table))
-(in-package :cl21.hash-table)
+(in-package :cl21.core.hash-table)
 
 (defun hash-table-key-exists-p (hash key)
   (nth-value 1 (gethash hash key)))

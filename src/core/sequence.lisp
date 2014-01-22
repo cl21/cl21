@@ -1,5 +1,5 @@
 (in-package :cl-user)
-(defpackage cl21.sequence
+(defpackage cl21.core.sequence
   (:use :cl)
   (:shadow :nth
            :first
@@ -12,7 +12,10 @@
            :eighth
            :ninth
            :tenth
-           :last)
+           :last
+           :push
+           :pushnew
+           :pop)
   (:import-from :split-sequence
                 :split-sequence
                 :split-sequence-if)
@@ -74,8 +77,12 @@
            :substitute
            :substitute-if
            :nsubstitute
-           :nsubstitute-if))
-(in-package :cl21.sequence)
+           :nsubstitute-if
+
+           :push
+           :pushnew
+           :pop))
+(in-package :cl21.core.sequence)
 
 (defgeneric nth (n sequence)
   (:method (n (seq list))
@@ -113,3 +120,19 @@
     (elt seq (1- (length seq)))))
 
 (setf (symbol-function 'filter) (symbol-function 'remove-if-not))
+
+(defmacro push (value place)
+  `(typecase ,place
+     (vector (vector-push-extend ,value ,place))
+     (T (cl:push ,value ,place))))
+
+(defmacro pushnew (value place &rest keys)
+  `(typecase ,place
+     (vector (or (find ,value ,place ,@keys)
+                 (vector-push-extend ,place ,value)))
+     (T (cl:pushnew ,value ,place ,@keys))))
+
+(defmacro pop (place)
+  `(typecase ,place
+     (vector (cl:vector-pop ,place))
+     (T (cl:pop ,place))))

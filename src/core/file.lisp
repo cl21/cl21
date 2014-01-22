@@ -1,5 +1,5 @@
 (in-package :cl-user)
-(defpackage cl21.file
+(defpackage cl21.core.file
   (:use :cl)
   (:export :pathname
            :pathnamep

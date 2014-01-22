@@ -1,5 +1,5 @@
 (in-package :cl-user)
-(defpackage cl21.symbol
+(defpackage cl21.core.symbol
   (:use :cl)
   (:import-from :alexandria
                 :make-keyword

@@ -1,5 +1,5 @@
 (in-package :cl-user)
-(defpackage cl21.condition
+(defpackage cl21.core.condition
   (:use :cl)
   (:export :condition
            :warning
@@ -45,4 +45,10 @@
            :continue
            :muffle-warning
            :store-value
-           :use-value))
+           :use-value
+
+           :control-error
+           :program-error
+
+           :reader-error
+           ))

@@ -1,20 +1,16 @@
 (in-package :cl-user)
-(defpackage cl21.mop
+(defpackage cl21.core.object
   (:shadowing-import-from :c2mop
-                          :built-in-class
                           :class
+                          :built-in-class
+                          :slot-definition
                           :direct-slot-definition
                           :effective-slot-definition
+                          :specializer
                           :eql-specializer
-                          :forward-referenced-class
-                          :funcallable-standard-class
-                          :funcallable-standard-object
-                          :generic-function
                           :metaobject
                           :method
                           :method-combination
-                          :slot-definition
-                          :specializer
                           :standard-accessor-method
                           :standard-class
                           :standard-generic-function
@@ -25,18 +21,20 @@
                           :standard-reader-method
                           :standard-slot-definition
                           :standard-writer-method
+                          :forward-referenced-class
+                          :funcallable-standard-class
+                          :funcallable-standard-object
+                          :generic-function
 
                           :defclass
                           :defgeneric
                           :define-method-combination
                           :defmethod
 
-                          :classp
                           :ensure-finalized
                           :ensure-method
                           :fix-slot-initargs
                           :required-args
-                          :subclassp
 
                           :accessor-method-slot-definition
                           :add-dependent
@@ -105,121 +103,159 @@
                           :specializer-direct-generic-functions
                           :specializer-direct-methods
                           :standard-instance-access
-                          :subtypep
-                          :typep
                           :update-dependent
                           :validate-superclass
                           :writer-method-class
 
                           :warn-on-defmethod-without-generic-function)
-  (:export :built-in-class
-           :class
-           :direct-slot-definition
-           :effective-slot-definition
-           :eql-specializer
-           :forward-referenced-class
-           :funcallable-standard-class
-           :funcallable-standard-object
-           :generic-function
-           :metaobject
-           :method
-           :method-combination
-           :slot-definition
-           :specializer
-           :standard-accessor-method
-           :standard-class
-           :standard-generic-function
-           :standard-direct-slot-definition
-           :standard-effective-slot-definition
-           :standard-method
-           :standard-object
-           :standard-reader-method
-           :standard-slot-definition
-           :standard-writer-method
+  (:export
+   :class
+   :built-in-class
+   :slot-definition
+   :direct-slot-definition
+   :effective-slot-definition
+   :specializer
+   :eql-specializer
+   :metaobject
+   :method
+   :method-combination
+   :standard-accessor-method
+   :standard-class
+   :standard-generic-function
+   :standard-direct-slot-definition
+   :standard-effective-slot-definition
+   :standard-method
+   :standard-object
+   :standard-reader-method
+   :standard-slot-definition
+   :standard-writer-method
 
-           :defclass
-           :defgeneric
-           :define-method-combination
-           :defmethod
+   :forward-referenced-class
+   :funcallable-standard-class
+   :funcallable-standard-object
+   :generic-function
 
-           :classp
-           :ensure-finalized
-           :ensure-method
-           :fix-slot-initargs
-           :required-args
-           :subclassp
+   :defclass
+   :defgeneric
+   :define-method-combination
+   :defmethod
 
-           :accessor-method-slot-definition
-           :add-dependent
-           :add-direct-method
-           :add-direct-subclass
-           :class-default-initargs
-           :class-direct-default-initargs
-           :class-direct-slots
-           :class-direct-subclasses
-           :class-direct-superclasses
-           :class-finalized-p
-           :class-precedence-list
-           :class-prototype
-           :class-slots
-           :compute-applicable-methods-using-classes
-           :compute-class-precedence-list
-           :compute-default-initargs
-           :compute-discriminating-function
-           :compute-effective-method
-           :compute-effective-method-function
-           :compute-effective-slot-definition
-           :compute-slots
-           :direct-slot-definition-class
-           :effective-slot-definition-class
-           :ensure-class
-           :ensure-class-using-class
-           :ensure-generic-function
-           :ensure-generic-function-using-class
-           :eql-specializer-object
-           :extract-lambda-list
-           :extract-specializer-names
-           :finalize-inheritance
-           :find-method-combination
-           :funcallable-standard-instance-access
-           :generic-function-argument-precedence-order
-           :generic-function-declarations
-           :generic-function-lambda-list
-           :generic-function-method-class
-           :generic-function-method-combination
-           :generic-function-methods
-           :generic-function-name
-           :intern-eql-specializer
-           :make-method-lambda
-           :map-dependents
-           :method-function
-           :method-generic-function
-           :method-lambda-list
-           :method-specializers
-           :reader-method-class
-           :remove-dependent
-           :remove-direct-method
-           :remove-direct-subclass
-           :set-funcallable-instance-function
-           :slot-boundp-using-class
-           :slot-definition-allocation
-           :slot-definition-initargs
-           :slot-definition-initform
-           :slot-definition-initfunction
-           :slot-definition-location
-           :slot-definition-name
-           :slot-definition-readers
-           :slot-definition-writers
-           :slot-definition-type
-           :slot-makunbound-using-class
-           :slot-value-using-class
-           :specializer-direct-generic-functions
-           :specializer-direct-methods
-           :standard-instance-access
-           :subtypep
-           :typep
-           :update-dependent
-           :validate-superclass
-           :writer-method-class
+   :ensure-finalized
+   :ensure-method
+   :fix-slot-initargs
+   :required-args
 
-           :warn-on-defmethod-without-generic-function))
+   :accessor-method-slot-definition
+   :add-dependent
+   :add-direct-method
+   :add-direct-subclass
+   :class-default-initargs
+   :class-direct-default-initargs
+   :class-direct-slots
+   :class-direct-subclasses
+   :class-direct-superclasses
+   :class-finalized-p
+   :class-precedence-list
+   :class-prototype
+   :class-slots
+   :compute-applicable-methods-using-classes
+   :compute-class-precedence-list
+   :compute-default-initargs
+   :compute-discriminating-function
+   :compute-effective-method
+   :compute-effective-method-function
+   :compute-effective-slot-definition
+   :compute-slots
+   :direct-slot-definition-class
+   :effective-slot-definition-class
+   :ensure-class
+   :ensure-class-using-class
+   :ensure-generic-function
+   :ensure-generic-function-using-class
+   :eql-specializer-object
+   :extract-lambda-list
+   :extract-specializer-names
+   :finalize-inheritance
+   :find-method-combination
+   :funcallable-standard-instance-access
+   :generic-function-argument-precedence-order
+   :generic-function-declarations
+   :generic-function-lambda-list
+   :generic-function-method-class
+   :generic-function-method-combination
+   :generic-function-methods
+   :generic-function-name
+   :intern-eql-specializer
+   :make-method-lambda
+   :map-dependents
+   :method-function
+   :method-generic-function
+   :method-lambda-list
+   :method-specializers
+   :reader-method-class
+   :remove-dependent
+   :remove-direct-method
+   :remove-direct-subclass
+   :set-funcallable-instance-function
+   :slot-boundp-using-class
+   :slot-definition-allocation
+   :slot-definition-initargs
+   :slot-definition-initform
+   :slot-definition-initfunction
+   :slot-definition-location
+   :slot-definition-name
+   :slot-definition-readers
+   :slot-definition-writers
+   :slot-definition-type
+   :slot-makunbound-using-class
+   :slot-value-using-class
+   :specializer-direct-generic-functions
+   :specializer-direct-methods
+   :standard-instance-access
+   :update-dependent
+   :validate-superclass
+   :writer-method-class
+
+   :warn-on-defmethod-without-generic-function
+
+   ;; Standard
+   :add-method
+   :allocate-instance
+   :call-method
+   :call-next-method
+   :change-class
+   :class-name
+   :class-of
+   :compute-applicable-methods
+   :find-class
+   :find-method
+   :function-keywords
+   :initialize-instance
+   :make-instance
+   :make-instances-obsolete
+   :make-load-form
+   :make-load-form-saving-slots
+   :make-method
+   :method-qualifiers
+   :next-method-p
+   :no-applicable-method
+   :no-next-method
+   :reinitialize-instance
+   :remove-method
+   :shared-initialize
+   :slot-boundp
+   :slot-exists-p
+   :slot-makunbound
+   :slot-missing
+   :slot-unbound
+   :slot-value
+   :standard
+   :unbound-slot
+   :unbound-slot-instance
+   :unbound-variable
+   :update-instance-for-different-class
+   :update-instance-for-redefined-class
+
+   :print-object
+   :describe-object
+   ))

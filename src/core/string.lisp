@@ -1,5 +1,5 @@
 (in-package :cl-user)
-(defpackage cl21.string
+(defpackage cl21.core.string
   (:use :cl)
   (:export :string
            :base-string

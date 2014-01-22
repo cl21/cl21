@@ -1,5 +1,5 @@
 (in-package :cl-user)
-(defpackage cl21.stream
+(defpackage cl21.core.stream
   (:use :cl)
   (:import-from :alexandria
                 :copy-stream)
@@ -79,7 +79,7 @@
            :end-of-file
 
            :copy-stream))
-(in-package :cl21.stream)
+(in-package :cl21.core.stream)
 
 (defun make-null-input-stream ()
   "Make a null input stream."
