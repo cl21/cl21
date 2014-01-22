@@ -106,7 +106,18 @@
            :list-nth
            :list-push
            :list-pushnew
-           :list-pop))
+           :list-pop
+
+           :list-first
+           :list-second
+           :list-third
+           :list-fourth
+           :list-fifth
+           :list-sixth
+           :list-seventh
+           :list-eighth
+           :list-ninth
+           :list-tenth))
 (in-package :cl21.core.cons)
 
 (setf (symbol-function 'cons-last) (symbol-function 'last))
@@ -119,3 +130,19 @@
   `(cl:pushnew ,value ,place ,@keys))
 (defmacro list-pop (place)
   `(cl:pop ,place))
+
+#.`(progn
+     ,@(loop for function in '(first
+                               second
+                               third
+                               fourth
+                               fifth
+                               sixth
+                               seventh
+                               eighth
+                               ninth
+                               tenth)
+             append `((setf (symbol-function ',(intern (format nil "~A-~A" :list function)))
+                            (symbol-function ',function))
+                      (defun (setf ,(intern (format nil "~A-~A" :list function))) (new-value list)
+                        (setf (cl:first list) new-value)))))

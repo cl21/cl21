@@ -142,6 +142,16 @@ You can `ql:quickload` it like a Common Lisp library.
 * list-push (Same as `cl:push`)
 * list-pushnew (Same as `cl:pushnew`)
 * list-pop (Same as `cl:pop`)
+* list-first (Same as `cl:first`)
+* list-second (Same as `cl:second`)
+* list-third (Same as `cl:third`)
+* list-fourth (Same as `cl:fourth`)
+* list-fifth (Same as `cl:fifth`)
+* list-sixth (Same as `cl:sixth`)
+* list-seventh (Same as `cl:seventh`)
+* list-eighth (Same as `cl:eighth`)
+* list-ninth (Same as `cl:ninth`)
+* list-tenth (Same as `cl:tenth`)
 
 ### Stream
 * make-null-stream
