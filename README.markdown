@@ -120,6 +120,14 @@ This is an experimental project redesigning Common Lisp.
 (ql:quickload :cl21)
 ```
 
+## Update to the latest version
+
+CL21 is continuously released at 1:00 JST (= 16:00 UTC). You can update to the HEAD version by this command.
+
+```common-lisp
+(ql:update-dist "cl21")
+```
+
 ## Added Symbols
 
 ### Core
