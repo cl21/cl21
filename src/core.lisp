@@ -189,7 +189,6 @@
    :print
    :pprint
    :princ
-   :princln
    :write
    :write-to-string
    :prin1-to-string
@@ -326,11 +325,6 @@
     (cl:do-external-symbols (symbol package)
       (cl:shadowing-import symbol)
       (cl:export symbol))))
-
-(defun princln (object &optional (stream *standard-output*))
-  (prog1
-      (princ object stream)
-    (write-char #\Newline stream)))
 
 (defmacro until (expression &body body)
   "Executes `body` until `expression` is true."

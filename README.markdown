@@ -177,7 +177,6 @@ This is an experimental project redesigning Common Lisp.
 * alist-hash-table
 
 ### I/O
-* princln (Outputs a newline after `cl:princ`)
 * with-input-from-file
 * with-output-to-file
 * read-file-into-string
