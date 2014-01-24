@@ -132,17 +132,17 @@
   `(cl:pop ,place))
 
 #.`(progn
-     ,@(loop for function in '(first
-                               second
-                               third
-                               fourth
-                               fifth
-                               sixth
-                               seventh
-                               eighth
-                               ninth
-                               tenth)
+     ,@(loop for function in '(cl:first
+                               cl:second
+                               cl:third
+                               cl:fourth
+                               cl:fifth
+                               cl:sixth
+                               cl:seventh
+                               cl:eighth
+                               cl:ninth
+                               cl:tenth)
              append `((setf (symbol-function ',(intern (format nil "~A-~A" :list function)))
                             (symbol-function ',function))
                       (defun (setf ,(intern (format nil "~A-~A" :list function))) (new-value list)
-                        (setf (cl:first list) new-value)))))
+                        (setf (,function list) new-value)))))
