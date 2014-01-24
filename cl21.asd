@@ -54,3 +54,7 @@
                    (:file "readtable"))))))
   :description "Common Lisp in the 21st Century."
   :in-order-to ((test-op (test-op cl21-test))))
+
+(defmethod perform :after ((o load-op) (c (eql (find-system :cl21))))
+  (declare (ignore o c))
+  (pushnew :cl21 *features*))
