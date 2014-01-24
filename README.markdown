@@ -80,9 +80,23 @@ This is an experimental project redesigning Common Lisp.
 ;;
 ;; Regular Expression
 
+(use-package :cl21.re)
+
+;; #/.../ is a literal regular expression.
+
+(re-match #/^Hello, (.+?)!$/ "Hello, World!")
+;=> "Hello, World!"
+;   #("World")
+
+;; Regular expression can be called like a function.
+
 (#/^(\d{4})-(\d{2})-(\d{2})$/ "2014-01-23")
 ;=> "2014-01-23"
 ;   #("2014" "01" "23")
+
+(re-replace #/a/g "Eitarow Fukamachi" "α")
+;=> "Eitαrow Fukαmαchi"
+;   T
 ```
 
 ## Features
@@ -223,6 +237,11 @@ All external symbols of Closer MOP.
 * doc
 * readme
 * summary
+
+### Regular Expression (cl21.re)
+* re-match
+* re-replace
+* re-split
 
 ## Deleted Symbols
 * prog2
