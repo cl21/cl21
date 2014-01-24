@@ -84,17 +84,15 @@
            :pop))
 (in-package :cl21.core.sequence)
 
-(defgeneric nth (n sequence)
-  (:method (n (seq list))
-    (nth n seq))
-  (:method (n (seq vector))
-    (elt seq n)))
+(defun nth (n seq)
+  (typecase seq
+    (list (cl:nth n seq))
+    (vector (elt seq n))))
 
-(defgeneric (setf nth) (val n sequence)
-  (:method (val n seq)
-    (setf (cl:nth n seq) val))
-  (:method (val n (seq vector))
-    (setf (aref seq n) val)))
+(defun (setf nth) (val n seq)
+  (typecase seq
+    (list (setf (cl:nth n seq) val))
+    (vector (setf (aref seq n) val))))
 
 #.`(progn
      ,@(loop for (function . n) in '((first . 0)
@@ -113,11 +111,10 @@
                         (:method ((seq sequence))
                           (elt seq ,n)))))
 
-(defgeneric last (seq &optional n)
-  (:method ((seq list) &optional (n 1))
-    (cl:last seq n))
-  (:method ((seq sequence) &optional (n 1))
-    (elt seq (- (length seq) n))))
+(defun last (seq &optional n)
+  (etypecase seq
+    (list (cl:last seq n))
+    (sequence (elt seq (- (length seq) n)))))
 
 (setf (symbol-function 'filter) (symbol-function 'remove-if-not))
 
