@@ -11,6 +11,8 @@
                 :*readtable-copy*
                 :inner-reader
                 :read-char*)
+  (:import-from :cl21.core.hash-table
+                :hash-table-reader)
   (:import-from :named-readtables
                 :in-readtable)
   (:import-from :alexandria
@@ -52,7 +54,10 @@
       (read-char*))))
 
 (defreadtable (cl21-readtable :cl21)
-  (:macro-char #\" #'string-reader))
+  (:merge :standard)
+  (:macro-char #\" #'string-reader)
+  (:dispatch-macro-char #\# #\{ #'hash-table-reader)
+  (:syntax-from :standard #\) #\}))
 
 (defreadtable cl21-standard-syntax
   (:merge :standard)
