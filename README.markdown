@@ -9,6 +9,21 @@ This is an experimental project redesigning Common Lisp.
   (:use :cl21))
 (in-package :myapp)
 
+
+;;
+;; Hello, World!
+
+(princ "Hello, World!\n")
+;-> Hello, World!
+;=> "Hello, World!
+;   "
+
+(let ((name "John"))
+  (princ "Hello, ${name}!"))
+;-> Hello, John!
+;=> "Hello, John!"
+
+
 ;;
 ;; Hash Table
 

@@ -20,6 +20,8 @@
   :license "MIT"
   :depends-on (:closer-mop
                :trivial-types
+               :named-readtables
+               :cl-interpol
                :split-sequence
                :alexandria
                :cl-utilities
@@ -48,6 +50,7 @@
                    (:file "file")
                    (:file "stream")
                    (:file "io")
-                   (:file "repl"))))))
+                   (:file "repl")
+                   (:file "readtable"))))))
   :description "Common Lisp in the 21st Century."
   :in-order-to ((test-op (test-op cl21-test))))
