@@ -271,7 +271,6 @@ All external symbols of Closer MOP.
 * cddddr
 
 ## Redefined
-* equal
 * equalp
 * nth
 * first

@@ -1,8 +1,7 @@
 (in-package :cl-user)
 (defpackage cl21.core
   (:use :cl)
-  (:shadow :equal
-           :equalp
+  (:shadow :equalp
            :coerce
            :getf)
   (:import-from :alexandria
@@ -102,6 +101,7 @@
    :not
    :eq
    :eql
+   :equal
    :identity
    :complement
    :constantly
@@ -281,7 +281,6 @@
    :user-homedir-pathname
 
    ;; Generic Functions
-   :equal
    :equalp
    :emptyp
    :getf
@@ -349,10 +348,6 @@
                ,@body))
        (sequence (loop for ,varsym across ,seq
                        do (progn ,@body))))))
-
-(defgeneric equal (x y)
-  (:method (x y)
-    (cl:equal x y)))
 
 (defgeneric equalp (x y)
   (:method (x y)
