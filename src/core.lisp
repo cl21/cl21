@@ -384,8 +384,9 @@
     (cl:coerce object output-type-spec)))
 
 (defmethod coerce ((object number) output-type-spec)
-  (ecase output-type-spec
-    (string (write-to-string object))))
+  (case output-type-spec
+    (string (write-to-string object))
+    (T (cl:coerce object output-type-spec))))
 
 (defmethod coerce ((object hash-table) output-type-spec)
   (ecase output-type-spec
@@ -397,14 +398,16 @@
 (defmethod coerce ((object string) output-type-spec)
   (case output-type-spec
     (integer (nth-value 0 (parse-integer object :junk-allowed t)))
-    (number (let ((read (read-from-string object)))
-              (if (numberp read)
-                  read
-                  0)))
+    ((number float) (let ((read (read-from-string object)))
+                      (if (numberp read)
+                          read
+                          0)))
     (symbol  (intern object))
     (keyword (intern object :keyword))
     (T (cl:coerce object output-type-spec))))
 
 (defmethod coerce ((object symbol) output-type-spec)
-  (ecase output-type-spec
-    (string (symbol-name object))))
+  (case output-type-spec
+    (string (symbol-name object))
+    (keyword (intern (symbol-name object) :keyword))
+    (T (cl:coerce object output-type-spec))))
