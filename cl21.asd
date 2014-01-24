@@ -22,6 +22,7 @@
                :trivial-types
                :named-readtables
                :cl-interpol
+               :cl-ppcre
                :split-sequence
                :alexandria
                :cl-utilities
@@ -35,7 +36,7 @@
                   :components
                   ((:file "types")
                    (:file "condition")
-                   (:file "package")
+                   (:file "package" :depends-on ("readtable"))
                    (:file "object")
                    (:file "structure")
                    (:file "symbol")
@@ -51,7 +52,8 @@
                    (:file "stream")
                    (:file "io")
                    (:file "repl")
-                   (:file "readtable"))))))
+                   (:file "readtable")))
+                 (:file "re" :depends-on ("core")))))
   :description "Common Lisp in the 21st Century."
   :in-order-to ((test-op (test-op cl21-test))))
 

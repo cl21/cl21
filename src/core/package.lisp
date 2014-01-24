@@ -1,11 +1,14 @@
 (in-package :cl-user)
 (defpackage cl21.core.package
   (:use :cl)
-  (:shadow :in-package)
+  (:shadow :in-package
+           :defpackage)
   (:import-from :named-readtables
+                :defreadtable
                 :find-readtable
-                :in-readtable
-                :reader-macro-conflict)
+                :in-readtable)
+  (:import-from :cl21.core.readtable
+                :get-package-readtable-options)
   (:export :package
            :export
            :find-symbol
@@ -41,15 +44,27 @@
            :do-all-symbols))
 (cl:in-package :cl21.core.package)
 
+(defvar *package-use* (make-hash-table :test 'eq))
+
+(defmacro defpackage (name &rest options)
+  `(prog1
+       (cl:defpackage ,name ,@options)
+     ,@(if (member :use options :key #'car)
+           `((setf (gethash ,(intern (string name) :keyword) *package-use*)
+                   (cdr (assoc :use ',options))))
+           nil)))
+
 (defmacro in-package (name)
   `(prog1
        (cl:in-package ,name)
-     ,(let ((package-readtable (intern #.(string :package-readtable) name)))
-        `(if (find-readtable ',package-readtable)
-             (handler-bind ((reader-macro-conflict
-                              (lambda (condition)
-                                (let ((continue (find-restart 'continue condition)))
-                                  (when continue
-                                    (invoke-restart continue))))))
-               (in-readtable ,package-readtable))
-             (in-readtable nil)))))
+     (if (find-readtable ',name)
+         (in-readtable ,name)
+         ,(let ((readtable-options (loop for use in (gethash (intern (string name) :keyword) *package-use*)
+                                         append (get-package-readtable-options use))))
+            (if readtable-options
+                `(progn
+                   (defreadtable ,name
+                     (:merge :standard)
+                     ,@readtable-options)
+                   (in-readtable ,name))
+                '(in-readtable nil))))))

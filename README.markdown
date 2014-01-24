@@ -75,6 +75,14 @@ This is an experimental project redesigning Common Lisp.
     (when (> (length x) 2)
       (collect x))))
 ;=> ("bob" "joe")
+
+
+;;
+;; Regular Expression
+
+(#/^(\d{4})-(\d{2})-(\d{2})$/ "2014-01-23")
+;=> "2014-01-23"
+;   #("2014" "01" "23")
 ```
 
 ## Features
@@ -83,13 +91,13 @@ This is an experimental project redesigning Common Lisp.
 * Add more functional programming facilities.
 * Organize symbols into several packages.
 * MOP.
+* Regular expression.
 
 ### Deferred List
 
 * Threads.
 * POSIX.
 * Functions to run shell commands.
-* Regular expression.
 
 ## Installation
 

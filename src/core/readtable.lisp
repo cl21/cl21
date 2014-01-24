@@ -12,13 +12,32 @@
                 :inner-reader
                 :read-char*)
   (:import-from :named-readtables
-                :defreadtable
-                :in-readtable
-                :reader-macro-conflict)
+                :in-readtable)
+  (:import-from :alexandria
+                :ensure-list)
   (:export :enable-cl21-syntax
            :disable-cl21-syntax
-           :package-readtable))
+           :defreadtable
+           :in-readtable))
 (in-package :cl21.core.readtable)
+
+(defvar *package-readtables* (make-hash-table :test 'eq))
+
+(defmacro defreadtable (name-and-package &rest options)
+  (destructuring-bind (name &optional package) (ensure-list name-and-package)
+    `(prog1
+         (named-readtables:defreadtable ,name
+           ,@options)
+       ,@(if package
+             `((setf (gethash ,package *package-readtables*)
+                     ',(remove-if (lambda (option)
+                                    (and (find (car option) '(:merge :fuze))
+                                         (keywordp (cadr option))))
+                                  options)))
+             nil))))
+
+(defun get-package-readtable-options (package-name)
+  (gethash package-name *package-readtables*))
 
 (defun string-reader (stream char)
   (let ((*stream* stream)
@@ -32,18 +51,16 @@
         (inner-reader nil nil nil nil)
       (read-char*))))
 
-(defreadtable package-readtable
-  (:merge :standard)
+(defreadtable (cl21-readtable :cl21)
   (:macro-char #\" #'string-reader))
 
+(defreadtable cl21-standard-syntax
+  (:merge :standard)
+  (:fuze cl21-readtable))
+
 (defun enable-cl21-syntax ()
-  (handler-bind ((reader-macro-conflict
-                   (lambda (condition)
-                     (let ((continue (find-restart 'continue condition)))
-                       (when continue
-                         (invoke-restart continue))))))
-    (in-readtable package-readtable)
-    (values)))
+  (in-readtable cl21-standard-syntax)
+  (values))
 
 (defun disable-cl21-syntax ()
   (in-readtable nil)
