@@ -2,13 +2,16 @@
 (defpackage cl21.core.package
   (:use :cl)
   (:shadow :in-package
+           :use-package
            :defpackage)
+  (:import-from :cl21.core.readtable
+                :get-package-readtable-options)
   (:import-from :named-readtables
                 :defreadtable
                 :find-readtable
                 :in-readtable)
-  (:import-from :cl21.core.readtable
-                :get-package-readtable-options)
+  (:import-from :alexandria
+                :ensure-list)
   (:export :package
            :export
            :find-symbol
@@ -51,7 +54,11 @@
        (cl:defpackage ,name ,@options)
      ,@(if (member :use options :key #'car)
            `((setf (gethash ,(intern (string name) :keyword) *package-use*)
-                   (cdr (assoc :use ',options))))
+                   ',(loop for use in (cdr (assoc :use options))
+                           when (keywordp use)
+                             collect use
+                           else
+                             collect (intern (string use) :keyword))))
            nil)))
 
 (defmacro in-package (name)
@@ -68,3 +75,20 @@
                      ,@readtable-options)
                    (in-readtable ,name))
                 '(in-readtable nil))))))
+
+(defmacro use-package (packages-to-use &optional (package *package*))
+  `(prog1
+       (cl:use-package ,packages-to-use ,package)
+     (setf (gethash ,(intern (package-name package) :keyword) *package-use*)
+           (append
+            ',(loop for use in (ensure-list packages-to-use)
+                    when (keywordp use)
+                      collect use
+                    else
+                      collect (intern (symbol-name use) :keyword))
+            (gethash ,(intern (package-name package) :keyword) *package-use*)))
+     (defreadtable ,(intern (package-name package))
+       (:merge :current)
+       ,@(loop for use in (ensure-list packages-to-use)
+               append (get-package-readtable-options use)))
+     (in-readtable ,(intern (package-name package)))))
