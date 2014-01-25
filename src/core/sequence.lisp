@@ -126,7 +126,7 @@
 (defmacro pushnew (value place &rest keys)
   `(typecase ,place
      (vector (or (find ,value ,place ,@keys)
-                 (vector-push-extend ,place ,value)))
+                 (vector-push-extend ,value ,place)))
      (T (cl:pushnew ,value ,place ,@keys))))
 
 (defmacro pop (place)
