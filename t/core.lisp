@@ -4,7 +4,7 @@
         :cl-test-more))
 (in-package :cl21-test.core)
 
-(plan 25)
+(plan 26)
 
 (is (coerce "10" 'integer) 10
     "String -> Integer")
@@ -71,5 +71,13 @@
             (princ "${i} - ${j}\n"))
           "1 - 2\n3 - 4\n"
           "doeach (vector) with destructuring-binding")
+
+(let ((hash (make-hash-table :test 'eq)))
+  (setf (getf hash :name) "Eitarow Fukamachi")
+
+  (is-print (doeach ((key val) hash)
+              (princ "${key}: ${val}\n"))
+            "NAME: Eitarow Fukamachi\n"
+            "doeach (hash-table)"))
 
 (finalize)

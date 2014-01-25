@@ -352,19 +352,28 @@
             (while (setf ,varsym ,expression)
               ,@body))))))
 
-(defmacro doeach ((varsym seq) &body body)
+(defmacro doeach ((varsym object) &body body)
   (labels ((replace-underscore (sym)
              (if (string= sym :_) nil sym))
            (var-list (varsym)
              (if (listp varsym)
                  (mapcar #'replace-underscore varsym)
                  (replace-underscore varsym))))
-    (once-only (seq)
-      `(etypecase ,seq
-         (list (loop for ,(var-list varsym) in ,seq
+    (once-only (object)
+      `(etypecase ,object
+         (list (loop for ,(var-list varsym) in ,object
                      do (progn ,@body)))
-         (sequence (loop for ,(var-list varsym) across ,seq
-                         do (progn ,@body)))))))
+         (sequence (loop for ,(var-list varsym) across ,object
+                         do (progn ,@body)))
+         (hash-table
+          ,(if (and (listp varsym)
+                    (null (cddr varsym)))
+               (let ((vars (var-list varsym)))
+                 `(loop for ,(car vars) being each hash-key of ,object
+                        using (hash-value ,(cadr vars))
+                        do (progn ,@body)))
+               `(error "~A can't be destructured against the key/value pairs of a hash-table."
+                       ',varsym)))))))
 
 (defgeneric equalp (x y)
   (:method (x y)
