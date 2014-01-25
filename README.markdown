@@ -101,6 +101,7 @@ This is an experimental project redesigning Common Lisp.
 
 ## Features
 
+* Can completely cooperate with existing Common Lisp applications/libraries.
 * More object oriented.
 * Add more functional programming facilities.
 * Organize symbols into several packages.
@@ -112,6 +113,12 @@ This is an experimental project redesigning Common Lisp.
 * Threads.
 * POSIX.
 * Functions to run shell commands.
+
+## Requirements
+
+CL21 is written in pure Common Lisp and intended to run on a Common Lisp implementation.
+
+It is tested on the latest version of SBCL, Clozure CL, GNU CLISP and Allegro CL.
 
 ## Installation
 
