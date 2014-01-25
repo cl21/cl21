@@ -6,8 +6,8 @@
     (cl:unless package
       (cl:error "Package \"~A\" doesn't exist." package-name))
     (cl:do-external-symbols (symbol package)
-      (cl:shadowing-import symbol)
-      (cl:export symbol))))
+      (cl:shadowing-import (cl:list symbol))
+      (cl:export (cl:list symbol)))))
 
 (cl:in-package :cl-user)
 (defpackage cl21-user
