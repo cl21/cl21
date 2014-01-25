@@ -337,17 +337,34 @@
      ,@body))
 
 (defmacro while-let ((varsym expression) &body body)
-  `(let (,varsym)
-     (while (setf ,varsym ,expression)
-       ,@body)))
+  (let ((unbound '#:unbound))
+    (cond
+      ((listp varsym)
+       `(while (destructuring-bind (&optional (,(car varsym) ',unbound) ,@(cdr varsym))
+                   ,expression
+                 (declare (ignore ,@(loop for sym in varsym
+                                          when (string= sym :_)
+                                            collect sym)))
+                 (if (eq ,(car varsym) ',unbound)
+                     nil
+                     (progn ,@body T)))))
+      (T `(let (,varsym)
+            (while (setf ,varsym ,expression)
+              ,@body))))))
 
 (defmacro doeach ((varsym seq) &body body)
-  (once-only (seq)
-    `(etypecase ,seq
-       (list (loop for ,varsym in ,seq
-                   do (progn ,@body)))
-       (sequence (loop for ,varsym across ,seq
-                       do (progn ,@body))))))
+  (labels ((replace-underscore (sym)
+             (if (string= sym :_) nil sym))
+           (var-list (varsym)
+             (if (listp varsym)
+                 (mapcar #'replace-underscore varsym)
+                 (replace-underscore varsym))))
+    (once-only (seq)
+      `(etypecase ,seq
+         (list (loop for ,(var-list varsym) in ,seq
+                     do (progn ,@body)))
+         (sequence (loop for ,(var-list varsym) across ,seq
+                         do (progn ,@body)))))))
 
 (defgeneric equalp (x y)
   (:method (x y)
