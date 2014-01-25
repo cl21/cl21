@@ -5,6 +5,7 @@ This is an experimental project redesigning Common Lisp.
 ## Usage
 
 ```common-lisp
+(in-package :cl21-user)
 (defpackage myapp
   (:use :cl21))
 (in-package :myapp)

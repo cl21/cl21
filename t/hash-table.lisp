@@ -1,4 +1,4 @@
-(in-package :cl-user)
+(in-package :cl21-user)
 (defpackage cl21-test.hash-table
   (:use :cl21
         :cl-test-more))

@@ -1,10 +1,10 @@
-(in-package :cl-user)
+(in-package :cl21-user)
 (defpackage cl21-test.core
   (:use :cl21
         :cl-test-more))
 (in-package :cl21-test.core)
 
-(plan 21)
+(plan 25)
 
 (is (coerce "10" 'integer) 10
     "String -> Integer")
@@ -52,5 +52,24 @@
     "List -> List")
 (is (coerce #(1 2 3) 'vector) #(1 2 3) :test #'equalp
     "Vector -> Vector")
+
+(is (collecting
+      (doeach (i '(1 2 3 4 5))
+        (collect (* i 10))))
+    '(10 20 30 40 50)
+    "doeach (list)")
+(is-print (doeach ((i j) '((1 2) (3 4)))
+            (princ "${i} - ${j}\n"))
+          "1 - 2\n3 - 4\n"
+          "doeach (list) with destructuring-binding")
+(is (collecting
+      (doeach (i #(1 2 3 4 5))
+        (collect (* i 10))))
+    '(10 20 30 40 50)
+    "doeach (vector)")
+(is-print (doeach ((i j) #((1 2) (3 4)))
+            (princ "${i} - ${j}\n"))
+          "1 - 2\n3 - 4\n"
+          "doeach (vector) with destructuring-binding")
 
 (finalize)
