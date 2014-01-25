@@ -16,8 +16,11 @@
   :components ((:module "t"
                 :components
                 ((:test-file "cl21")
+                 (:test-file "core")
                  (:test-file "hash-table")
-                 (:test-file "vector"))))
+                 (:test-file "vector")
+                 (:test-file "readtable")
+                 (:test-file "re"))))
 
   :defsystem-depends-on (:cl-test-more)
   :perform (test-op :after (op c)
