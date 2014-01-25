@@ -344,8 +344,8 @@
 (defmacro doeach ((varsym seq) &body body)
   (once-only (seq)
     `(etypecase ,seq
-       (list (dolist (,varsym ,seq)
-               ,@body))
+       (list (loop for ,varsym in ,seq
+                   do (progn ,@body)))
        (sequence (loop for ,varsym across ,seq
                        do (progn ,@body))))))
 
