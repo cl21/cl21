@@ -4,7 +4,7 @@
         :cl-test-more))
 (in-package :cl21-test.hash-table)
 
-(plan 4)
+(plan 5)
 
 (defparameter *hash* (make-hash-table))
 
@@ -19,7 +19,10 @@
 (is (getf *hash* :name)
     "Eitarow Fukamachi")
 
-(is (coerce *hash* 'plist)
-    '(:LIVING "Japan" :NAME "Eitarow Fukamachi"))
+(let ((plist (coerce *hash* 'plist)))
+  (is (getf plist :living)
+      "Japan")
+  (is (getf plist :name)
+      "Eitarow Fukamachi"))
 
 (finalize)
