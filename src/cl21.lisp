@@ -10,5 +10,6 @@
       (cl:export (cl:list symbol)))))
 
 (cl:in-package :cl-user)
-(defpackage cl21-user
+(cl21::defpackage cl21-user
   (:use :cl21))
+(cl21::in-package :cl21-user)
