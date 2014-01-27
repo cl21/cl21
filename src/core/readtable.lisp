@@ -18,7 +18,9 @@
   (:export :enable-cl21-syntax
            :disable-cl21-syntax
            :defreadtable
-           :in-readtable))
+           :in-readtable
+           :_
+           :_...))
 (in-package :cl21.core.readtable)
 
 (defvar *package-readtables* (make-hash-table :test 'eq))
@@ -51,8 +53,46 @@
         (inner-reader nil nil nil nil)
       (read-char*))))
 
+(eval-when (:load-toplevel :compile-toplevel :execute)
+  (defun maptree (fn tree)
+    (if (atom tree)
+        (funcall fn tree)
+        (mapcar #'(lambda (x)
+                    (maptree fn x)) tree))))
+
+;; This PAPPLY macro and sharp-quote (#') reader macro are inspired by chiku's PAPPLY.
+;; https://github.com/chiku-samugari/papply
+(defmacro papply (&rest op-and-args)
+  (let* ((lambda-list (list))
+         (expr (maptree (lambda (elem)
+                          (cond
+                            ((eq elem '_) (let ((gensym (gensym "PARAM")))
+                                            (push gensym lambda-list)
+                                            gensym))
+                            ((eq elem '_...) (let ((gensym (gensym "PARAM")))
+                                               (push 'cl:&rest lambda-list)
+                                               (push gensym lambda-list)
+                                               gensym))
+                            (T elem)))
+                        op-and-args)))
+    `(lambda ,(nreverse lambda-list)
+       ,@expr)))
+
+(defun |#'-reader| (stream sub-char narg)
+  (declare (ignore sub-char narg))
+  (let ((expr (read stream t nil t)))
+    (if (and (consp expr)
+             (symbolp (car expr))
+             (not (member (car expr)
+                          '(cl:lambda
+                            #+sbcl sb-int:named-lambda))))
+        `(papply ,expr)
+        `(function ,expr))))
+
 (defreadtable (cl21-readtable :cl21)
-  (:macro-char #\" #'string-reader))
+  (:merge :standard)
+  (:macro-char #\" #'string-reader)
+  (:dispatch-macro-char #\# #\' (function |#'-reader|)))
 
 (defreadtable cl21-standard-syntax
   (:merge :standard)

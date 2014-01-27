@@ -79,6 +79,12 @@ This is an experimental project redesigning Common Lisp.
 
 
 ;;
+;; Anonymous Function
+
+(mapcar #'(list (1+ _)) '(1 2 3))
+;=> ((2) (3) (4))
+
+;;
 ;; Regular Expression
 
 (use-package :cl21.re)
