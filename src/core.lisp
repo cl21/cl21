@@ -238,6 +238,7 @@
    :compile-file
    :compile-file-pathname
    :load
+   :require  ;; Though this is deprecated, commonly used without cl: prefix.
    :with-compilation-unit
    :*features*
    :*compile-file-pathname*

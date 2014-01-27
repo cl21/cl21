@@ -4,7 +4,7 @@
         :cl-test-more))
 (in-package :cl21-test)
 
-(plan 962)
+(plan 963)
 
 (defvar *ignore-symbols*
   '(prog2
@@ -20,7 +20,6 @@
     count-if-not
     gentemp
     provide
-    require
     set
     *modules*))
 

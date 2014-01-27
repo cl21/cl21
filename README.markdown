@@ -273,11 +273,11 @@ All external symbols of Closer MOP.
 * count-if-not
 * gentemp
 * provide
-* require
 * set
 * \*modules\*
 
 ## Deprecated Symbols
+* require
 * elt (Use new `nth`)
 * concatenate (Use `concat`)
 * dolist (Use `doeach`)
