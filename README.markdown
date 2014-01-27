@@ -189,6 +189,7 @@ CL21 is continuously released at 1:00 JST (= 16:00 UTC). You can update to the H
 * remove-from-plist
 * delete-from-plist
 * ensure-list
+* flatten
 * filter (Same as `remove-if-not`)
 * cons-last (Same as `cl:last`)
 * list-nth (Same as `cl:nth`)

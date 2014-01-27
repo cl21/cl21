@@ -5,7 +5,8 @@
                 :iota
                 :remove-from-plist
                 :delete-from-plist
-                :ensure-list)
+                :ensure-list
+                :flatten)
   (:export :list
            :null
            :cons
@@ -101,6 +102,7 @@
            :remove-from-plist
            :delete-from-plist
            :ensure-list
+           :flatten
 
            :cons-last
            :list-nth
