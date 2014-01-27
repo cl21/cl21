@@ -9,7 +9,6 @@
                 :if-let
                 :when-let
                 :xor
-                :destructuring-case
                 :unwind-protect-case
                 :compose
                 :curry
@@ -148,7 +147,6 @@
    :if-let
    :when-let
    :xor
-   :destructuring-case
    :unwind-protect-case
    :with-slots
    :with-accessors

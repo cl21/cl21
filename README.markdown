@@ -151,7 +151,6 @@ CL21 is continuously released at 1:00 JST (= 16:00 UTC). You can update to the H
 * if-let
 * when-let
 * xor
-* destructuring-case
 * unwind-protect-case
 
 ### Iteration
