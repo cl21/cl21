@@ -8,6 +8,8 @@
   (:import-from :cl-ppcre
                 :create-scanner
                 :scan-to-strings)
+  (:import-from :alexandria
+                :remove-from-plist)
   (:export :re-match
            :re-replace
            :re-split
@@ -17,18 +19,31 @@
 
 (defun re-match (re string &rest keys &key start end)
   (declare (ignore start end))
-  (apply re string keys))
+  (etypecase re
+    (function
+     (apply re string keys))
+    (string (apply #'ppcre:scan-to-strings re string keys))))
 
-(defun re-replace (re string replacement &rest keys &key start end)
+(defun re-replace (re string replacement &rest keys &key start end global)
   (declare (ignore start end))
-  (multiple-value-bind (scanner modifiers) (funcall re)
-    (if (find #\G modifiers)
-        (apply #'ppcre:regex-replace-all scanner string replacement keys)
-        (apply #'ppcre:regex-replace scanner string replacement keys))))
+  (setf keys
+        (remove-from-plist keys :global))
+  (etypecase re
+    (function
+     (multiple-value-bind (scanner modifiers) (funcall re)
+       (if (or (find #\G modifiers) global)
+           (apply #'ppcre:regex-replace-all scanner string replacement keys)
+           (apply #'ppcre:regex-replace scanner string replacement keys))))
+    (string (apply (if global
+                       #'ppcre:regex-replace-all
+                       #'ppcre:regex-replace)
+                   re string replacement keys))))
 
 (defun re-split (re target-string &rest keys &key start end limit)
   (declare (ignore start end limit))
-  (apply #'ppcre:split (funcall re) target-string keys))
+  (apply #'ppcre:split (etypecase re
+                         (function (funcall re))
+                         (string re)) target-string keys))
 
 (defun whitespacep (char)
   (member char '(#\Space #\Tab #\Newline #\Return #\Linefeed) :test #'char=))
