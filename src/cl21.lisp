@@ -13,3 +13,12 @@
 (cl21::defpackage cl21-user
   (:use :cl21))
 (cl21::in-package :cl21-user)
+
+#+(or sbcl ccl clisp allegro ecl)
+(cl:do-external-symbols (symb
+                         #+sbcl    :sb-ext
+                         #+ccl     :ccl
+                         #+clisp   :ext
+                         #+allegro :excl
+                         #+ecl     :quit)
+  (cl:shadowing-import (cl:list symb)))
