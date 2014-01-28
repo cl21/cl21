@@ -4,7 +4,7 @@
         :cl-test-more))
 (in-package :cl21-test.core)
 
-(plan 31)
+(plan 32)
 
 (is (coerce "10" 'integer) 10
     "String -> Integer")
@@ -85,6 +85,10 @@
 (is-print (doeach ((i j) '((1 2) (3 4)))
             (princ "${i} - ${j}\n"))
           "1 - 2\n3 - 4\n"
+          "doeach (list) with destructuring-binding")
+(is-print (doeach ((i j &rest k) '((1 2 3) (3 4 5)))
+            (princ "${i} - ${j} - ${k}\n"))
+          "1 - 2 - (3)\n3 - 4 - (5)\n"
           "doeach (list) with destructuring-binding")
 (is (collecting
       (doeach (i #(1 2 3 4 5))

@@ -364,25 +364,30 @@
               ,@body))))))
 
 (defmacro doeach ((varsym object) &body body)
-  (labels ((replace-underscore (sym)
-             (if (string= sym :_) nil sym))
-           (var-list (varsym)
-             (if (listp varsym)
-                 (mapcar #'replace-underscore varsym)
-                 (replace-underscore varsym))))
+  (let ((elem (gensym "ELEM")))
     (once-only (object)
       `(etypecase ,object
-         (list (loop for ,(var-list varsym) in ,object
-                     do (progn ,@body)))
-         (sequence (loop for ,(var-list varsym) across ,object
-                         do (progn ,@body)))
+         (list ,(if (listp varsym)
+                    `(dolist (,elem ,object)
+                       (destructuring-bind ,varsym ,elem
+                         ,@body))
+                    `(dolist (,varsym ,object)
+                       ,@body)))
+         (sequence
+          (map nil
+               ,(if (listp varsym)
+                    `(lambda (,elem)
+                       (destructuring-bind ,varsym ,elem
+                         ,@body))
+                    `(lambda (,varsym)
+                       ,@body))
+               ,object))
          (hash-table
           ,(if (and (listp varsym)
                     (null (cddr varsym)))
-               (let ((vars (var-list varsym)))
-                 `(loop for ,(car vars) being each hash-key of ,object
-                        using (hash-value ,(cadr vars))
-                        do (progn ,@body)))
+               `(maphash (lambda ,varsym
+                           ,@body)
+                         ,object)
                `(error "~A can't be destructured against the key/value pairs of a hash-table."
                        ',varsym)))))))
 
