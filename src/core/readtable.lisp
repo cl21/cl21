@@ -1,6 +1,8 @@
 (in-package :cl-user)
 (defpackage cl21.core.readtable
   (:use :cl)
+  (:import-from :cl21.core.sequence
+                :maptree)
   (:import-from :cl-interpol
                 :*stream*
                 :*start-char*
@@ -52,13 +54,6 @@
     (prog1
         (inner-reader nil nil nil nil)
       (read-char*))))
-
-(eval-when (:load-toplevel :compile-toplevel :execute)
-  (defun maptree (fn tree)
-    (if (atom tree)
-        (funcall fn tree)
-        (mapcar #'(lambda (x)
-                    (maptree fn x)) tree))))
 
 ;; This PAPPLY macro and sharp-quote (#') reader macro are inspired by chiku's PAPPLY.
 ;; https://github.com/chiku-samugari/papply

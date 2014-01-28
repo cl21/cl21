@@ -81,7 +81,9 @@
 
            :push
            :pushnew
-           :pop))
+           :pop
+
+           :maptree))
 (in-package :cl21.core.sequence)
 
 (defun nth (n seq)
@@ -133,3 +135,9 @@
   `(typecase ,place
      (vector (cl:vector-pop ,place))
      (T (cl:pop ,place))))
+
+(defun maptree (fn tree)
+  (if (atom tree)
+      (funcall fn tree)
+      (mapcar #'(lambda (x)
+                  (maptree fn x)) tree)))
