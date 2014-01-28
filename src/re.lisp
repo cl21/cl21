@@ -45,6 +45,7 @@
                          (function (funcall re))
                          (string re)) target-string keys))
 
+#-ccl
 (defun whitespacep (char)
   (member char '(#\Space #\Tab #\Newline #\Return #\Linefeed) :test #'char=))
 
@@ -61,7 +62,8 @@
 (defun modifier-reader (stream)
   (let ((char (read-char stream nil)))
     (unread-char char stream)
-    (unless (whitespacep char)
+    (unless (#+ccl ccl:whitespacep
+             #-ccl whitespacep char)
       (read-preserving-whitespace stream))))
 
 (defun regex-with-modifier (regex modifier)
