@@ -3,7 +3,8 @@
   (:use :cl)
   (:shadow :equalp
            :coerce
-           :getf)
+           :getf
+           :destructuring-bind)
   (:import-from :alexandria
                 :once-only
                 :if-let
@@ -324,6 +325,19 @@
       (cl:shadowing-import symbol)
       (cl:export symbol))))
 
+(defmacro destructuring-bind (lambda-list expression &body body)
+  (let* (gensym-list
+         (new-lambda-list (maptree (lambda (elem)
+                            (cond
+                              ((eq elem nil) (let ((gensym (gensym "NIL")))
+                                             (push gensym gensym-list)
+                                             gensym))
+                              (T elem)))
+                          lambda-list)))
+    `(cl:destructuring-bind ,new-lambda-list ,expression
+       (declare (ignore ,@gensym-list))
+       ,@body)))
+
 (defmacro until (expression &body body)
   "Executes `body` until `expression` is true."
   `(do ()
@@ -336,17 +350,15 @@
      ,@body))
 
 (defmacro while-let ((varsym expression) &body body)
-  (let ((unbound '#:unbound))
+  (let ((result (gensym "RESULT")))
     (cond
       ((listp varsym)
-       `(while (destructuring-bind (&optional (,(car varsym) ',unbound) ,@(cdr varsym))
-                   ,expression
-                 (declare (ignore ,@(loop for sym in varsym
-                                          when (string= sym :_)
-                                            collect sym)))
-                 (if (eq ,(car varsym) ',unbound)
-                     nil
-                     (progn ,@body T)))))
+       `(while (let ((,result ,expression))
+                 (if ,result
+                     (destructuring-bind ,varsym ,result
+                       ,@body
+                       T)
+                     nil))))
       (T `(let (,varsym)
             (while (setf ,varsym ,expression)
               ,@body))))))

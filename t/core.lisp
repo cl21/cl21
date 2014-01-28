@@ -4,7 +4,7 @@
         :cl-test-more))
 (in-package :cl21-test.core)
 
-(plan 26)
+(plan 31)
 
 (is (coerce "10" 'integer) 10
     "String -> Integer")
@@ -52,6 +52,30 @@
     "List -> List")
 (is (coerce #(1 2 3) 'vector) #(1 2 3) :test #'equalp
     "Vector -> Vector")
+
+(is-print (destructuring-bind (a &optional b &rest c) '(1 (2 3) 4)
+            (princ "A: ${a}, B: ${b}, C: ${c}"))
+          "A: 1, B: (2 3), C: (4)"
+          "destructuring-bind")
+(is-print (destructuring-bind (a (b c) &optional d) '(1 (2 3) 4)
+            (princ "A: ${a}, B: ${b}, C: ${c}, D: ${d}"))
+          "A: 1, B: 2, C: 3, D: 4"
+          "destructuring-bind")
+(is-print (destructuring-bind (a (b nil c) &optional d) '(1 (2 3 100) 4)
+            (princ "A: ${a}, B: ${b}, C: ${c}, D: ${d}"))
+          "A: 1, B: 2, C: 100, D: 4"
+          "destructuring-bind")
+
+(is-print (let ((list '(1 2 3)))
+            (while-let (a (pop list))
+              (princ a)))
+          "123"
+          "while-let")
+(is-print (let ((list '((1 a) (2 b) (3 c))))
+            (while-let ((nil a) (pop list))
+              (princ a)))
+          "ABC"
+          "while-let")
 
 (is (collecting
       (doeach (i '(1 2 3 4 5))
