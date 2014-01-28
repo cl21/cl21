@@ -2,7 +2,13 @@
 (defpackage cl21.core.stream
   (:use :cl)
   (:import-from :alexandria
-                :copy-stream)
+                :copy-stream
+                :with-input-from-file
+                :with-output-to-file
+                :read-file-into-string
+                :write-string-into-file
+                :read-file-into-byte-vector
+                :write-byte-vector-into-file)
   (:export :make-null-input-stream
            :make-null-output-stream
            :make-null-stream
@@ -78,7 +84,13 @@
            :stream-error-stream
            :end-of-file
 
-           :copy-stream))
+           :copy-stream
+           :with-input-from-file
+           :with-output-to-file
+           :read-file-into-string
+           :write-string-into-file
+           :read-file-into-byte-vector
+           :write-byte-vector-into-file))
 (in-package :cl21.core.stream)
 
 (defun make-null-input-stream ()
