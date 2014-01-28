@@ -350,18 +350,9 @@
      ,@body))
 
 (defmacro while-let ((varsym expression) &body body)
-  (let ((result (gensym "RESULT")))
-    (cond
-      ((listp varsym)
-       `(while (let ((,result ,expression))
-                 (if ,result
-                     (destructuring-bind ,varsym ,result
-                       ,@body
-                       T)
-                     nil))))
-      (T `(let (,varsym)
-            (while (setf ,varsym ,expression)
-              ,@body))))))
+  `(let (,varsym)
+     (while (setf ,varsym ,expression)
+       ,@body)))
 
 (defmacro doeach ((varsym object) &body body)
   (let ((elem (gensym "ELEM")))

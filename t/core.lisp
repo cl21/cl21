@@ -4,7 +4,7 @@
         :cl-test-more))
 (in-package :cl21-test.core)
 
-(plan 32)
+(plan 31)
 
 (is (coerce "10" 'integer) 10
     "String -> Integer")
@@ -70,11 +70,6 @@
             (while-let (a (pop list))
               (princ a)))
           "123"
-          "while-let")
-(is-print (let ((list '((1 a) (2 b) (3 c))))
-            (while-let ((nil a) (pop list))
-              (princ a)))
-          "ABC"
           "while-let")
 
 (is (collecting
