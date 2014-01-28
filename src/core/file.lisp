@@ -26,6 +26,8 @@
            :translate-pathname
            :merge-pathnames
 
+           ;; I think these symbols should be out of the core package.
+           ;; These are here only because COMMON-LISP has these.
            :directory
            :probe-file
            :ensure-directories-exist
