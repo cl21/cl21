@@ -5,6 +5,8 @@
            :coerce
            :getf
            :destructuring-bind)
+  (:import-from :cl21.core.sequence
+                :maptree)
   (:import-from :alexandria
                 :once-only
                 :if-let
