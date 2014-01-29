@@ -137,7 +137,11 @@
      (T (cl:pop ,place))))
 
 (defun maptree (fn tree)
-  (if (atom tree)
-      (funcall fn tree)
-      (mapcar #'(lambda (x)
-                  (maptree fn x)) tree)))
+  (cond
+    ((atom tree)
+     (funcall fn tree))
+    ((null (cdr tree))
+     (list (maptree fn (car tree))))
+    (T
+     (cons (maptree fn (car tree))
+           (maptree fn (cdr tree))))))

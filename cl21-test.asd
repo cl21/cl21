@@ -19,6 +19,7 @@
                  (:test-file "core")
                  (:test-file "hash-table")
                  (:test-file "vector")
+                 (:test-file "sequence")
                  (:test-file "readtable")
                  (:test-file "re"))))
 
