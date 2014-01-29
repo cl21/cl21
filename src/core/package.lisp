@@ -50,31 +50,33 @@
 (defvar *package-use* (make-hash-table :test 'eq))
 
 (defmacro defpackage (name &rest options)
-  `(prog1
-       (cl:defpackage ,name ,@options)
-     ,@(if (member :use options :key #'car)
-           `((setf (gethash ,(intern (string name) :keyword) *package-use*)
-                   ',(loop for use in (cdr (assoc :use options))
-                           when (keywordp use)
-                             collect use
-                           else
-                             collect (intern (string use) :keyword))))
-           nil)))
+  `(eval-when (:execute :load-toplevel :compile-toplevel)
+     (prog1
+         (cl:defpackage ,name ,@options)
+       ,@(if (member :use options :key #'car)
+             `((setf (gethash ,(intern (string name) :keyword) *package-use*)
+                     ',(loop for use in (cdr (assoc :use options))
+                             when (keywordp use)
+                               collect use
+                             else
+                               collect (intern (string use) :keyword))))
+             nil))))
 
 (defmacro in-package (name)
-  `(prog1
-       (cl:in-package ,name)
-     (if (find-readtable ',name)
-         (in-readtable ,name)
-         ,(let ((readtable-options (loop for use in (gethash (intern (string name) :keyword) *package-use*)
-                                         append (get-package-readtable-options use))))
-            (if readtable-options
-                `(progn
-                   (defreadtable ,name
-                     (:merge :standard)
-                     ,@readtable-options)
-                   (in-readtable ,name))
-                '(in-readtable nil))))))
+  `(eval-when (:execute :load-toplevel :compile-toplevel)
+     (prog1
+         (cl:in-package ,name)
+       (if (find-readtable ',name)
+           (in-readtable ,name)
+           ,(let ((readtable-options (loop for use in (gethash (intern (string name) :keyword) *package-use*)
+                                           append (get-package-readtable-options use))))
+              (if readtable-options
+                  `(progn
+                     (defreadtable ,name
+                       (:merge :standard)
+                       ,@readtable-options)
+                     (in-readtable ,name))
+                  '(in-readtable nil)))))))
 
 (defmacro use-package (packages-to-use &optional (package *package*))
   `(prog1
