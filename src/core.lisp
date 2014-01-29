@@ -329,12 +329,12 @@
 (defmacro destructuring-bind (lambda-list expression &body body)
   (let* (gensym-list
          (new-lambda-list (maptree (lambda (elem)
-                            (cond
-                              ((eq elem nil) (let ((gensym (gensym "NIL")))
-                                             (push gensym gensym-list)
-                                             gensym))
-                              (T elem)))
-                          lambda-list)))
+                                     (cond
+                                       ((eq elem nil) (let ((gensym (gensym "NIL")))
+                                                      (push gensym gensym-list)
+                                                      gensym))
+                                       (T elem)))
+                                   lambda-list)))
     `(cl:destructuring-bind ,new-lambda-list ,expression
        (declare (ignore ,@gensym-list))
        ,@body)))
