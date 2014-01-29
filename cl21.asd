@@ -50,7 +50,6 @@
                    (:file "hash-table")
                    (:file "file")
                    (:file "stream")
-                   (:file "io")
                    (:file "repl")
                    (:file "readtable" :depends-on ("sequence"))))
                  (:file "re" :depends-on ("core")))))

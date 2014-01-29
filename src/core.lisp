@@ -315,7 +315,6 @@
                            :cl21.core.hash-table
                            :cl21.core.file
                            :cl21.core.stream
-                           :cl21.core.io
                            :cl21.core.repl
                            :cl21.core.readtable))
   (cl:let ((package (cl:find-package package-name)))
