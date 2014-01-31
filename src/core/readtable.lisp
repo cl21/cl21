@@ -3,6 +3,9 @@
   (:use :cl)
   (:import-from :cl21.core.sequence
                 :maptree)
+  (:shadowing-import-from :cl21.core.package
+                          :*package-readtables*
+                          :find-package)
   (:import-from :cl-interpol
                 :*stream*
                 :*start-char*
@@ -14,9 +17,11 @@
                 :inner-reader
                 :read-char*)
   (:import-from :named-readtables
-                :in-readtable)
+                :in-readtable
+                :find-readtable)
   (:import-from :alexandria
-                :ensure-list)
+                :ensure-list
+                :if-let)
   (:export :enable-cl21-syntax
            :disable-cl21-syntax
            :defreadtable
@@ -24,8 +29,6 @@
            :_
            :_...))
 (in-package :cl21.core.readtable)
-
-(defvar *package-readtables* (make-hash-table :test 'eq))
 
 (defmacro defreadtable (name-and-package &rest options)
   (destructuring-bind (name &optional package) (ensure-list name-and-package)
@@ -39,9 +42,6 @@
                                          (keywordp (cadr option))))
                                   options)))
              nil))))
-
-(defun get-package-readtable-options (package-name)
-  (gethash package-name *package-readtables*))
 
 (defun string-reader (stream char)
   (let ((*stream* stream)
@@ -84,17 +84,73 @@
         `(papply ,expr)
         `(function ,expr))))
 
-(defreadtable (cl21-readtable :cl21)
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (defun read-token (stream)
+    (labels ((whitespacep (char)
+               (member char '(#\Space #\Tab #\Newline #\Return #\Linefeed)))
+             (special-char-p (char)
+               (let ((macro-fn (get-macro-character char))
+                     (*readtable* (find-readtable 'cl21-standard-syntax)))
+                 (and macro-fn
+                      (find-if (lambda (c)
+                                 (eq (get-macro-character c)
+                                     macro-fn))
+                               '(#\) #\( #\" #\' #\` #\,)))))
+             (last-char-p (char)
+               (or (whitespacep char)
+                   (special-char-p char))))
+      (with-output-to-string (s)
+        (loop for char = (peek-char nil stream nil nil)
+              while (and (not (null char))
+                         (last-char-p char))
+              do (write-char (read-char stream) s))
+        (loop for char = (peek-char nil stream nil nil)
+              until (or (null char)
+                        (last-char-p char))
+              do (write-char (read-char stream) s)))))
+
+  (defun read-symbol (stream char)
+    (unread-char char stream)
+    (let* ((token (read-token stream))
+           (pos (position #\: token))
+           (*readtable* (copy-readtable nil)))
+      (if-let (package (and pos
+                            (not (zerop pos))
+                            (find-package (intern (string-upcase (subseq token 0 pos))
+                                                  :keyword))))
+        (values (read-from-string (concatenate 'string
+                                               (package-name package)
+                                               (subseq token pos))))
+        (values (read-from-string token)))))
+
+  (defun sharp-colon (stream subchar numarg)
+    (declare (ignore numarg))
+    (let ((*readtable* (copy-readtable nil))
+          (token (read-token stream)))
+      (values (read-from-string (concatenate 'string "#" (string subchar)
+                                             token))))))
+
+(defreadtable (cl21-standard-syntax :cl21)
   (:merge :standard)
+  (:dispatch-macro-char #\# #\: #'sharp-colon)
   (:macro-char #\" #'string-reader)
   (:dispatch-macro-char #\# #\' (function |#'-reader|)))
 
-(defreadtable cl21-standard-syntax
-  (:merge :standard)
-  (:fuze cl21-readtable))
+#.`(defreadtable cl21-package-local-nickname-syntax
+     ,@(map 'list
+            #'(lambda (char)
+                `(:macro-char ,char #'read-symbol))
+            ":!$%&*+-/0123456789<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_abcdefghijklmnopqrstuvwxyz"))
 
-(defun enable-cl21-syntax ()
-  (in-readtable cl21-standard-syntax)
+(defreadtable cl21-full-syntax
+  (:merge :standard)
+  (:fuze cl21-package-local-nickname-syntax)
+  (:fuze cl21-standard-syntax))
+
+(defun enable-cl21-syntax (&optional (type :standard))
+  (ecase type
+    (:standard (in-readtable cl21-standard-syntax))
+    (:full     (in-readtable cl21-full-syntax)))
   (values))
 
 (defun disable-cl21-syntax ()

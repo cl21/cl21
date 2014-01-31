@@ -36,7 +36,7 @@
                   :components
                   ((:file "types")
                    (:file "condition")
-                   (:file "package" :depends-on ("readtable"))
+                   (:file "package")
                    (:file "object")
                    (:file "structure")
                    (:file "symbol")
@@ -51,7 +51,7 @@
                    (:file "file")
                    (:file "stream")
                    (:file "repl")
-                   (:file "readtable" :depends-on ("sequence"))))
+                   (:file "readtable" :depends-on ("sequence" "package"))))
                  (:file "re" :depends-on ("core")))))
   :description "Common Lisp in the 21st Century."
   :in-order-to ((test-op (test-op cl21-test))))

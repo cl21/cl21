@@ -161,6 +161,9 @@ CL21 is continuously released at 1:00 JST (= 16:00 UTC). You can update to the H
 * with-collectors
 * collecting
 
+### Package
+* add-package-local-nickname
+
 ### Number
 * imaginary-i
 * ii
@@ -334,6 +337,9 @@ All external symbols of Closer MOP.
 * push
 * pushnew
 * pop
+* defpackage
+* in-package
+* find-package
 
 ## Setting the startup package of SLIME
 
