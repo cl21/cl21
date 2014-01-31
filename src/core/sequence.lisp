@@ -113,7 +113,7 @@
                         (:method ((seq sequence))
                           (elt seq ,n)))))
 
-(defun last (seq &optional n)
+(defun last (seq &optional (n 1))
   (etypecase seq
     (list (cl:last seq n))
     (sequence (elt seq (- (length seq) n)))))
