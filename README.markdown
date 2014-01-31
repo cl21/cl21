@@ -114,6 +114,7 @@ This is an experimental project redesigning Common Lisp.
 * Organize symbols into several packages.
 * MOP.
 * Regular expression.
+* Package local nicknames.
 
 ### Deferred List
 

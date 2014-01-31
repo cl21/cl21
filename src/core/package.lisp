@@ -52,22 +52,58 @@
 (defvar *package-use* (make-hash-table :test 'eq))
 
 (defmacro defpackage (name &rest options)
-  `(eval-when (:execute :load-toplevel :compile-toplevel)
-     (prog1
-         (cl:defpackage ,name ,@options)
-       ,@(if (member :use options :key #'car)
-             `((setf (gethash ,(intern (string name) :keyword) *package-use*)
-                     ',(loop for use in (cdr (assoc :use options))
-                             when (keywordp use)
-                               collect use
-                             else
-                               collect (intern (string use) :keyword))))
-             nil))))
+  (let* (package-local-nicknames
+         (valid-options
+           (loop for option in options
+                 if (eq (car option) :use)
+                   collect `(:use ,@(loop for use-package in (cdr option)
+                                          if (and (listp use-package)
+                                                  (string= (second use-package) :as)
+                                                  (null (nthcdr 3 use-package)))
+                                            do (push `(add-package-local-nickname
+                                                       ,(let ((nickname (third use-package)))
+                                                          (if (keywordp nickname)
+                                                              nickname
+                                                              (intern (string nickname) :keyword)))
+                                                       ,(first use-package) ',name)
+                                                     package-local-nicknames)
+                                          else
+                                            collect use-package))
+                 else
+                   collect option)))
+    `(eval-when (:execute :load-toplevel :compile-toplevel)
+       (prog1
+           (cl:defpackage ,name ,@valid-options)
+         ,@(nreverse package-local-nicknames)
+         ,@(if (member :use valid-options :key #'car)
+               `((setf (gethash ,(intern (string name) :keyword) *package-use*)
+                       ',(loop for use in (cdr (assoc :use valid-options))
+                               when (keywordp use)
+                                 collect use
+                               else
+                                 collect (intern (string use) :keyword))))
+               nil)))))
 
 (defvar *package-readtables* (make-hash-table :test 'eq))
 
 (defun get-package-readtable-options (package-name)
   (gethash package-name *package-readtables*))
+
+(defun create-readtable-for-package (name)
+  (let ((readtable-options (loop for use in (gethash (intern (string name) :keyword) *package-use*)
+                                 append (get-package-readtable-options use))))
+    (eval
+     `(progn
+        (defreadtable ,name
+          (:merge :standard)
+          ,@readtable-options)
+        (find-readtable ',name)))))
+
+(defun find-or-create-readtable-for-package (name)
+  (or (find-readtable name)
+      (progn
+        (create-readtable-for-package name)
+        (find-readtable name))))
 
 (defmacro in-package (name)
   `(eval-when (:execute :load-toplevel :compile-toplevel)
@@ -75,15 +111,9 @@
          (cl:in-package ,name)
        (if (find-readtable ',name)
            (in-readtable ,name)
-           ,(let ((readtable-options (loop for use in (gethash (intern (string name) :keyword) *package-use*)
-                                           append (get-package-readtable-options use))))
-              (if readtable-options
-                  `(progn
-                     (defreadtable ,name
-                       (:merge :standard)
-                       ,@readtable-options)
-                     (in-readtable ,name))
-                  '(in-readtable nil)))))))
+           (progn
+             (create-readtable-for-package ',name)
+             (in-readtable ,name))))))
 
 (defmacro use-package (packages-to-use &optional (package *package*))
   `(prog1
@@ -109,7 +139,7 @@
       (let ((package (cl:find-package package)))
         (symbol-macrolet ((package-nicknames (gethash package *package-local-nicknames*)))
           (and package-nicknames
-               (gethash (cl:find-package package-designator) package-nicknames))))))
+               (gethash package-designator package-nicknames))))))
 
 (defun add-package-local-nickname (nickname actual-package &optional (package-designator *package*))
   (let ((package (cl:find-package package-designator)))
@@ -128,11 +158,14 @@
       (unless package-nicknames
         (setf package-nicknames (make-hash-table :test 'eq)))
 
-      (setf (gethash (cl:find-package nickname) package-nicknames)
+      (setf (gethash nickname package-nicknames)
             (cl:find-package actual-package)))
 
-    (merge-readtables-into
-     *readtable*
-     (intern #.(string :cl21-package-local-nickname-syntax) :cl21.core.readtable))
+    ;; Inject CL21-PACKAGE-LOCAL-NICKNAME-SYNTAX into *readtable* of the package.
+    (let ((readtable (find-or-create-readtable-for-package
+                      (intern (package-name package) :keyword))))
+      (merge-readtables-into
+       readtable
+       (intern #.(string :cl21-package-local-nickname-syntax) :cl21.core.readtable)))
 
     package))
