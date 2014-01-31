@@ -4,7 +4,7 @@
         :cl-test-more))
 (in-package :cl21-test.package)
 
-(plan 6)
+(plan 13)
 
 (defpackage foo.bar.baz
   (:use :cl21)
@@ -17,16 +17,16 @@
 
 (is (foo.bar.baz:hello) "Hello!")
 
-(add-package-local-nickname :fbz :foo.bar.baz)
+(add-package-local-nickname :foo-bar-baz :foo.bar.baz)
 
 (is (foo.bar.baz:hello) "Hello!")
-(is (fbz:hello) "Hello!")
+(is (foo-bar-baz:hello) "Hello!")
 
-(cl21:defpackage test-package
+(defpackage test-package
   (:use :cl21
         (:foo.bar.baz :as :fbz))
   (:export :test-hello))
-(cl21:in-package :test-package)
+(in-package :test-package)
 
 (defun test-hello ()
   (fbz:hello))
@@ -35,6 +35,18 @@
 
 (ok (not (fboundp 'test-package::hello)))
 (ok (find-package :test-package))
+(ok (not (find-package :fbz)))
+(ok (find-package :fbz :test-package))
 (is (test-package:test-hello) "Hello!")
 
+(rename-package :test-package :test-pkg)
+(ok (not (find-package :fbz)))
+(ok (not (find-package :fbz :test-package)))
+(ok (find-package :fbz :test-pkg))
+(ok (not (find-package :fbz)))
+(is (test-pkg:test-hello) "Hello!")
+
 (finalize)
+
+(when (find-package :test-pkg)
+  (delete-package :test-pkg))

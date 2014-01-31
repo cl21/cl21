@@ -4,14 +4,20 @@
   (:shadow :in-package
            :use-package
            :defpackage
-           :find-package)
+           :find-package
+           :delete-package
+           :rename-package)
   (:import-from :named-readtables
                 :defreadtable
                 :find-readtable
+                :rename-readtable
+                :unregister-readtable
                 :in-readtable
-                :merge-readtables-into)
+                :merge-readtables-into
+                :reader-macro-conflict)
   (:import-from :alexandria
-                :ensure-list)
+                :ensure-list
+                :when-let)
   (:export :package
            :export
            :find-symbol
@@ -132,6 +138,27 @@
                append (get-package-readtable-options use)))
      (in-readtable ,(intern (package-name package)))))
 
+(defun delete-package (package-designator)
+  (let* ((package (cl:find-package package-designator))
+         (key (intern (package-name package) :keyword)))
+    (remhash key *package-readtables*)
+    (remhash package *package-local-nicknames*)
+    (cl:delete-package package)
+    (unregister-readtable key)))
+
+(defun rename-package (package-designator new-name &optional new-nicknames)
+  (let* ((package (cl:find-package package-designator))
+         (new-key (intern (string new-name) :keyword))
+         (old-key (intern (package-name package) :keyword)))
+    (prog1
+        (cl:rename-package package-designator new-name new-nicknames)
+
+      (setf (gethash new-key *package-readtables*)
+            (gethash old-key *package-readtables*))
+      (remhash old-key *package-readtables*)
+      (when (find-readtable old-key)
+        (rename-readtable old-key new-key)))))
+
 (defvar *package-local-nicknames* (make-hash-table :test 'eq))
 
 (defun find-package (package-designator &optional (package *package*))
@@ -164,8 +191,12 @@
     ;; Inject CL21-PACKAGE-LOCAL-NICKNAME-SYNTAX into *readtable* of the package.
     (let ((readtable (find-or-create-readtable-for-package
                       (intern (package-name package) :keyword))))
-      (merge-readtables-into
-       readtable
-       (intern #.(string :cl21-package-local-nickname-syntax) :cl21.core.readtable)))
+      (handler-bind ((reader-macro-conflict
+                       #'(lambda (c)
+                           (when-let (restart (find-restart 'continue c))
+                             (invoke-restart restart)))))
+        (merge-readtables-into
+         readtable
+         (intern #.(string :cl21-package-local-nickname-syntax) :cl21.core.readtable))))
 
     package))
