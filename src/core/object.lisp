@@ -1,5 +1,6 @@
 (in-package :cl-user)
 (defpackage cl21.core.object
+  (:use :cl)
   (:shadowing-import-from :c2mop
                           :class
                           :built-in-class
