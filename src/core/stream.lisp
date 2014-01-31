@@ -3,8 +3,6 @@
   (:use :cl)
   (:import-from :alexandria
                 :copy-stream
-                :with-input-from-file
-                :with-output-to-file
                 :read-file-into-string
                 :write-string-into-file
                 :read-file-into-byte-vector
@@ -85,8 +83,6 @@
            :end-of-file
 
            :copy-stream
-           :with-input-from-file
-           :with-output-to-file
            :read-file-into-string
            :write-string-into-file
            :read-file-into-byte-vector

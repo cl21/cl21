@@ -212,8 +212,6 @@ CL21 is continuously released at 1:00 JST (= 16:00 UTC). You can update to the H
 * make-null-input-stream
 * make-null-output-stream
 * copy-stream
-* with-input-from-file
-* with-output-to-file
 * read-file-into-string
 * write-string-into-file
 * read-file-into-byte-vector
