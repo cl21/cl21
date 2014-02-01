@@ -52,7 +52,7 @@
                    (:file "stream")
                    (:file "generic" :depends-on ("types"))
                    (:file "repl")
-                   (:file "readtable" :depends-on ("array" "sequence" "package" "generic"))))
+                   (:file "readtable" :depends-on ("array" "sequence" "hash-table" "package" "generic"))))
                  (:file "re" :depends-on ("core")))))
   :description "Common Lisp in the 21st Century."
   :in-order-to ((test-op (test-op cl21-test))))

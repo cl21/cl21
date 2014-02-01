@@ -8,6 +8,8 @@
                           :getf)
   (:import-from :cl21.core.sequence
                 :maptree)
+  (:import-from :cl21.core.hash-table
+                :hash-table-reader)
   (:shadowing-import-from :cl21.core.package
                           :*package-readtable-options*
                           :find-package)
@@ -182,6 +184,8 @@
   (:macro-char #\" #'string-reader)
   (:dispatch-macro-char #\# #\' (function |#'-reader|))
   (:dispatch-macro-char #\# #\( #'vector-reader)
+  (:dispatch-macro-char #\# #\{ #'hash-table-reader)
+  (:macro-char #\} (get-macro-character #\)))
   (:macro-char #\[ #'getf-reader)
   (:macro-char #\] (get-macro-character #\))))
 
