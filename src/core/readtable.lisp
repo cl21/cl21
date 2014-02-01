@@ -50,6 +50,7 @@
    :disable-cl21-syntax
    :defreadtable
    :in-readtable
+   :copy-readtable
    :_
    :_...
    :*standard-readtable*
