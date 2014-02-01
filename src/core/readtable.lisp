@@ -90,7 +90,7 @@
                (member char '(#\Space #\Tab #\Newline #\Return #\Linefeed)))
              (special-char-p (char)
                (let ((macro-fn (get-macro-character char))
-                     (*readtable* (find-readtable 'cl21-standard-syntax)))
+                     (*readtable* (find-readtable 'cl21-standard-readtable)))
                  (and macro-fn
                       (find-if (lambda (c)
                                  (eq (get-macro-character c)
@@ -130,7 +130,7 @@
       (values (read-from-string (concatenate 'string "#" (string subchar)
                                              token))))))
 
-(defreadtable (cl21-standard-syntax :cl21)
+(defreadtable (cl21-standard-readtable :cl21)
   (:merge :standard)
   (:dispatch-macro-char #\# #\: #'sharp-colon)
   (:macro-char #\" #'string-reader)
@@ -142,15 +142,15 @@
                 `(:macro-char ,char #'read-symbol))
             ":!$%&*+-/0123456789<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_abcdefghijklmnopqrstuvwxyz"))
 
-(defreadtable cl21-full-syntax
+(defreadtable cl21-full-readtable
   (:merge :standard)
   (:fuze cl21-package-local-nickname-syntax)
-  (:fuze cl21-standard-syntax))
+  (:fuze cl21-standard-readtable))
 
 (defun enable-cl21-syntax (&optional (type :standard))
   (ecase type
-    (:standard (in-readtable cl21-standard-syntax))
-    (:full     (in-readtable cl21-full-syntax)))
+    (:standard (in-readtable cl21-standard-readtable))
+    (:full     (in-readtable cl21-full-readtable)))
   (values))
 
 (defun disable-cl21-syntax ()
