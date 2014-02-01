@@ -382,6 +382,11 @@
     (if (cl:slot-boundp place key)
         (cl:slot-value place key)
         default))
+  (:method ((place list) (key integer) &optional default)
+    (let ((res (cl:nthcdr key place)))
+      (if res
+          (car res)
+          default)))
   (:method ((place list) key &optional default)
     (cl:getf place key default)))
 
@@ -390,6 +395,8 @@
     (setf (gethash key place) val))
   (:method (val (place standard-object) key)
     (setf (cl:slot-value place key) val))
+  (:method (val (place list) (key integer))
+    (setf (cl:nth key place) val))
   (:method (val (place list) key)
     (setf (cl:getf place key) val)))
 
