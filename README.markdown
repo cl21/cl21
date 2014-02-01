@@ -28,7 +28,7 @@ This is an experimental project redesigning Common Lisp.
 ;;
 ;; Hash Table
 
-(defvar *hash* (make-hash-table))
+(defvar *hash* #{})
 
 (getf *hash* :name)
 ;=> NIL
@@ -48,8 +48,7 @@ This is an experimental project redesigning Common Lisp.
 ;;
 ;; Vector
 
-(defparameter *vector*
-  (make-array 0 :adjustable t :fill-pointer 0))
+(defvar *vector* #())
 
 (push 1 *vector*)
 (nth 0 *vector*)
