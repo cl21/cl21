@@ -1,6 +1,7 @@
 (in-package :cl-user)
 (defpackage cl21.core.readtable
   (:use :cl)
+  (:shadow :copy-readtable)
   (:import-from :cl21.core.sequence
                 :maptree)
   (:shadowing-import-from :cl21.core.package
@@ -27,7 +28,6 @@
                 :when-let)
   (:export
    :readtable
-   :copy-readtable
    :make-dispatch-macro-character
    :read
    :read-preserving-whitespace
@@ -140,7 +140,7 @@
     (unread-char char stream)
     (let* ((token (read-token stream))
            (pos (position #\: token))
-           (*readtable* (copy-readtable nil)))
+           (*readtable* (cl:copy-readtable nil)))
       (if-let (package (and pos
                             (not (zerop pos))
                             (find-package (intern (string-upcase (subseq token 0 pos))
@@ -152,7 +152,7 @@
 
   (defun sharp-colon (stream subchar numarg)
     (declare (ignore numarg))
-    (let ((*readtable* (copy-readtable nil))
+    (let ((*readtable* (cl:copy-readtable nil))
           (token (read-token stream)))
       (values (read-from-string (concatenate 'string "#" (string subchar)
                                              token))))))
@@ -183,6 +183,11 @@
                        (when-let (restart (find-restart 'continue c))
                          (invoke-restart restart)))))
     (merge-readtables-into readtable syntax)))
+
+(defun copy-readtable (&optional (from *readtable*) to)
+  (if from
+      (cl:copy-readtable from to)
+      (cl:copy-readtable *standard-readtable* to)))
 
 (defun enable-cl21-syntax (&optional (type :standard))
   (ecase type
