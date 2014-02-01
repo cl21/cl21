@@ -2,6 +2,7 @@
 (defpackage cl21.core.sequence
   (:use :cl)
   (:shadow :nth
+           :nthcdr
            :first
            :second
            :third
@@ -22,6 +23,7 @@
   (:import-from :alexandria
                 :length=)
   (:export :nth
+           :nthcdr
            :first
            :second
            :third
@@ -103,6 +105,12 @@
   (typecase seq
     (list (setf (cl:nth n seq) val))
     (vector (setf (aref seq n) val))))
+
+(defun nthcdr (n seq)
+  (subseq seq n))
+
+(defun (setf nthcdr) (new n seq)
+  (setf (subseq seq n) new))
 
 #.`(progn
      ,@(loop for (function . n) in '((first . 0)

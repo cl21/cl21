@@ -331,6 +331,7 @@ All external symbols of Closer MOP.
 ## Redefined
 * equalp
 * nth
+* nthcdr
 * first
 * second
 * third

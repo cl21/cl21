@@ -68,7 +68,6 @@
            :nbutlast
            :ldiff
            :tailp
-           :nthcdr
            :rest
            :member
            :member-if
@@ -107,6 +106,7 @@
 
            :cons-last
            :list-nth
+           :list-nthcdr
            :list-push
            :list-pushnew
            :list-pop
@@ -132,6 +132,9 @@
 (setf (symbol-function 'list-nth) (symbol-function 'nth))
 (defun (setf list-nth) (new-value n sequence)
   (setf (cl:nth n sequence) new-value))
+(setf (symbol-function 'list-nthcdr) (symbol-function 'nthcdr))
+(defun (setf list-nthcdr) (new-value n sequence)
+  (setf (cl:nthcdr n sequence) new-value))
 (defmacro list-push (value place)
   `(cl:push ,value ,place))
 (defmacro list-pushnew (value place &rest keys)
