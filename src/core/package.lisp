@@ -78,15 +78,17 @@
     `(eval-when (:execute :load-toplevel :compile-toplevel)
        (prog1
            (cl:defpackage ,name ,@valid-options)
-         ,@(nreverse package-local-nicknames)
          ,@(if (member :use valid-options :key #'car)
                `((setf (gethash ,(intern (string name) :keyword) *package-use*)
                        ',(loop for use in (cdr (assoc :use valid-options))
-                               when (keywordp use)
+                               if (keywordp use)
                                  collect use
-                               else
+                               else if use
                                  collect (intern (string use) :keyword))))
-               nil)))))
+               nil)
+         (find-or-create-readtable-for-package
+          (intern (string ',name) :keyword))
+         ,@(nreverse package-local-nicknames)))))
 
 (defvar *package-readtables* (make-hash-table :test 'eq))
 
@@ -200,7 +202,7 @@
             (cl:find-package actual-package)))
 
     ;; Inject CL21-PACKAGE-LOCAL-NICKNAME-SYNTAX into *readtable* of the package.
-    (let ((readtable (find-or-create-readtable-for-package
+    (let ((readtable (find-readtable
                       (intern (package-name package) :keyword))))
       (funcall (symbol-function (intern #.(string :use-syntax) :cl21.core.readtable))
                (intern #.(string :cl21-package-local-nickname-syntax) :cl21.core.readtable)
