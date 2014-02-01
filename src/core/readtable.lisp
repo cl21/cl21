@@ -53,6 +53,7 @@
    :in-readtable
    :_
    :_...
+   :*standard-readtable*
    :use-syntax))
 (in-package :cl21.core.readtable)
 
@@ -172,6 +173,9 @@
   (:merge :standard)
   (:fuze cl21-package-local-nickname-syntax)
   (:fuze cl21-standard-readtable))
+
+(defparameter *standard-readtable*
+  (find-readtable 'cl21-standard-readtable))
 
 (defun use-syntax (syntax &optional (readtable *readtable*))
   (handler-bind ((reader-macro-conflict
