@@ -55,7 +55,6 @@
    :enable-cl21-syntax
    :disable-cl21-syntax
    :defreadtable
-   :in-readtable
    :copy-readtable
    :_
    :_...

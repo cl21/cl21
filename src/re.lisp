@@ -1,20 +1,13 @@
-(in-package :cl-user)
+(in-package :cl21-user)
 (defpackage cl21.re
-  (:use :cl
+  (:use :cl21
         :cl-ppcre)
-  (:import-from :cl21.core.readtable
-                :defreadtable
-                :in-readtable)
   (:import-from :cl-ppcre
                 :create-scanner
                 :scan-to-strings)
-  (:import-from :alexandria
-                :remove-from-plist)
   (:export :re-match
            :re-replace
-           :re-split
-           :enable-cl21-re-syntax
-           :disable-cl21-re-syntax))
+           :re-split))
 (in-package :cl21.re)
 
 (defun re-match (re string &rest keys &key start end)
@@ -88,11 +81,3 @@
 (defreadtable :cl21.re
   (:merge :standard)
   (:dispatch-macro-char #\# #\/ #'regexp-reader))
-
-(defun enable-cl21-re-syntax ()
-  (in-readtable :cl21.re)
-  (values))
-
-(defun disable-cl21-re-syntax ()
-  (in-readtable nil)
-  (values))
