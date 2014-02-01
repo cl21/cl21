@@ -1,18 +1,9 @@
 (in-package :cl-user)
 (defpackage cl21.core.string-designator
   (:use :cl)
-  (:export :concat
-           :upcase
+  (:export :upcase
            :downcase))
 (in-package :cl21.core.string-designator)
-
-(defgeneric concat (seq &rest sequences)
-  (:method ((seq list) &rest sequences)
-    (apply #'append seq sequences))
-  (:method ((seq string) &rest sequences)
-    (apply #'concatenate 'string seq sequences))
-  (:method ((seq vector) &rest sequences)
-    (apply #'concatenate 'vector seq sequences)))
 
 (defgeneric upcase (object &key start end)
   (:method ((object string) &key (start 0) end)

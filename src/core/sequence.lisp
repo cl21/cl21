@@ -90,7 +90,8 @@
 
            :maptree
            :take
-           :partition-by))
+           :partition-by
+           :concat))
 (in-package :cl21.core.sequence)
 
 (defun nth (n seq)
@@ -169,3 +170,12 @@ of which has elements that satisfy PRED, the second which do not."
                  (push x no)))
          sequence)
     (values yes no)))
+
+(defun concat (sequence &rest more-sequences)
+  (let ((type (type-of sequence)))
+    (apply #'concatenate
+           (if (listp type)
+               (car type)
+               type)
+           sequence
+           more-sequences)))
