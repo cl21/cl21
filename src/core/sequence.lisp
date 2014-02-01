@@ -19,6 +19,8 @@
   (:import-from :split-sequence
                 :split-sequence
                 :split-sequence-if)
+  (:import-from :alexandria
+                :length=)
   (:export :nth
            :first
            :second
@@ -83,7 +85,12 @@
            :pushnew
            :pop
 
-           :maptree))
+           ;; Alexandria
+           :length=
+
+           :maptree
+           :take
+           :partition-by))
 (in-package :cl21.core.sequence)
 
 (defun nth (n seq)
@@ -145,3 +152,20 @@
     (T
      (cons (maptree fn (car tree))
            (maptree fn (cdr tree))))))
+
+(defun take (n sequence)
+  "Take the first `n` elements from `sequence`."
+  (subseq sequence 0 n))
+
+(defun partition-by (pred sequence)
+  "Given a predicate PRED, partition SEQUENCE into two sublists, the first
+of which has elements that satisfy PRED, the second which do not."
+  (let ((yes nil)
+        (no nil))
+    (map nil
+         #'(lambda (x)
+             (if (funcall pred x)
+                 (push x yes)
+                 (push x no)))
+         sequence)
+    (values yes no)))

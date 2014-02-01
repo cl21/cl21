@@ -6,7 +6,8 @@
                 :remove-from-plist
                 :delete-from-plist
                 :ensure-list
-                :flatten)
+                :flatten
+                :mappend)
   (:export :list
            :null
            :cons
@@ -119,7 +120,12 @@
            :list-seventh
            :list-eighth
            :list-ninth
-           :list-tenth))
+           :list-tenth
+
+           ;; Alexandria
+           :mappend
+
+           :range))
 (in-package :cl21.core.cons)
 
 (setf (symbol-function 'cons-last) (symbol-function 'last))
@@ -148,3 +154,10 @@
                             (symbol-function ',function))
                       (defun (setf ,(intern (format nil "~A-~A" :list function))) (new-value list)
                         (setf (,function list) new-value)))))
+
+(defun range (start end &key (step 1) (key 'identity))
+  "Return the list of numbers `n` such that `start <= n < end` and
+`n = start + k*step` for suitable integers `k`. If a function `key` is
+provided, then apply it to each number."
+  (assert (<= start end))
+  (loop :for i :from start :below end :by step :collecting (funcall key i)))

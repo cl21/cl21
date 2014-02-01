@@ -14,8 +14,11 @@
                 :xor
                 :unwind-protect-case
                 :compose
+                :conjoin
+                :disjoin
                 :curry
-                :rcurry)
+                :rcurry
+                :doplist)
   (:import-from :cl-utilities
                 :with-collectors
                 :collecting
@@ -79,6 +82,8 @@
    :lambda-list-keywords
    :lambda-parameters-limit
    :compose
+   :conjoin
+   :disjoin
    :curry
    :rcurry
 
@@ -160,6 +165,7 @@
    :do*
    :dotimes
    :dolist
+   :doplist ;; from Alexandria
    :loop-finish
 
    :with-collectors

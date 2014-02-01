@@ -159,6 +159,7 @@ CL21 is continuously released at 1:00 JST (= 16:00 UTC). You can update to the H
 * while
 * while-let
 * doeach
+* doplist
 * with-collectors
 * collecting
 
@@ -177,6 +178,8 @@ CL21 is continuously released at 1:00 JST (= 16:00 UTC). You can update to the H
 
 ### Function
 * compose
+* conjoin
+* disjoin
 * curry
 * rcurry
 
@@ -187,13 +190,18 @@ CL21 is continuously released at 1:00 JST (= 16:00 UTC). You can update to the H
 * split-sequence
 * split-sequence-if
 * copy-array
+* length=
+* maptree
+* take
 
 ### List
 * iota
+* range
 * remove-from-plist
 * delete-from-plist
 * ensure-list
 * flatten
+* mappend
 * maptree
 * filter (Same as `remove-if-not`)
 * cons-last (Same as `cl:last`)
