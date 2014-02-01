@@ -101,10 +101,10 @@
                      import-syntaxes))
          ,@(nreverse package-local-nicknames)))))
 
-(defvar *package-readtables* (make-hash-table :test 'eq))
+(defvar *package-readtable-options* (make-hash-table :test 'eq))
 
 (defun get-package-readtable-options (package-name)
-  (gethash package-name *package-readtables*))
+  (gethash package-name *package-readtable-options*))
 
 (defun create-readtable-for-package (name)
   (check-type name keyword)
@@ -156,7 +156,7 @@
 (defun delete-package (package-designator)
   (let* ((package (cl:find-package package-designator))
          (key (intern (package-name package) :keyword)))
-    (remhash key *package-readtables*)
+    (remhash key *package-readtable-options*)
     (remhash package *package-local-nicknames*)
     (cl:delete-package package)
     (unregister-readtable key)))
@@ -168,9 +168,9 @@
     (prog1
         (cl:rename-package package-designator new-name new-nicknames)
 
-      (setf (gethash new-key *package-readtables*)
-            (gethash old-key *package-readtables*))
-      (remhash old-key *package-readtables*)
+      (setf (gethash new-key *package-readtable-options*)
+            (gethash old-key *package-readtable-options*))
+      (remhash old-key *package-readtable-options*)
       (when (find-readtable old-key)
         (rename-readtable old-key new-key)))))
 

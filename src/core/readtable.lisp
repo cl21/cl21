@@ -5,7 +5,7 @@
   (:import-from :cl21.core.sequence
                 :maptree)
   (:shadowing-import-from :cl21.core.package
-                          :*package-readtables*
+                          :*package-readtable-options*
                           :find-package)
   (:import-from :cl-interpol
                 :*stream*
@@ -63,7 +63,7 @@
          (named-readtables:defreadtable ,name
            ,@options)
        ,@(if package
-             `((setf (gethash ,package *package-readtables*)
+             `((setf (gethash ,package *package-readtable-options*)
                      ',(remove-if (lambda (option)
                                     (and (find (car option) '(:merge :fuze))
                                          (keywordp (cadr option))))
