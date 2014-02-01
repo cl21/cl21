@@ -85,12 +85,12 @@
                                                (remove #\G (symbol-name modifiers)))))
                    ,(coerce (symbol-name modifiers) 'simple-vector))))))
 
-(defreadtable (cl21-re-readtable :cl21.re)
+(defreadtable :cl21.re
   (:merge :standard)
   (:dispatch-macro-char #\# #\/ #'regexp-reader))
 
 (defun enable-cl21-re-syntax ()
-  (in-readtable cl21-re-readtable)
+  (in-readtable :cl21.re)
   (values))
 
 (defun disable-cl21-re-syntax ()

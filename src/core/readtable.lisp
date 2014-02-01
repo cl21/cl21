@@ -23,7 +23,6 @@
                 :merge-readtables-into
                 :reader-macro-conflict)
   (:import-from :alexandria
-                :ensure-list
                 :if-let
                 :when-let)
   (:export
@@ -57,18 +56,18 @@
    :use-syntax))
 (in-package :cl21.core.readtable)
 
-(defmacro defreadtable (name-and-package &rest options)
-  (destructuring-bind (name &optional package) (ensure-list name-and-package)
-    `(prog1
-         (named-readtables:defreadtable ,name
-           ,@options)
-       ,@(if package
-             `((setf (gethash ,package *package-readtable-options*)
-                     ',(remove-if (lambda (option)
-                                    (and (find (car option) '(:merge :fuze))
-                                         (keywordp (cadr option))))
-                                  options)))
-             nil))))
+(defmacro defreadtable (name &rest options)
+  `(prog1
+       (named-readtables:defreadtable ,name
+         ,@options)
+     ,@(if (keywordp name)
+           ;; Assuming this is a package-readtable if the name is a keyword.
+           `((setf (gethash ,name *package-readtable-options*)
+                   ',(remove-if (lambda (option)
+                                  (and (find (car option) '(:merge :fuze))
+                                       (keywordp (cadr option))))
+                                options)))
+           nil)))
 
 (defun string-reader (stream char)
   (let ((*stream* stream)
@@ -117,7 +116,7 @@
                (member char '(#\Space #\Tab #\Newline #\Return #\Linefeed)))
              (special-char-p (char)
                (let ((macro-fn (get-macro-character char))
-                     (*readtable* (find-readtable 'cl21-standard-readtable)))
+                     (*readtable* (find-readtable :cl21)))
                  (and macro-fn
                       (find-if (lambda (c)
                                  (eq (get-macro-character c)
@@ -157,7 +156,7 @@
       (values (read-from-string (concatenate 'string "#" (string subchar)
                                              token))))))
 
-(defreadtable (cl21-standard-readtable :cl21)
+(defreadtable :cl21
   (:merge :standard)
   (:dispatch-macro-char #\# #\: #'sharp-colon)
   (:macro-char #\" #'string-reader)
@@ -172,14 +171,12 @@
 (defreadtable cl21-full-readtable
   (:merge :standard)
   (:fuze cl21-package-local-nickname-syntax)
-  (:fuze cl21-standard-readtable))
+  (:fuze :cl21))
 
 (defparameter *standard-readtable*
-  (find-readtable 'cl21-standard-readtable))
+  (find-readtable :cl21))
 
 (defun use-syntax (syntax &optional (readtable *readtable*))
-  (when (eq syntax :cl21)
-    (setf syntax *standard-readtable*))
   (handler-bind ((reader-macro-conflict
                    #'(lambda (c)
                        (when-let (restart (find-restart 'continue c))
@@ -193,7 +190,7 @@
 
 (defun enable-cl21-syntax (&optional (type :standard))
   (ecase type
-    (:standard (in-readtable cl21-standard-readtable))
+    (:standard (in-readtable :cl21))
     (:full     (in-readtable cl21-full-readtable)))
   (values))
 
