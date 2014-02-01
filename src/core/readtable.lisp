@@ -173,6 +173,7 @@
   (defun getf-reader (stream char)
     (declare (ignore char))
     (let ((list (read-delimited-list #\] stream)))
+      (assert (null (cdddr list)))
       `(getf ,@list))))
 
 (defreadtable :cl21

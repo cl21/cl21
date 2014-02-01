@@ -50,7 +50,7 @@
                    (:file "hash-table")
                    (:file "file")
                    (:file "stream")
-                   (:file "generic")
+                   (:file "generic" :depends-on ("types"))
                    (:file "repl")
                    (:file "readtable" :depends-on ("array" "sequence" "package" "generic"))))
                  (:file "re" :depends-on ("core")))))

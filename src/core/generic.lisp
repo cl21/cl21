@@ -4,6 +4,12 @@
   (:shadow :equalp
            :coerce
            :getf)
+  (:import-from :cl21.core.types
+                :plist
+                :alist)
+  (:import-from :alexandria
+                :hash-table-plist
+                :hash-table-alist)
   (:export :equalp
            :coerce
            :getf
@@ -29,6 +35,10 @@
     (if (cl:slot-boundp place key)
         (cl:slot-value place key)
         default))
+  (:method ((place array) key &optional default)
+    (if (< key (length place))
+        (aref place key)
+        default))
   (:method ((place list) (key integer) &optional default)
     (let ((res (cl:nthcdr key place)))
       (if res
@@ -42,6 +52,8 @@
     (setf (gethash key place) val))
   (:method (val (place standard-object) key)
     (setf (cl:slot-value place key) val))
+  (:method (val (place array) key)
+    (setf (cl:aref place key) val))
   (:method (val (place list) (key integer))
     (setf (cl:nth key place) val))
   (:method (val (place list) key)
