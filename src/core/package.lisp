@@ -49,6 +49,7 @@
            :do-symbols
            :do-all-symbols
 
+           :package-readtable
            :add-package-local-nickname))
 (cl:in-package :cl21.core.package)
 
@@ -93,6 +94,7 @@
   (gethash package-name *package-readtables*))
 
 (defun create-readtable-for-package (name)
+  (check-type name keyword)
   (let ((readtable-options (loop for use in (gethash (intern (string name) :keyword) *package-use*)
                                  append (get-package-readtable-options use))))
     (eval
@@ -109,14 +111,15 @@
         (find-readtable name))))
 
 (defmacro in-package (name)
-  `(eval-when (:execute :load-toplevel :compile-toplevel)
-     (prog1
-         (cl:in-package ,name)
-       (if (find-readtable ',name)
-           (in-readtable ,name)
-           (progn
-             (create-readtable-for-package ',name)
-             (in-readtable ,name))))))
+  (let ((keyword-name (intern (string name) :keyword)))
+    `(eval-when (:execute :load-toplevel :compile-toplevel)
+       (prog1
+           (cl:in-package ,name)
+         (if (find-readtable ,keyword-name)
+             (in-readtable ,keyword-name)
+             (progn
+               (create-readtable-for-package ,keyword-name)
+               (in-readtable ,keyword-name)))))))
 
 (defmacro use-package (packages-to-use &optional (package *package*))
   `(prog1
@@ -129,7 +132,7 @@
                     else
                       collect (intern (symbol-name use) :keyword))
             (gethash ,(intern (package-name package) :keyword) *package-use*)))
-     (defreadtable ,(intern (package-name package))
+     (defreadtable ,(intern (package-name package) :keyword)
        (:merge :current)
        ,@(loop for use in (ensure-list packages-to-use)
                append (get-package-readtable-options use)))
@@ -156,6 +159,25 @@
       (when (find-readtable old-key)
         (rename-readtable old-key new-key)))))
 
+(defun %package-not-found (package-name)
+  #+(or sbcl ccl)
+  (progn
+    #+sbcl
+    (error 'sb-kernel:simple-package-error
+           :package package-name
+           :format-control "The name ~S does not designate any package."
+           :format-arguments (list package-name))
+    #+ccl
+    (error 'ccl::no-such-package
+           :package package-name)))
+
+(defun package-readtable (package-designator)
+  (let ((package (find-package package-designator)))
+    (unless package
+      (%package-not-found package-designator))
+
+    (find-readtable (intern (package-name package) :keyword))))
+
 (defvar *package-local-nicknames* (make-hash-table :test 'eq))
 
 (defun find-package (package-designator &optional (package *package*))
@@ -167,16 +189,8 @@
 
 (defun add-package-local-nickname (nickname actual-package &optional (package-designator *package*))
   (let ((package (cl:find-package package-designator)))
-    #+(or sbcl ccl)
     (unless package
-      #+sbcl
-      (error 'sb-kernel:simple-package-error
-             :package package-designator
-             :format-control "The name ~S does not designate any package."
-             :format-arguments (list package-designator))
-      #+ccl
-      (error 'ccl::no-such-package
-             :package package-designator))
+      (%package-not-found package-designator))
 
     (symbol-macrolet ((package-nicknames (gethash (cl:find-package package) *package-local-nicknames*)))
       (unless package-nicknames

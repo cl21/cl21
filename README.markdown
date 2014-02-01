@@ -163,6 +163,7 @@ CL21 is continuously released at 1:00 JST (= 16:00 UTC). You can update to the H
 * collecting
 
 ### Package
+* package-readtable
 * add-package-local-nickname
 
 ### Number

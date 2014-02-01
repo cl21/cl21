@@ -4,7 +4,7 @@
         :cl-test-more))
 (in-package :cl21-test.package)
 
-(plan 13)
+(plan 14)
 
 (defpackage foo.bar.baz
   (:use :cl21)
@@ -45,6 +45,9 @@
 (ok (find-package :fbz :test-pkg))
 (ok (not (find-package :fbz)))
 (is (test-pkg:test-hello) "Hello!")
+
+(is-type (package-readtable *package*)
+         'readtable)
 
 (finalize)
 
