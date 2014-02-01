@@ -53,3 +53,25 @@
 
 (when (find-package :test-pkg)
   (delete-package :test-pkg))
+
+;; use-syntax
+
+(cl21:defpackage cl21-test.package2
+  (:use :cl
+        :cl-test-more))
+(cl21:in-package :cl21-test.package2)
+
+(plan 2)
+
+(is "aiueo\n" "aiueon")
+
+(cl21:defpackage cl21-test.package2
+  (:use :cl
+        :cl-test-more)
+  (:use-syntax :cl21))
+(cl21:in-package :cl21-test.package2)
+
+(is "aiueo\n" "aiueo
+")
+
+(finalize)

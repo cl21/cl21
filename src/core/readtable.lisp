@@ -178,6 +178,8 @@
   (find-readtable 'cl21-standard-readtable))
 
 (defun use-syntax (syntax &optional (readtable *readtable*))
+  (when (eq syntax :cl21)
+    (setf syntax *standard-readtable*))
   (handler-bind ((reader-macro-conflict
                    #'(lambda (c)
                        (when-let (restart (find-restart 'continue c))

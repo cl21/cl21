@@ -56,7 +56,9 @@
 (defvar *package-use* (make-hash-table :test 'eq))
 
 (defmacro defpackage (name &rest options)
-  (let* (package-local-nicknames
+  (let* ((readtable (gensym "READTABLE"))
+         package-local-nicknames
+         import-syntaxes
          (valid-options
            (loop for option in options
                  if (eq (car option) :use)
@@ -73,6 +75,9 @@
                                                      package-local-nicknames)
                                           else
                                             collect use-package))
+                 else if (eq (car option) :use-syntax)
+                   do (setf import-syntaxes
+                            (append import-syntaxes (cdr option)))
                  else
                    collect option)))
     `(eval-when (:execute :load-toplevel :compile-toplevel)
@@ -86,8 +91,14 @@
                                else if use
                                  collect (intern (string use) :keyword))))
                nil)
-         (find-or-create-readtable-for-package
-          (intern (string ',name) :keyword))
+         (let ((,readtable (create-readtable-for-package
+                            (intern (string ',name) :keyword))))
+           (declare (ignorable ,readtable))
+           ,@(mapcar (lambda (syntax)
+                       `(,(intern #.(string :use-syntax) :cl21.core.readtable)
+                         ,(intern (string syntax) :keyword)
+                         ,readtable))
+                     import-syntaxes))
          ,@(nreverse package-local-nicknames)))))
 
 (defvar *package-readtables* (make-hash-table :test 'eq))
@@ -97,6 +108,8 @@
 
 (defun create-readtable-for-package (name)
   (check-type name keyword)
+  (when (find-readtable name)
+    (unregister-readtable name))
   (let ((readtable-options (loop for use in (gethash (intern (string name) :keyword) *package-use*)
                                  append (get-package-readtable-options use))))
     (eval
