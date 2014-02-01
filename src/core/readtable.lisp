@@ -2,6 +2,8 @@
 (defpackage cl21.core.readtable
   (:use :cl)
   (:shadow :copy-readtable)
+  (:import-from :cl21.core.array
+                :adjustable-vector)
   (:import-from :cl21.core.sequence
                 :maptree)
   (:shadowing-import-from :cl21.core.package
@@ -155,13 +157,23 @@
     (let ((*readtable* (cl:copy-readtable nil))
           (token (read-token stream)))
       (values (read-from-string (concatenate 'string "#" (string subchar)
-                                             token))))))
+                                             token)))))
+
+  (defun vector-reader (stream subchar numarg)
+    (declare (ignore subchar))
+    (let ((list (read-delimited-list #\) stream)))
+      `(adjustable-vector
+        ,@(if numarg
+              `(:dimension ,numarg)
+              nil)
+        :initial-contents ,list))))
 
 (defreadtable :cl21
   (:merge :standard)
   (:dispatch-macro-char #\# #\: #'sharp-colon)
   (:macro-char #\" #'string-reader)
-  (:dispatch-macro-char #\# #\' (function |#'-reader|)))
+  (:dispatch-macro-char #\# #\' (function |#'-reader|))
+  (:dispatch-macro-char #\# #\( #'vector-reader))
 
 #.`(defreadtable cl21-package-local-nickname-syntax
      ,@(map 'list

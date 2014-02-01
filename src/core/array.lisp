@@ -53,3 +53,19 @@
            :simple-bit-vector-p
 
            :copy-array))
+(in-package :cl21.core.array)
+
+(defmacro adjustable-vector (&key (dimension nil dimension-specified-p) initial-contents)
+  (let ((len (length initial-contents)))
+    (if dimension-specified-p
+        (when (> dimension len)
+          (setf initial-contents
+                (append initial-contents
+                        (loop with initial-element = (car (last initial-contents))
+                              repeat (- dimension len)
+                              collect initial-element))))
+        (setf dimension len))
+
+    `(make-array ,dimension
+                 :adjustable t :fill-pointer ,dimension
+                 :initial-contents (list ,@initial-contents))))

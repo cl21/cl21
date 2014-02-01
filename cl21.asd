@@ -51,7 +51,7 @@
                    (:file "file")
                    (:file "stream")
                    (:file "repl")
-                   (:file "readtable" :depends-on ("sequence" "package"))))
+                   (:file "readtable" :depends-on ("array" "sequence" "package"))))
                  (:file "re" :depends-on ("core")))))
   :description "Common Lisp in the 21st Century."
   :in-order-to ((test-op (test-op cl21-test))))

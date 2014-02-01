@@ -90,7 +90,7 @@
         (collect (* i 10))))
     '(10 20 30 40 50)
     "doeach (vector)")
-(is-print (doeach ((i j) #((1 2) (3 4)))
+(is-print (doeach ((i j) #('(1 2) '(3 4)))
             (princ "${i} - ${j}\n"))
           "1 - 2\n3 - 4\n"
           "doeach (vector) with destructuring-binding")
