@@ -104,23 +104,23 @@
            :ensure-list
            :flatten
 
-           :cons-last
            :list-nth
            :list-nthcdr
            :list-push
            :list-pushnew
            :list-pop
 
-           :list-first
-           :list-second
-           :list-third
-           :list-fourth
-           :list-fifth
-           :list-sixth
-           :list-seventh
-           :list-eighth
-           :list-ninth
-           :list-tenth
+           :first
+           :second
+           :third
+           :fourth
+           :fifth
+           :sixth
+           :seventh
+           :eighth
+           :ninth
+           :tenth
+           :last
 
            ;; Alexandria
            :mappend
@@ -128,7 +128,6 @@
            :range))
 (in-package :cl21.core.cons)
 
-(setf (symbol-function 'cons-last) (symbol-function 'last))
 (setf (symbol-function 'list-nth) (symbol-function 'nth))
 (defun (setf list-nth) (new-value n sequence)
   (setf (cl:nth n sequence) new-value))
@@ -141,22 +140,6 @@
   `(cl:pushnew ,value ,place ,@keys))
 (defmacro list-pop (place)
   `(cl:pop ,place))
-
-#.`(progn
-     ,@(loop for function in '(cl:first
-                               cl:second
-                               cl:third
-                               cl:fourth
-                               cl:fifth
-                               cl:sixth
-                               cl:seventh
-                               cl:eighth
-                               cl:ninth
-                               cl:tenth)
-             append `((setf (symbol-function ',(intern (format nil "~A-~A" :list function)))
-                            (symbol-function ',function))
-                      (defun (setf ,(intern (format nil "~A-~A" :list function))) (new-value list)
-                        (setf (,function list) new-value)))))
 
 (defun range (start end &key (step 1) (key 'identity))
   "Return the list of numbers `n` such that `start <= n < end` and

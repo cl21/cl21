@@ -3,17 +3,6 @@
   (:use :cl)
   (:shadow :nth
            :nthcdr
-           :first
-           :second
-           :third
-           :fourth
-           :fifth
-           :sixth
-           :seventh
-           :eighth
-           :ninth
-           :tenth
-           :last
            :push
            :pushnew
            :pop)
@@ -24,17 +13,6 @@
                 :length=)
   (:export :nth
            :nthcdr
-           :first
-           :second
-           :third
-           :fourth
-           :fifth
-           :sixth
-           :seventh
-           :eighth
-           :ninth
-           :tenth
-           :last
            :split-sequence
            :split-sequence-if
 
@@ -111,28 +89,6 @@
 
 (defun (setf nthcdr) (new n seq)
   (setf (subseq seq n) new))
-
-#.`(progn
-     ,@(loop for (function . n) in '((first . 0)
-                                     (second . 1)
-                                     (third . 2)
-                                     (fourth . 3)
-                                     (fifth . 4)
-                                     (sixth . 5)
-                                     (seventh . 6)
-                                     (eighth . 7)
-                                     (ninth . 8)
-                                     (tenth . 9))
-             collect `(defgeneric ,function (seq)
-                        (:method ((seq list))
-                          (,(intern (string function) :cl) seq))
-                        (:method ((seq sequence))
-                          (elt seq ,n)))))
-
-(defun last (seq &optional (n 1))
-  (etypecase seq
-    (list (cl:last seq n))
-    (sequence (elt seq (- (length seq) n)))))
 
 (setf (symbol-function 'filter) (symbol-function 'remove-if-not))
 

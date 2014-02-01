@@ -204,21 +204,10 @@ CL21 is continuously released at 1:00 JST (= 16:00 UTC). You can update to the H
 * mappend
 * maptree
 * filter (Same as `remove-if-not`)
-* cons-last (Same as `cl:last`)
 * list-nth (Same as `cl:nth`)
 * list-push (Same as `cl:push`)
 * list-pushnew (Same as `cl:pushnew`)
 * list-pop (Same as `cl:pop`)
-* list-first (Same as `cl:first`)
-* list-second (Same as `cl:second`)
-* list-third (Same as `cl:third`)
-* list-fourth (Same as `cl:fourth`)
-* list-fifth (Same as `cl:fifth`)
-* list-sixth (Same as `cl:sixth`)
-* list-seventh (Same as `cl:seventh`)
-* list-eighth (Same as `cl:eighth`)
-* list-ninth (Same as `cl:ninth`)
-* list-tenth (Same as `cl:tenth`)
 
 ### Stream
 * make-null-stream
@@ -332,17 +321,6 @@ All external symbols of Closer MOP.
 * equalp
 * nth
 * nthcdr
-* first
-* second
-* third
-* fourth
-* fifth
-* sixth
-* seventh
-* eighth
-* ninth
-* tenth
-* last
 * coerce
 * getf
 * push
