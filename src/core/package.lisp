@@ -130,11 +130,8 @@
     `(eval-when (:execute :load-toplevel :compile-toplevel)
        (prog1
            (cl:in-package ,name)
-         (if (find-readtable ,keyword-name)
-             (in-readtable ,keyword-name)
-             (progn
-               (create-readtable-for-package ,keyword-name)
-               (in-readtable ,keyword-name)))))))
+         (when (find-readtable ,keyword-name)
+           (in-readtable ,keyword-name))))))
 
 (defmacro use-package (packages-to-use &optional (package *package*))
   `(prog1
