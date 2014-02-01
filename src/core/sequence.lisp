@@ -75,12 +75,12 @@
 (in-package :cl21.core.sequence)
 
 (defun nth (n seq)
-  (typecase seq
+  (etypecase seq
     (list (cl:nth n seq))
     (vector (elt seq n))))
 
 (defun (setf nth) (val n seq)
-  (typecase seq
+  (etypecase seq
     (list (setf (cl:nth n seq) val))
     (vector (setf (aref seq n) val))))
 
