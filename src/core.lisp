@@ -333,33 +333,29 @@
      (while (setf ,varsym ,expression)
        ,@body)))
 
-(defmacro doeach ((varsym object) &body body)
+(defmacro doeach ((varsym object &optional return) &body body)
   (let ((elem (gensym "ELEM")))
     (once-only (object)
-      `(etypecase ,object
-         (list ,(if (listp varsym)
-                    `(dolist (,elem ,object)
-                       (destructuring-bind ,varsym ,elem
-                         ,@body))
-                    `(dolist (,varsym ,object)
-                       ,@body)))
-         (sequence
-          (map nil
-               ,(if (listp varsym)
-                    `(lambda (,elem)
-                       (destructuring-bind ,varsym ,elem
-                         ,@body))
-                    `(lambda (,varsym)
-                       ,@body))
-               ,object))
-         (hash-table
-          ,(if (and (listp varsym)
-                    (null (cddr varsym)))
-               `(maphash (lambda ,varsym
-                           ,@body)
-                         ,object)
-               `(error "~A can't be destructured against the key/value pairs of a hash-table."
-                       ',varsym)))))))
+      `(block nil
+         (etypecase ,object
+           (sequence
+            (map nil
+                 ,(if (listp varsym)
+                      `(lambda (,elem)
+                         (destructuring-bind ,varsym ,elem
+                           (tagbody ,@body)))
+                      `(lambda (,varsym)
+                         (tagbody ,@body)))
+                 ,object))
+           (hash-table
+            ,(if (and (listp varsym)
+                      (null (cddr varsym)))
+                 `(maphash (lambda ,varsym
+                             (tagbody ,@body))
+                           ,object)
+                 `(error "~A can't be destructured against the key/value pairs of a hash-table."
+                         ',varsym))))
+         ,return))))
 
 (defgeneric equalp (x y)
   (:method (x y)
