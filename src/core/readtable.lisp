@@ -18,16 +18,42 @@
                 :read-char*)
   (:import-from :named-readtables
                 :in-readtable
-                :find-readtable)
+                :find-readtable
+                :merge-readtables-into
+                :reader-macro-conflict)
   (:import-from :alexandria
                 :ensure-list
-                :if-let)
-  (:export :enable-cl21-syntax
-           :disable-cl21-syntax
-           :defreadtable
-           :in-readtable
-           :_
-           :_...))
+                :if-let
+                :when-let)
+  (:export
+   :readtable
+   :copy-readtable
+   :make-dispatch-macro-character
+   :read
+   :read-preserving-whitespace
+   :read-delimited-list
+   :read-from-string
+   :readtable-case
+   :readtablep
+   :set-dispatch-macro-character
+   :get-dispatch-macro-character
+   :set-macro-character
+   :get-macro-character
+   :set-syntax-from-char
+   :with-standard-io-syntax
+   :*read-base*
+   :*read-default-float-format*
+   :*read-eval*
+   :*read-suppress*
+   :*readtable*
+
+   :enable-cl21-syntax
+   :disable-cl21-syntax
+   :defreadtable
+   :in-readtable
+   :_
+   :_...
+   :use-syntax))
 (in-package :cl21.core.readtable)
 
 (defmacro defreadtable (name-and-package &rest options)
@@ -146,6 +172,13 @@
   (:merge :standard)
   (:fuze cl21-package-local-nickname-syntax)
   (:fuze cl21-standard-readtable))
+
+(defun use-syntax (syntax &optional (readtable *readtable*))
+  (handler-bind ((reader-macro-conflict
+                   #'(lambda (c)
+                       (when-let (restart (find-restart 'continue c))
+                         (invoke-restart restart)))))
+    (merge-readtables-into readtable syntax)))
 
 (defun enable-cl21-syntax (&optional (type :standard))
   (ecase type

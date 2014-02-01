@@ -12,12 +12,9 @@
                 :find-readtable
                 :rename-readtable
                 :unregister-readtable
-                :in-readtable
-                :merge-readtables-into
-                :reader-macro-conflict)
+                :in-readtable)
   (:import-from :alexandria
-                :ensure-list
-                :when-let)
+                :ensure-list)
   (:export :package
            :export
            :find-symbol
@@ -191,12 +188,8 @@
     ;; Inject CL21-PACKAGE-LOCAL-NICKNAME-SYNTAX into *readtable* of the package.
     (let ((readtable (find-or-create-readtable-for-package
                       (intern (package-name package) :keyword))))
-      (handler-bind ((reader-macro-conflict
-                       #'(lambda (c)
-                           (when-let (restart (find-restart 'continue c))
-                             (invoke-restart restart)))))
-        (merge-readtables-into
-         readtable
-         (intern #.(string :cl21-package-local-nickname-syntax) :cl21.core.readtable))))
+      (funcall (symbol-function (intern #.(string :use-syntax) :cl21.core.readtable))
+               (intern #.(string :cl21-package-local-nickname-syntax) :cl21.core.readtable)
+               readtable))
 
     package))
