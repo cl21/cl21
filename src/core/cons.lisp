@@ -123,9 +123,7 @@
            :last
 
            ;; Alexandria
-           :mappend
-
-           :range))
+           :mappend))
 (in-package :cl21.core.cons)
 
 (setf (symbol-function 'list-nth) (symbol-function 'nth))
@@ -140,10 +138,3 @@
   `(cl:pushnew ,value ,place ,@keys))
 (defmacro list-pop (place)
   `(cl:pop ,place))
-
-(defun range (start end &key (step 1) (key 'identity))
-  "Return the list of numbers `n` such that `start <= n < end` and
-`n = start + k*step` for suitable integers `k`. If a function `key` is
-provided, then apply it to each number."
-  (assert (<= start end))
-  (loop :for i :from start :below end :by step :collecting (funcall key i)))
