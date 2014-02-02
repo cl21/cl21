@@ -15,7 +15,7 @@ This is an experimental project redesigning Common Lisp.
 ;; Hello, World!
 
 (princ "Hello, World!\n")
-;-> Hello, World!&#9166;
+;-> Hello, World!
 ;=> "Hello, World!
 ;   "
 
