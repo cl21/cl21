@@ -4,8 +4,6 @@
   (:shadow :copy-readtable)
   (:import-from :cl21.core.array
                 :adjustable-vector)
-  (:shadowing-import-from :cl21.core.generic
-                          :getf)
   (:import-from :cl21.core.sequence
                 :maptree)
   (:import-from :cl21.core.hash-table
@@ -169,13 +167,7 @@
         ,@(if numarg
               `(:dimension ,numarg)
               nil)
-        :initial-contents ,list)))
-
-  (defun getf-reader (stream char)
-    (declare (ignore char))
-    (let ((list (read-delimited-list #\] stream)))
-      (assert (null (cdddr list)))
-      `(getf ,@list))))
+        :initial-contents ,list))))
 
 (defreadtable :cl21
   (:merge :standard)
@@ -183,9 +175,7 @@
   (:dispatch-macro-char #\# #\' (function |#'-reader|))
   (:dispatch-macro-char #\# #\( #'vector-reader)
   (:dispatch-macro-char #\# #\{ #'hash-table-reader)
-  (:macro-char #\} (get-macro-character #\)))
-  (:macro-char #\[ #'getf-reader)
-  (:macro-char #\] (get-macro-character #\))))
+  (:macro-char #\} (get-macro-character #\))))
 
 #.`(defreadtable cl21-package-local-nickname-syntax
      (:merge :standard)
