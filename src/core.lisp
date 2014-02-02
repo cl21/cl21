@@ -1,7 +1,8 @@
 (in-package :cl-user)
 (defpackage cl21.core
   (:use :cl)
-  (:shadow :destructuring-bind)
+  (:shadow :function
+           :destructuring-bind)
   (:import-from :cl21.core.sequence
                 :maptree)
   (:import-from :alexandria
@@ -301,6 +302,17 @@
     (cl:do-external-symbols (symbol package)
       (cl:shadowing-import symbol)
       (cl:export symbol))))
+
+(defmacro function (name-or-form)
+  (if (atom name-or-form)
+      `(cl:function ,name-or-form)
+      (case (car name-or-form)
+        (and `(conjoin
+               ,@(mapcar (lambda (x) `(function ,x))
+                         (cdr name-or-form))))
+        (or `(disjoin
+              ,@(mapcar (lambda (x) `(function ,x))
+                        (cdr name-or-form)))))))
 
 (defmacro destructuring-bind (lambda-list expression &body body)
   (let* (gensym-list

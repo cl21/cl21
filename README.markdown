@@ -300,6 +300,7 @@ All external symbols of Closer MOP.
 * in-package
 * find-package
 * copy-readtable
+* function
 
 ## Setting the startup package of SLIME
 
