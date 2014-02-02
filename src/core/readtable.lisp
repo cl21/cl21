@@ -179,7 +179,6 @@
 
 (defreadtable :cl21
   (:merge :standard)
-  (:dispatch-macro-char #\# #\: #'sharp-colon)
   (:macro-char #\" #'string-reader)
   (:dispatch-macro-char #\# #\' (function |#'-reader|))
   (:dispatch-macro-char #\# #\( #'vector-reader)
@@ -189,10 +188,12 @@
   (:macro-char #\] (get-macro-character #\))))
 
 #.`(defreadtable cl21-package-local-nickname-syntax
+     (:merge :standard)
      ,@(map 'list
             #'(lambda (char)
                 `(:macro-char ,char #'read-symbol))
-            ":!$%&*+-/0123456789<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_abcdefghijklmnopqrstuvwxyz"))
+            ":!$%&*+-/0123456789<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_abcdefghijklmnopqrstuvwxyz")
+     (:dispatch-macro-char #\# #\: #'sharp-colon))
 
 (defreadtable cl21-full-readtable
   (:merge :standard)
