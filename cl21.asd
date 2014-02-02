@@ -20,6 +20,7 @@
   :license "MIT"
   :depends-on (:closer-mop
                :trivial-types
+               :trivial-gray-streams
                :named-readtables
                :cl-interpol
                :cl-ppcre

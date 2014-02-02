@@ -111,7 +111,8 @@ This is an experimental project redesigning Common Lisp.
 * More object oriented.
 * Add more functional programming facilities.
 * Organize symbols into several packages.
-* MOP.
+* Include MOP.
+* Include trivial-gray-streams.
 * Regular expression.
 * Package local nicknames.
 
@@ -222,6 +223,8 @@ CL21 is continuously released at 1:00 JST (= 16:00 UTC). You can update to the H
 * read-file-into-byte-vector
 * write-byte-vector-into-file
 
+And, All external symbols of trivial-gray-streams.
+
 ### Hash Table
 * hash-table-keys
 * hash-table-values
@@ -318,6 +321,7 @@ All external symbols of Closer MOP.
 
 * Closer MOP
 * Trivial Types
+* trivial-gray-streams
 * Alexandria
 * CL-Utilities
 * Split-Sequence

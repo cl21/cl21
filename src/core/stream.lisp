@@ -1,6 +1,39 @@
 (in-package :cl-user)
 (defpackage cl21.core.stream
   (:use :cl)
+  (:import-from :trivial-gray-streams
+                :stream-write-string
+                :stream-start-line-p
+                :stream-terpri
+                :stream-listen
+                :stream-read-char-no-hang
+                :trivial-gray-stream-mixin
+                :stream-read-line
+                :stream-line-column
+                :stream-read-sequence
+                :fundamental-character-output-stream
+                :stream-write-char
+                :fundamental-stream
+                :fundamental-character-stream
+                :stream-unread-char
+                :fundamental-character-input-stream
+                :stream-read-char
+                :fundamental-binary-stream
+                :fundamental-binary-output-stream
+                :stream-finish-output
+                :stream-advance-to-column
+                :stream-fresh-line
+                :fundamental-output-stream
+                :stream-write-byte
+                :stream-force-output
+                :stream-read-byte
+                :stream-peek-char
+                :stream-clear-input
+                :fundamental-input-stream
+                :fundamental-binary-input-stream
+                :stream-clear-output
+                :stream-write-sequence
+                :stream-file-position)
   (:import-from :alexandria
                 :copy-stream
                 :read-file-into-string
@@ -86,7 +119,41 @@
            :read-file-into-string
            :write-string-into-file
            :read-file-into-byte-vector
-           :write-byte-vector-into-file))
+           :write-byte-vector-into-file
+
+           ;; trivial-gray-streams
+           :stream-write-string
+           :stream-start-line-p
+           :stream-terpri
+           :stream-listen
+           :stream-read-char-no-hang
+           :trivial-gray-stream-mixin
+           :stream-read-line
+           :stream-line-column
+           :stream-read-sequence
+           :fundamental-character-output-stream
+           :stream-write-char
+           :fundamental-stream
+           :fundamental-character-stream
+           :stream-unread-char
+           :fundamental-character-input-stream
+           :stream-read-char
+           :fundamental-binary-stream
+           :fundamental-binary-output-stream
+           :stream-finish-output
+           :stream-advance-to-column
+           :stream-fresh-line
+           :fundamental-output-stream
+           :stream-write-byte
+           :stream-force-output
+           :stream-read-byte
+           :stream-peek-char
+           :stream-clear-input
+           :fundamental-input-stream
+           :fundamental-binary-input-stream
+           :stream-clear-output
+           :stream-write-sequence
+           :stream-file-position))
 (in-package :cl21.core.stream)
 
 (defun make-null-input-stream ()
