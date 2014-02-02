@@ -70,6 +70,7 @@
            :take-while
            :drop-while
            :partition-by
+           :subdivide
            :concat))
 (in-package :cl21.core.sequence)
 
@@ -131,6 +132,27 @@ of which has elements that satisfy PRED, the second which do not."
                  (push x no)))
          sequence)
     (values yes no)))
+
+(defun subdivide (sequence chunk-size)
+  "Split `sequence` into subsequences of size `chunk-size`."
+  (check-type sequence sequence)
+  (check-type chunk-size (integer 1))
+
+  (etypecase sequence
+    ; Since lists have O(N) access time, we iterate through manually,
+    ; collecting each chunk as we pass through it. Using SUBSEQ would
+    ; be O(N^2).
+    (list (loop :while sequence
+                :collect
+                (loop :repeat chunk-size
+                      :while sequence
+                      :collect (pop sequence))))
+
+    ; For other sequences like strings or arrays, we can simply chunk
+    ; by repeated SUBSEQs.
+    (sequence (loop :with len := (length sequence)
+                    :for i :below len :by chunk-size
+                    :collect (subseq sequence i (min len (+ chunk-size i)))))))
 
 (defun concat (sequence &rest more-sequences)
   (let ((type (type-of sequence)))

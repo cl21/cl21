@@ -253,6 +253,7 @@ All external symbols of Closer MOP.
 * take-while
 * drop-while
 * partition-by
+* subdivide
 
 ### Hash Table
 * hash-table-keys
