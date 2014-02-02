@@ -11,18 +11,12 @@
                 :when-let
                 :xor
                 :unwind-protect-case
-                :compose
-                :conjoin
-                :disjoin
-                :curry
-                :rcurry
                 :doplist)
   (:import-from :cl-utilities
                 :with-collectors
                 :collecting
                 :collect)
   (:export
-   :lambda
    :compile
    :eval
    :eval-when
@@ -61,29 +55,6 @@
    :safety
    :debug
    :compilation-speed
-
-   ;; Function
-   :apply
-   :defun
-   :fdefinition
-   :fboundp
-   :fmakunbound
-   :flet
-   :labels
-   :macrolet
-   :funcall
-   :function
-   :function-lambda-expression
-   :functionp
-   :compiled-function-p
-   :call-arguments-limit
-   :lambda-list-keywords
-   :lambda-parameters-limit
-   :compose
-   :conjoin
-   :disjoin
-   :curry
-   :rcurry
 
    ;; Data and Control Flow
    :defconstant
@@ -281,6 +252,7 @@
                            :cl21.core.condition
                            :cl21.core.package
                            :cl21.core.object
+                           :cl21.core.function
                            :cl21.core.structure
                            :cl21.core.symbol
                            :cl21.core.number
@@ -302,17 +274,6 @@
     (cl:do-external-symbols (symbol package)
       (cl:shadowing-import symbol)
       (cl:export symbol))))
-
-(defmacro function (name-or-form)
-  (if (atom name-or-form)
-      `(cl:function ,name-or-form)
-      (case (car name-or-form)
-        (and `(conjoin
-               ,@(mapcar (lambda (x) `(function ,x))
-                         (cdr name-or-form))))
-        (or `(disjoin
-              ,@(mapcar (lambda (x) `(function ,x))
-                        (cdr name-or-form)))))))
 
 (defmacro destructuring-bind (lambda-list expression &body body)
   (let* (gensym-list

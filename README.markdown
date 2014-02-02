@@ -78,10 +78,21 @@ This is an experimental project redesigning Common Lisp.
 
 
 ;;
-;; Anonymous Function
+;; Functional programming
 
-(mapcar #'(list (1+ _)) '(1 2 3))
-;=> ((2) (3) (4))
+(mapcar (compose #'sin #'1+) '(1 2 3))
+;=> (0.9092974 0.14112 -0.7568025)
+
+(filter (conjoin #'integerp #'evenp) '(1 2 3 2.0 4))
+;=> (2 4)
+(filter (disjoin #'oddp #'zerop) (0.. 10))
+;=> (0 1 3 5 7 9)
+
+;; Sharpsign quote (#') is overwritten.
+(filter #'(and integerp evenp) '(1 2 3 2.0 4))
+;=> (2 4)
+(filter #'(and integerp (or oddp zerop)) (0.. 10))
+;=> (0 1 3 5 7 9)
 
 ;;
 ;; Regular Expression

@@ -4,10 +4,10 @@
   (:shadow :copy-readtable)
   (:import-from :cl21.core.array
                 :adjustable-vector)
-  (:import-from :cl21.core.sequence
-                :maptree)
   (:import-from :cl21.core.hash-table
                 :hash-table-reader)
+  (:shadowing-import-from :cl21.core.function
+                          :function)
   (:shadowing-import-from :cl21.core.package
                           :*package-readtable-options*
                           :find-package)
@@ -54,8 +54,6 @@
    :disable-cl21-syntax
    :defreadtable
    :copy-readtable
-   :_
-   :_...
    :*standard-readtable*
    :use-syntax))
 (in-package :cl21.core.readtable)
@@ -85,24 +83,6 @@
         (inner-reader nil nil nil nil)
       (read-char*))))
 
-;; This PAPPLY macro and sharp-quote (#') reader macro are inspired by chiku's PAPPLY.
-;; https://github.com/chiku-samugari/papply
-(defmacro papply (&rest op-and-args)
-  (let* ((lambda-list (list))
-         (expr (maptree (lambda (elem)
-                          (cond
-                            ((eq elem '_) (let ((gensym (gensym "PARAM")))
-                                            (push gensym lambda-list)
-                                            gensym))
-                            ((eq elem '_...) (let ((gensym (gensym "PARAM")))
-                                               (push 'cl:&rest lambda-list)
-                                               (push gensym lambda-list)
-                                               gensym))
-                            (T elem)))
-                        op-and-args)))
-    `(lambda ,(nreverse lambda-list)
-       ,@expr)))
-
 (defun |#'-reader| (stream sub-char narg)
   (declare (ignore sub-char narg))
   (let ((expr (read stream t nil t)))
@@ -111,8 +91,8 @@
              (not (member (car expr)
                           '(cl:lambda
                             #+sbcl sb-int:named-lambda))))
-        `(papply ,expr)
-        `(function ,expr))))
+        `(cl21.core.function:function ,expr)
+        `(cl:function ,expr))))
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defun read-token (stream)
