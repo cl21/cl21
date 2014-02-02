@@ -124,8 +124,8 @@ This is an experimental project redesigning Common Lisp.
 * Organize symbols into several packages.
 * Include MOP.
 * Include trivial-gray-streams.
-* Regular expression.
-* Package local nicknames.
+* Literal regular expression.
+* Package local nicknames. (experimental)
 
 ### Deferred List
 
@@ -159,6 +159,9 @@ CL21 is continuously released at 1:00 JST (= 16:00 UTC). You can update to the H
 ### Core
 * emptyp
 
+### Macro Writing
+* once-only
+
 ### Control Structure
 * if-let
 * when-let
@@ -173,83 +176,6 @@ CL21 is continuously released at 1:00 JST (= 16:00 UTC). You can update to the H
 * doplist
 * with-collectors
 * collecting
-
-### Package
-* package-readtable
-* add-package-local-nickname
-
-### Number
-* imaginary-i
-* ii
-* exponential-e
-* ee
-
-### Symbol
-* make-keyword
-
-### Function
-* compose
-* conjoin
-* disjoin
-* curry
-* rcurry
-
-### Sequence
-* concat
-* upcase
-* downcase
-* split-sequence
-* split-sequence-if
-* copy-array
-* length=
-* maptree
-* take
-* drop
-* take-while
-* drop-while
-* partition-by
-
-### List
-* iota
-* 1..
-* 0..
-* remove-from-plist
-* delete-from-plist
-* ensure-list
-* flatten
-* mappend
-* maptree
-* filter (Same as `remove-if-not`)
-* list-push (Same as `cl:push`)
-* list-pushnew (Same as `cl:pushnew`)
-* list-pop (Same as `cl:pop`)
-
-### Stream
-* make-null-stream
-* make-null-input-stream
-* make-null-output-stream
-* copy-stream
-* read-file-into-string
-* write-string-into-file
-* read-file-into-byte-vector
-* write-byte-vector-into-file
-
-And, All external symbols of trivial-gray-streams.
-
-### Hash Table
-* hash-table-keys
-* hash-table-values
-* hash-table-key-exists-p
-* copy-hash-table
-* plist-hash-table
-* alist-hash-table
-
-### MOP
-All external symbols of Closer MOP.
-
-### Macro Writing
-* once-only
-* with-gensyms
 
 ### Types
 * proper-list
@@ -270,15 +196,108 @@ All external symbols of Closer MOP.
 * file-associated-stream-p
 * octet
 
+### Package
+* package-readtable
+* add-package-local-nickname
+
+### Object
+All external symbols of Closer MOP.
+
+### Function
+* compose
+* conjoin
+* disjoin
+* curry
+* rcurry
+
+### Number
+* imaginary-i
+* ii
+* exponential-e
+* ee
+
+### Symbol
+* make-keyword
+* with-gensyms
+
+### Cons
+* iota
+* 1..
+* 0..
+* remove-from-plist
+* delete-from-plist
+* ensure-list
+* flatten
+* mappend
+* maptree
+* filter (Same as `remove-if-not`)
+* list-push (Same as `cl:push`)
+* list-pushnew (Same as `cl:pushnew`)
+* list-pop (Same as `cl:pop`)
+
+### Array
+* copy-array
+
+### String Designator
+* upcase
+* downcase
+
+### Sequence
+* concat
+* split-sequence
+* split-sequence-if
+* length=
+* maptree
+* take
+* drop
+* take-while
+* drop-while
+* partition-by
+
+### Hash Table
+* hash-table-keys
+* hash-table-values
+* hash-table-key-exists-p
+* copy-hash-table
+* plist-hash-table
+* alist-hash-table
+
+### Stream
+* make-null-stream
+* make-null-input-stream
+* make-null-output-stream
+* copy-stream
+* read-file-into-string
+* write-string-into-file
+* read-file-into-byte-vector
+* write-byte-vector-into-file
+
+And, All external symbols of trivial-gray-streams.
+
 ### Development Utilities
 * doc
 * readme
 * summary
 
+### Readtable
+* enable-cl21-syntax
+* disable-cl21-syntax
+* defreadtable
+* \*standard-readtable\*
+* use-syntax
+
 ### Regular Expression (cl21.re)
 * re-match
 * re-replace
 * re-split
+
+### Abbreviation (cl21.abbr)
+* dbind
+* mvbind
+* mvcall
+* mvlist
+* mvsetq
+* mvprog1
 
 ## Deleted Symbols
 * prog2
@@ -312,6 +331,7 @@ All external symbols of Closer MOP.
 * find-package
 * copy-readtable
 * function
+* destructuring-bind
 
 ## Setting the startup package of SLIME
 
