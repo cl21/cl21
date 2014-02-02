@@ -70,6 +70,9 @@
 
            :maptree
            :take
+           :drop
+           :take-while
+           :drop-while
            :partition-by
            :concat))
 (in-package :cl21.core.sequence)
@@ -121,6 +124,20 @@
 (defun take (n sequence)
   "Take the first `n` elements from `sequence`."
   (subseq sequence 0 n))
+
+(defun drop (n sequence)
+  "Drop the first `n` elements from `sequence`."
+  (subseq sequence n))
+
+(defun take-while (pred sequence)
+  (let ((pos (position-if (complement pred) sequence)))
+    (subseq sequence 0 (or pos 0))))
+
+(defun drop-while (pred sequence)
+  (let ((pos (position-if (complement pred) sequence)))
+    (if pos
+        (subseq sequence pos)
+        (subseq sequence 0 0))))
 
 (defun partition-by (pred sequence)
   "Given a predicate PRED, partition SEQUENCE into two sublists, the first
