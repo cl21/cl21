@@ -1,13 +1,14 @@
 (defpackage cl21)
 (cl:in-package :cl21)
 
-(cl:dolist (#1=#:package-name '(:cl21.core))
-  (cl:let ((#2=#:package (cl:find-package #1#)))
-    (cl:unless #2#
-      (cl:error "Package \"~A\" doesn't exist." #1#))
-    (cl:do-external-symbols (#3=#:symbol #2#)
-      (cl:shadowing-import (cl:list #3#))
-      (cl:export (cl:list #3#)))))
+(cl:eval-when (:compile-toplevel :load-toplevel :execute)
+  (cl:dolist (#1=#:package-name '(:cl21.core))
+    (cl:let ((#2=#:package (cl:find-package #1#)))
+      (cl:unless #2#
+        (cl:error "Package \"~A\" doesn't exist." #1#))
+      (cl:do-external-symbols (#3=#:symbol #2#)
+        (cl:shadowing-import (cl:list #3#))
+        (cl:export (cl:list #3#))))))
 
 (cl:in-package :cl-user)
 (cl21::defpackage cl21-user
