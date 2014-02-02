@@ -134,21 +134,24 @@
            (in-readtable ,keyword-name))))))
 
 (defmacro use-package (packages-to-use &optional (package *package*))
-  `(prog1
-       (cl:use-package ,packages-to-use ,package)
-     (setf (gethash ,(intern (package-name package) :keyword) *package-use*)
-           (append
-            ',(loop for use in (ensure-list packages-to-use)
-                    when (keywordp use)
-                      collect use
-                    else
-                      collect (intern (symbol-name use) :keyword))
-            (gethash ,(intern (package-name package) :keyword) *package-use*)))
-     (defreadtable ,(intern (package-name package) :keyword)
-       (:merge :current)
-       ,@(loop for use in (ensure-list packages-to-use)
-               append (get-package-readtable-options use)))
-     (in-readtable ,(intern (package-name package)))))
+  (let ((kw-name (intern (package-name package) :keyword)))
+    `(prog1
+         (cl:use-package ,packages-to-use ,package)
+       (setf (gethash ,kw-name *package-use*)
+             (append
+              ',(loop for use in (ensure-list packages-to-use)
+                      when (keywordp use)
+                        collect use
+                      else
+                        collect (intern (symbol-name use) :keyword))
+              (gethash ,(intern (package-name package) :keyword) *package-use*)))
+       (when (find-readtable ,kw-name)
+         (unregister-readtable ,kw-name))
+       (defreadtable ,kw-name
+         (:merge :current)
+         ,@(loop for use in (ensure-list packages-to-use)
+                 append (get-package-readtable-options use)))
+       (in-readtable ,kw-name))))
 
 (defun delete-package (package-designator)
   (let* ((package (cl:find-package package-designator))
