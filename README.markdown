@@ -285,41 +285,7 @@ All external symbols of Closer MOP.
 * \*modules\*
 
 ## Deprecated Symbols
-* require
-* elt (Use new `nth`)
-* concatenate (Use `concat`)
-* dolist (Use `doeach`)
-* gethash (Use new `getf`)
-* slot-value (Use new `getf`)
 * remove-if-not (Use `filter`)
-* vector-push & vector-push-extend (Use new `push`)
-* vector-pop (Use new `pop`)
-* string-upcase (Use `upcase`)
-* string-downcase (Use `downcase`)
-* caaar
-* caadr
-* cadar
-* caddr
-* cdaar
-* cdadr
-* cddar
-* cdddr
-* caaaar
-* caaadr
-* caadar
-* caaddr
-* cadaar
-* cadadr
-* caddar
-* cadddr
-* cdaaar
-* cdaadr
-* cdadar
-* cdaddr
-* cddaar
-* cddadr
-* cdddar
-* cddddr
 
 ## Redefined
 * equalp
