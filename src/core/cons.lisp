@@ -16,6 +16,8 @@
            :atom
            :rplaca
            :rplacd
+           :nth
+           :nthcdr
            :car
            :cdr
            :caar
@@ -104,8 +106,6 @@
            :ensure-list
            :flatten
 
-           :list-nth
-           :list-nthcdr
            :list-push
            :list-pushnew
            :list-pop
@@ -129,12 +129,6 @@
            :0..))
 (in-package :cl21.core.cons)
 
-(setf (symbol-function 'list-nth) (symbol-function 'nth))
-(defun (setf list-nth) (new-value n sequence)
-  (setf (cl:nth n sequence) new-value))
-(setf (symbol-function 'list-nthcdr) (symbol-function 'nthcdr))
-(defun (setf list-nthcdr) (new-value n sequence)
-  (setf (cl:nthcdr n sequence) new-value))
 (defmacro list-push (value place)
   `(cl:push ,value ,place))
 (defmacro list-pushnew (value place &rest keys)

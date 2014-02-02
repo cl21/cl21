@@ -1,9 +1,7 @@
 (in-package :cl-user)
 (defpackage cl21.core.sequence
   (:use :cl)
-  (:shadow :nth
-           :nthcdr
-           :push
+  (:shadow :push
            :pushnew
            :pop)
   (:import-from :split-sequence
@@ -11,9 +9,7 @@
                 :split-sequence-if)
   (:import-from :alexandria
                 :length=)
-  (:export :nth
-           :nthcdr
-           :split-sequence
+  (:export :split-sequence
            :split-sequence-if
 
            :sequence
@@ -76,22 +72,6 @@
            :partition-by
            :concat))
 (in-package :cl21.core.sequence)
-
-(defun nth (n seq)
-  (etypecase seq
-    (list (cl:nth n seq))
-    (vector (elt seq n))))
-
-(defun (setf nth) (val n seq)
-  (etypecase seq
-    (list (setf (cl:nth n seq) val))
-    (vector (setf (aref seq n) val))))
-
-(defun nthcdr (n seq)
-  (subseq seq n))
-
-(defun (setf nthcdr) (new n seq)
-  (setf (subseq seq n) new))
 
 (setf (symbol-function 'filter) (symbol-function 'remove-if-not))
 

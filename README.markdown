@@ -51,11 +51,11 @@ This is an experimental project redesigning Common Lisp.
 (defvar *vector* #())
 
 (push 1 *vector*)
-(nth 0 *vector*)
+(elt *vector* 0)
 ;=> 1
 
 (push 3 *vector*)
-(nth 1 *vector*)
+(elt *vector* 1)
 ;=> 3
 
 (pop *vector*)
@@ -208,7 +208,6 @@ CL21 is continuously released at 1:00 JST (= 16:00 UTC). You can update to the H
 * mappend
 * maptree
 * filter (Same as `remove-if-not`)
-* list-nth (Same as `cl:nth`)
 * list-push (Same as `cl:push`)
 * list-pushnew (Same as `cl:pushnew`)
 * list-pop (Same as `cl:pop`)
@@ -289,8 +288,6 @@ All external symbols of Closer MOP.
 
 ## Redefined
 * equalp
-* nth
-* nthcdr
 * coerce
 * getf
 * push

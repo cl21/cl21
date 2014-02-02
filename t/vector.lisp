@@ -10,13 +10,13 @@
   (make-array 0 :adjustable t :fill-pointer 0))
 
 (push 1 *vector*)
-(is (nth 0 *vector*) 1)
+(is (elt *vector* 0) 1)
 
 (push 3 *vector*)
-(is (nth 1 *vector*) 3)
+(is (elt *vector* 1) 3)
 
 (push 5 *vector*)
-(is (nth 2 *vector*) 5)
+(is (elt *vector* 2) 5)
 (is (length *vector*) 3)
 
 (pushnew 5 *vector*)
