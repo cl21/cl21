@@ -123,7 +123,10 @@
            :last
 
            ;; Alexandria
-           :mappend))
+           :mappend
+
+           :1..
+           :0..))
 (in-package :cl21.core.cons)
 
 (setf (symbol-function 'list-nth) (symbol-function 'nth))
@@ -138,3 +141,8 @@
   `(cl:pushnew ,value ,place ,@keys))
 (defmacro list-pop (place)
   `(cl:pop ,place))
+
+(defun 1.. (n)
+  (iota n :start 1))
+(defun 0.. (n)
+  (iota (1+ n)))
