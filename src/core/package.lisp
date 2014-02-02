@@ -113,9 +113,10 @@
   (let ((readtable-options (loop for use in (gethash (intern (string name) :keyword) *package-use*)
                                  append (get-package-readtable-options use))))
     (eval
-     `(progn
+     `(let (#+ccl(*readtable* ccl::%initial-readtable%))
         (defreadtable ,name
-          (:merge :standard)
+          (:merge #+ccl :current
+                  #-ccl :standard)
           ,@readtable-options)
         (find-readtable ',name)))))
 
@@ -125,13 +126,22 @@
         (create-readtable-for-package name)
         (find-readtable name))))
 
+(defun cl21-readtable-available-p (name)
+  (find :cl21 (gethash (intern (string name) :keyword) *package-use*)))
+
 (defmacro in-package (name)
   (let ((keyword-name (intern (string name) :keyword)))
     `(eval-when (:execute :load-toplevel :compile-toplevel)
        (prog1
            (cl:in-package ,name)
-         (when (find-readtable ,keyword-name)
-           (in-readtable ,keyword-name))))))
+         (if (find-readtable ,keyword-name)
+             (in-readtable ,keyword-name)
+             (when (and ,(not (cl21-readtable-available-p name))
+                        (eq *readtable*
+                            ,(intern #.(string :*standard-readtable*) :cl21.core.readtable)))
+               (setf *readtable*
+                     #+ccl ccl::%initial-readtable%
+                     #-ccl (copy-readtable nil))))))))
 
 (defmacro use-package (packages-to-use &optional (package *package*))
   (let ((kw-name (intern (package-name package) :keyword)))

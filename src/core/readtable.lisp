@@ -149,13 +149,15 @@
               nil)
         :initial-contents ,list))))
 
-(defreadtable :cl21
-  (:merge :standard)
-  (:macro-char #\" #'string-reader)
-  (:dispatch-macro-char #\# #\' (function |#'-reader|))
-  (:dispatch-macro-char #\# #\( #'vector-reader)
-  (:dispatch-macro-char #\# #\{ #'hash-table-reader)
-  (:macro-char #\} (get-macro-character #\))))
+(let (#+ccl(*readtable* ccl::%initial-readtable%))
+  (defreadtable :cl21
+    (:merge #+ccl :current
+            #-ccl :standard)
+    (:macro-char #\" #'string-reader)
+    (:dispatch-macro-char #\# #\' (function |#'-reader|))
+    (:dispatch-macro-char #\# #\( #'vector-reader)
+    (:dispatch-macro-char #\# #\{ #'hash-table-reader)
+    (:macro-char #\} (get-macro-character #\)))))
 
 #.`(defreadtable cl21-package-local-nickname-syntax
      (:merge :standard)
