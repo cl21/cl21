@@ -64,7 +64,6 @@
            ;; Alexandria
            :length=
 
-           :maptree
            :take
            :drop
            :take-while
@@ -91,16 +90,6 @@
   `(typecase ,place
      (vector (cl:vector-pop ,place))
      (T (cl:pop ,place))))
-
-(defun maptree (fn tree)
-  (cond
-    ((atom tree)
-     (funcall fn tree))
-    ((null (cdr tree))
-     (list (maptree fn (car tree))))
-    (T
-     (cons (maptree fn (car tree))
-           (maptree fn (cdr tree))))))
 
 (defun take (n sequence)
   "Take the first `n` elements from `sequence`."

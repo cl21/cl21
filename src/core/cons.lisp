@@ -125,6 +125,7 @@
            ;; Alexandria
            :mappend
 
+           :maptree
            :1..
            :0..))
 (in-package :cl21.core.cons)
@@ -135,6 +136,18 @@
   `(cl:pushnew ,value ,place ,@keys))
 (defmacro list-pop (place)
   `(cl:pop ,place))
+
+(defun maptree (fn tree)
+  (labels ((rec (tree)
+             (etypecase tree
+               (atom (funcall fn tree))
+               (cons (cons (rec (car tree))
+                           (if (cdr tree)
+                               (rec (cdr tree))
+                               nil))))))
+    (if (null tree)
+        nil
+        (rec tree))))
 
 (defun 1.. (n)
   (iota n :start 1))

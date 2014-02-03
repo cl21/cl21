@@ -3,7 +3,7 @@
   (:use :cl)
   (:shadow :function
            :destructuring-bind)
-  (:import-from :cl21.core.sequence
+  (:import-from :cl21.core.cons
                 :maptree)
   (:import-from :alexandria
                 :once-only
