@@ -260,7 +260,6 @@
                            :cl21.core.cons
                            :cl21.core.array
                            :cl21.core.string
-                           :cl21.core.string-designator
                            :cl21.core.sequence
                            :cl21.core.hash-table
                            :cl21.core.file

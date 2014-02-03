@@ -238,10 +238,6 @@ All external symbols of Closer MOP.
 ### Array
 * copy-array
 
-### String Designator
-* upcase
-* downcase
-
 ### Sequence
 * concat
 * split-sequence

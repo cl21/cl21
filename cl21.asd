@@ -47,7 +47,6 @@
                    (:file "cons")
                    (:file "array")
                    (:file "string")
-                   (:file "string-designator")
                    (:file "sequence")
                    (:file "hash-table")
                    (:file "file")
