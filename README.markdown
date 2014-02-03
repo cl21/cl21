@@ -228,6 +228,8 @@ All external symbols of Closer MOP.
 * remove-from-plist
 * delete-from-plist
 * ensure-list
+* ensure-cons
+* ensure-car
 * flatten
 * mappend
 * maptree

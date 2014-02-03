@@ -6,6 +6,8 @@
                 :remove-from-plist
                 :delete-from-plist
                 :ensure-list
+                :ensure-cons
+                :ensure-car
                 :flatten
                 :mappend)
   (:export :list
@@ -104,6 +106,8 @@
            :remove-from-plist
            :delete-from-plist
            :ensure-list
+           :ensure-cons
+           :ensure-car
            :flatten
 
            :list-push
