@@ -3,6 +3,7 @@
   (:use :cl)
   (:import-from :alexandria
                 :make-keyword
+                :symbolicate
                 :with-gensyms)
   (:export :symbol
            :keyword
@@ -24,4 +25,5 @@
            :makunbound
            :unbound-variable
 
+           :symbolicate
            :with-gensyms))

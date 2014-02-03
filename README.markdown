@@ -218,6 +218,7 @@ All external symbols of Closer MOP.
 
 ### Symbol
 * make-keyword
+* symbolicate
 * with-gensyms
 
 ### Cons
