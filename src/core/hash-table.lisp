@@ -6,7 +6,8 @@
                 :alist-hash-table
                 :hash-table-keys
                 :hash-table-values
-                :copy-hash-table)
+                :copy-hash-table
+                :hash-table-plist)
   (:export :hash-table
            :make-hash-table
            :gethash
@@ -47,3 +48,7 @@
 
 (defun hash-table-key-exists-p (hash key)
   (nth-value 1 (gethash hash key)))
+
+(defmethod print-object ((object hash-table) stream)
+  (format stream "~<#{~;~\@{~S ~S~^ ~_~}~;}~:>"
+          (hash-table-plist object)))
