@@ -33,7 +33,7 @@
 
 (defmacro eql-hash-table (&rest contents)
   (let ((hash (gensym "HASH")))
-    `(let ((,hash (make-hash-table :test 'eql)))
+    `(let ((,hash (make-hash-table :test 'equal)))
        (setf ,@(do ((lst contents
                          (cddr lst))
                     (acc nil))
