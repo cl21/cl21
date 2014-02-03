@@ -144,10 +144,11 @@ of which has elements that satisfy PRED, the second which do not."
                     :collect (subseq sequence i (min len (+ chunk-size i)))))))
 
 (defun concat (sequence &rest more-sequences)
-  (let ((type (type-of sequence)))
+  (let ((type (etypecase sequence
+                (string 'string)
+                (list   'list)
+                (vector 'vector))))
     (apply #'concatenate
-           (if (listp type)
-               (car type)
-               type)
+           type
            sequence
            more-sequences)))
