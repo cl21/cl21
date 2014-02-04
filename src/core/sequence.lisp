@@ -44,7 +44,8 @@
            :remove
            :remove-if
            :remove-if-not
-           :filter
+           :keep
+           :keep-if
            :remove-duplicates
 
            :delete
@@ -73,7 +74,19 @@
            :concat))
 (in-package :cl21.core.sequence)
 
-(setf (symbol-function 'filter) (symbol-function 'remove-if-not))
+(setf (symbol-function 'keep-if) (symbol-function 'remove-if-not))
+(defun keep (item sequence &key from-end (test #'eql) (start 0) end count (key #'identity))
+  (let ((sequence (subseq sequence start end)))
+    (loop with current-count = 0
+          with result = '()
+          for el in (if from-end
+                        (nreverse sequence)
+                        sequence)
+          until (and count
+                     (= count current-count))
+          when (funcall test item (funcall key el))
+            collect (progn (incf current-count)
+                           el))))
 
 (defmacro push (value place)
   `(typecase ,place

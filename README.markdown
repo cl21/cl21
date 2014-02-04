@@ -83,15 +83,15 @@ This is an experimental project redesigning Common Lisp.
 (mapcar (compose #'sin #'1+) '(1 2 3))
 ;=> (0.9092974 0.14112 -0.7568025)
 
-(filter (conjoin #'integerp #'evenp) '(1 2 3 2.0 4))
+(keep-if (conjoin #'integerp #'evenp) '(1 2 3 2.0 4))
 ;=> (2 4)
-(filter (disjoin #'oddp #'zerop) (0.. 10))
+(keep-if (disjoin #'oddp #'zerop) (0.. 10))
 ;=> (0 1 3 5 7 9)
 
 ;; Sharpsign quote (#') is overwritten.
-(filter #'(and integerp evenp) '(1 2 3 2.0 4))
+(keep-if #'(and integerp evenp) '(1 2 3 2.0 4))
 ;=> (2 4)
-(filter #'(and integerp (or oddp zerop)) (0.. 10))
+(keep-if #'(and integerp (or oddp zerop)) (0.. 10))
 ;=> (0 1 3 5 7 9)
 
 ;;
@@ -233,7 +233,8 @@ All external symbols of Closer MOP.
 * flatten
 * mappend
 * maptree
-* filter (Same as `remove-if-not`)
+* keep
+* keep-if (Same as `remove-if-not`)
 * list-push (Same as `cl:push`)
 * list-pushnew (Same as `cl:pushnew`)
 * list-pop (Same as `cl:pop`)
@@ -317,7 +318,7 @@ And, All external symbols of trivial-gray-streams.
 * \*modules\*
 
 ## Deprecated Symbols
-* remove-if-not (Use `filter`)
+* remove-if-not (Use `keep-if`)
 
 ## Redefined
 * equalp
