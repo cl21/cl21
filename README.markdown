@@ -284,7 +284,15 @@ And, All external symbols of trivial-gray-streams.
 * enable-cl21-syntax
 * disable-cl21-syntax
 * \*standard-readtable\*
+* syntax
+* syntaxp
+* make-syntax
+* defsyntax
+* syntax-name
+* syntax-rules
+* find-syntax
 * use-syntax
+* export-syntax
 
 ### Regular Expression (cl21.re)
 * re-match

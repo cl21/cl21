@@ -10,6 +10,8 @@
         (cl:shadowing-import (cl:list #3#))
         (cl:export (cl:list #3#))))))
 
+(export-syntax :cl21)
+
 (cl:in-package :cl-user)
 (cl21::defpackage cl21-user
   (:use :cl21))

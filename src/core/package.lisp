@@ -9,6 +9,8 @@
            :rename-package)
   (:import-from :cl21.core.readtable
                 :use-syntax
+                :exported-syntaxes
+                :set-package-export-syntaxes
                 :*standard-readtable*
                 :cl21-package-local-nickname-syntax)
   (:import-from :named-readtables
@@ -116,8 +118,9 @@
                 #-ccl :standard))
       (let ((rt (find-readtable ,name)))
         (loop for use in (gethash ,name *package-use*)
-              when (find-readtable use)
-                do (use-syntax use rt))
+              for syntaxes = (exported-syntaxes use)
+              do (loop for syntax in syntaxes
+                       do (use-syntax syntax rt)))
         rt))))
 
 (defun find-or-create-readtable-for-package (name)
@@ -164,6 +167,7 @@
   (let* ((package (cl:find-package package-designator))
          (key (intern (package-name package) :keyword)))
     (remhash package *package-local-nicknames*)
+    (set-package-export-syntaxes package nil)
     (cl:delete-package package)
     (unregister-readtable key)))
 
@@ -173,6 +177,9 @@
          (old-key (intern (package-name package) :keyword)))
     (prog1
         (cl:rename-package package-designator new-name new-nicknames)
+
+      (set-package-export-syntaxes (find-package new-name) (exported-syntaxes package))
+      (set-package-export-syntaxes package nil)
 
       (when (find-readtable old-key)
         (rename-readtable old-key new-key)))))

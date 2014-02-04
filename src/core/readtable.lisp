@@ -21,12 +21,11 @@
   (:import-from :named-readtables
                 :defreadtable
                 :in-readtable
-                :find-readtable
-                :merge-readtables-into
-                :reader-macro-conflict)
+                :find-readtable)
   (:import-from :alexandria
                 :if-let
-                :when-let)
+                :when-let
+                :ensure-list)
   (:export
    :readtable
    :make-dispatch-macro-character
@@ -52,7 +51,15 @@
    :disable-cl21-syntax
    :copy-readtable
    :*standard-readtable*
-   :use-syntax))
+   :defsyntax
+   :syntax
+   :syntaxp
+   :syntax-name
+   :syntax-rules
+   :make-syntax
+   :find-syntax
+   :use-syntax
+   :export-syntax))
 (in-package :cl21.core.readtable)
 
 (defun string-reader (stream char)
@@ -134,6 +141,76 @@
               nil)
         :initial-contents ,list))))
 
+
+;;
+;; Syntax
+
+(defstruct (syntax (:constructor %make-syntax (name &key rules))
+                   (:predicate syntaxp))
+  (name nil :type symbol)
+  (rules nil :type (and list
+                       (satisfies syntax-rule-list-p))))
+
+(defun syntax-rule-p (rule)
+  (and (listp rule)
+       (listp (car rule))
+       (= (length rule) 2)))
+
+(defun syntax-rule-list-p (rules)
+  (every #'syntax-rule-p rules))
+
+(defmacro defsyntax (name &body rules)
+  `(make-syntax ',name
+                :rules (list ,@(mapcar (lambda (rule)
+                                         `(list ',(ensure-list (car rule)) ,(cadr rule)))
+                                       rules))))
+
+(let ((syntax-hash (make-hash-table :test 'eq))
+      (exported-syntax (make-hash-table :test 'eq)))
+  (defun register-syntax (name syntax)
+    (setf (gethash name syntax-hash) syntax))
+
+  (defun unregister-syntax (syntax-designator)
+    (let ((name (if (syntaxp syntax-designator)
+                    (syntax-name syntax-designator)
+                    syntax-designator)))
+      (remhash name syntax-hash)))
+
+  (defun find-syntax (syntax-designator)
+    (if (syntaxp syntax-designator)
+        syntax-designator
+        (values (gethash syntax-designator syntax-hash))))
+
+  (defun make-syntax (name &key rules)
+    (let ((syntax (%make-syntax name :rules rules)))
+      (register-syntax name syntax)
+      syntax))
+
+  (defun export-syntax (syntax-designator &optional (package *package*))
+    (let ((name (if (syntaxp syntax-designator)
+                    (syntax-name syntax-designator)
+                    syntax-designator)))
+      (setf (gethash package exported-syntax)
+            (cons name (gethash package exported-syntax)))))
+
+  (defun set-package-export-syntaxes (package &rest syntax-names)
+    (setf (gethash package exported-syntax)
+          syntax-names))
+
+  (defun exported-syntaxes (package-designator)
+    (values (gethash (find-package package-designator) exported-syntax))))
+
+(defun use-syntax (syntax-designator &optional (readtable *readtable*))
+  (let ((*readtable* readtable)
+        (syntax (find-syntax syntax-designator)))
+    (unless syntax
+      (error "Syntax ~A doesn't exist." syntax-designator))
+    (dolist (rule (syntax-rules syntax))
+      (destructuring-bind ((char1 &optional char2) fn) rule
+        (if char2
+            (set-dispatch-macro-character char1 char2 fn)
+            (set-macro-character char1 fn))))))
+
 (let (#+ccl(*readtable* ccl::%initial-readtable%))
   (defreadtable :cl21
     (:merge #+ccl :current
@@ -144,6 +221,13 @@
     (:dispatch-macro-char #\# #\{ #'hash-table-reader)
     (:macro-char #\} (get-macro-character #\)))))
 
+(defsyntax :cl21
+  (#\" #'string-reader)
+  ((#\# #\') (function |#'-reader|))
+  ((#\# #\() #'vector-reader)
+  ((#\# #\{) #'hash-table-reader)
+  (#\} (get-macro-character #\))))
+
 #.`(defreadtable cl21-package-local-nickname-syntax
      (:merge :standard)
      ,@(map 'list
@@ -152,6 +236,13 @@
             ":!$%&*+-/0123456789<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_abcdefghijklmnopqrstuvwxyz")
      (:dispatch-macro-char #\# #\: #'sharp-colon))
 
+#.`(defsyntax cl21-package-local-nickname-syntax
+     ,@(map 'list
+            #'(lambda (char)
+                `(,char #'read-symbol))
+            ":!$%&*+-/0123456789<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_abcdefghijklmnopqrstuvwxyz")
+     ((#\# #\:) #'sharp-colon))
+
 (defreadtable cl21-full-readtable
   (:merge :standard)
   (:fuze cl21-package-local-nickname-syntax)
@@ -159,13 +250,6 @@
 
 (defparameter *standard-readtable*
   (find-readtable :cl21))
-
-(defun use-syntax (syntax &optional (readtable *readtable*))
-  (handler-bind ((reader-macro-conflict
-                   #'(lambda (c)
-                       (when-let (restart (find-restart 'continue c))
-                         (invoke-restart restart)))))
-    (merge-readtables-into readtable syntax)))
 
 (defun copy-readtable (&optional (from *readtable*) to)
   (if from

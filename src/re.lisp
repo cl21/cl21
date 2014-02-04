@@ -79,4 +79,7 @@
                                                  (remove #\G (symbol-name modifiers)))))
                      ,(coerce (symbol-name modifiers) 'simple-vector)))))))
 
-(set-dispatch-macro-character #\# #\/ #'regexp-reader)
+(defsyntax cl21.re
+  ((#\# #\/) #'regexp-reader))
+
+(export-syntax 'cl21.re)
