@@ -8,7 +8,8 @@
                 :split-sequence
                 :split-sequence-if)
   (:import-from :alexandria
-                :length=)
+                :length=
+                :delete-from-plist)
   (:export :split-sequence
            :split-sequence-if
 
@@ -44,8 +45,8 @@
            :remove
            :remove-if
            :remove-if-not
-           :keep
-           :keep-if
+           :filter
+           :filter-if
            :remove-duplicates
 
            :delete
@@ -74,19 +75,16 @@
            :concat))
 (in-package :cl21.core.sequence)
 
-(setf (symbol-function 'keep-if) (symbol-function 'remove-if-not))
-(defun keep (item sequence &key from-end (test #'eql) (start 0) end count (key #'identity))
-  (let ((sequence (subseq sequence start end)))
-    (loop with current-count = 0
-          with result = '()
-          for el in (if from-end
-                        (nreverse sequence)
-                        sequence)
-          until (and count
-                     (= count current-count))
-          when (funcall test item (funcall key el))
-            collect (progn (incf current-count)
-                           el))))
+(setf (symbol-function 'filter-if) (symbol-function 'remove-if-not))
+(defun filter (item sequence &rest args &key from-end (test #'eql test-specified-p) start end count key)
+  (declare (ignore from-end start end count key))
+  (when test-specified-p
+    (setq args (delete-from-plist args :test)))
+  (apply #'filter-if
+         (lambda (x)
+           (funcall test x item))
+         sequence
+         args))
 
 (defmacro push (value place)
   `(typecase ,place
