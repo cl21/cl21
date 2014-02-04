@@ -162,7 +162,7 @@
 (defmacro defsyntax (name &body rules)
   `(make-syntax ',name
                 :rules (list ,@(mapcar (lambda (rule)
-                                         `(list ',(ensure-list (car rule)) ,(cadr rule)))
+                                         `(list ',(ensure-list (car rule)) ,@(cdr rule)))
                                        rules))))
 
 (let ((syntax-hash (make-hash-table :test 'eq))
@@ -190,15 +190,14 @@
     (let ((name (if (syntaxp syntax-designator)
                     (syntax-name syntax-designator)
                     syntax-designator)))
-      (setf (gethash package exported-syntax)
-            (cons name (gethash package exported-syntax)))))
+      (pushnew name (gethash package exported-syntax))))
 
   (defun set-package-export-syntaxes (package &rest syntax-names)
     (setf (gethash package exported-syntax)
           syntax-names))
 
   (defun exported-syntaxes (package-designator)
-    (values (gethash (find-package package-designator) exported-syntax))))
+    (values (reverse (gethash (find-package package-designator) exported-syntax)))))
 
 (defun use-syntax (syntax-designator &optional (readtable *readtable*))
   (let ((*readtable* readtable)

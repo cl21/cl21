@@ -151,17 +151,20 @@
     `(prog1
          (cl:use-package ,packages-to-use ,package)
        (setf (gethash ,kw-name *package-use*)
-             (append
-              ',(loop for use in (ensure-list packages-to-use)
-                      when (keywordp use)
-                        collect use
-                      else
-                        collect (intern (symbol-name use) :keyword))
-              (gethash ,(intern (package-name package) :keyword) *package-use*)))
+             (remove-duplicates
+              (append
+               ',(loop for use in (ensure-list packages-to-use)
+                       when (keywordp use)
+                         collect use
+                       else
+                         collect (intern (symbol-name use) :keyword))
+               (gethash ,(intern (package-name package) :keyword) *package-use*))
+              :from-end t
+              :test #'eq))
 
-       (loop for use in (gethash (intern (string name) :keyword) *package-use*)
-             when (find-readtable use)
-               do (use-syntax use rt)))))
+       (loop for package in ',(ensure-list packages-to-use)
+             do (loop for syntax in (exported-syntaxes package)
+                      do (use-syntax syntax))))))
 
 (defun delete-package (package-designator)
   (let* ((package (cl:find-package package-designator))
