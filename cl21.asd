@@ -37,7 +37,7 @@
                   :components
                   ((:file "types")
                    (:file "condition")
-                   (:file "package")
+                   (:file "package" :depends-on ("readtable"))
                    (:file "object")
                    (:file "function")
                    (:file "structure")
@@ -53,7 +53,7 @@
                    (:file "stream")
                    (:file "generic" :depends-on ("types"))
                    (:file "repl")
-                   (:file "readtable" :depends-on ("function" "array" "sequence" "hash-table" "package" "generic"))))
+                   (:file "readtable" :depends-on ("function" "array" "sequence" "hash-table" "generic"))))
                  (:file "re" :depends-on ("core"))
                  (:file "abbr" :depends-on ("core")))))
   :description "Common Lisp in the 21st Century."

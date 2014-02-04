@@ -7,6 +7,10 @@
            :find-package
            :delete-package
            :rename-package)
+  (:import-from :cl21.core.readtable
+                :use-syntax
+                :*standard-readtable*
+                :cl21-package-local-nickname-syntax)
   (:import-from :named-readtables
                 :defreadtable
                 :find-readtable
@@ -95,30 +99,26 @@
                             (intern (string ',name) :keyword))))
            (declare (ignorable ,readtable))
            ,@(mapcar (lambda (syntax)
-                       `(,(intern #.(string :use-syntax) :cl21.core.readtable)
+                       `(use-syntax
                          ,(intern (string syntax) :keyword)
                          ,readtable))
                      import-syntaxes))
          ,@(nreverse package-local-nicknames)))))
 
-(defvar *package-readtable-options* (make-hash-table :test 'eq))
-
-(defun get-package-readtable-options (package-name)
-  (gethash package-name *package-readtable-options*))
-
 (defun create-readtable-for-package (name)
   (check-type name keyword)
   (when (find-readtable name)
     (unregister-readtable name))
-  (let ((readtable-options (loop for use in (gethash (intern (string name) :keyword) *package-use*)
-                                 append (get-package-readtable-options use))))
-    (eval
-     `(let (#+ccl(*readtable* ccl::%initial-readtable%))
-        (defreadtable ,name
-          (:merge #+ccl :current
-                  #-ccl :standard)
-          ,@readtable-options)
-        (find-readtable ',name)))))
+  (eval
+   `(let (#+ccl(*readtable* ccl::%initial-readtable%))
+      (defreadtable ,name
+        (:merge #+ccl :current
+                #-ccl :standard))
+      (let ((rt (find-readtable ,name)))
+        (loop for use in (gethash ,name *package-use*)
+              when (find-readtable use)
+                do (use-syntax use rt))
+        rt))))
 
 (defun find-or-create-readtable-for-package (name)
   (or (find-readtable name)
@@ -127,7 +127,8 @@
         (find-readtable name))))
 
 (defun cl21-readtable-available-p (name)
-  (find :cl21 (gethash (intern (string name) :keyword) *package-use*)))
+  (or (eq name :cl21)
+      (find :cl21 (gethash (intern (string name) :keyword) *package-use*))))
 
 (defmacro in-package (name)
   (let ((keyword-name (intern (string name) :keyword)))
@@ -137,8 +138,7 @@
          (if (find-readtable ,keyword-name)
              (in-readtable ,keyword-name)
              (when (and ,(not (cl21-readtable-available-p name))
-                        (eq *readtable*
-                            ,(intern #.(string :*standard-readtable*) :cl21.core.readtable)))
+                        (eq *readtable* *standard-readtable*))
                (setf *readtable*
                      #+ccl ccl::%initial-readtable%
                      #-ccl (copy-readtable nil))))))))
@@ -155,18 +155,14 @@
                       else
                         collect (intern (symbol-name use) :keyword))
               (gethash ,(intern (package-name package) :keyword) *package-use*)))
-       (when (find-readtable ,kw-name)
-         (unregister-readtable ,kw-name))
-       (defreadtable ,kw-name
-         (:merge :current)
-         ,@(loop for use in (ensure-list packages-to-use)
-                 append (get-package-readtable-options use)))
-       (in-readtable ,kw-name))))
+
+       (loop for use in (gethash (intern (string name) :keyword) *package-use*)
+             when (find-readtable use)
+               do (use-syntax use rt)))))
 
 (defun delete-package (package-designator)
   (let* ((package (cl:find-package package-designator))
          (key (intern (package-name package) :keyword)))
-    (remhash key *package-readtable-options*)
     (remhash package *package-local-nicknames*)
     (cl:delete-package package)
     (unregister-readtable key)))
@@ -178,9 +174,6 @@
     (prog1
         (cl:rename-package package-designator new-name new-nicknames)
 
-      (setf (gethash new-key *package-readtable-options*)
-            (gethash old-key *package-readtable-options*))
-      (remhash old-key *package-readtable-options*)
       (when (find-readtable old-key)
         (rename-readtable old-key new-key)))))
 
@@ -227,8 +220,6 @@
     ;; Inject CL21-PACKAGE-LOCAL-NICKNAME-SYNTAX into *readtable* of the package.
     (let ((readtable (find-readtable
                       (intern (package-name package) :keyword))))
-      (funcall (symbol-function (intern #.(string :use-syntax) :cl21.core.readtable))
-               (intern #.(string :cl21-package-local-nickname-syntax) :cl21.core.readtable)
-               readtable))
+      (use-syntax 'cl21-package-local-nickname-syntax readtable))
 
     package))

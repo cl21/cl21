@@ -8,9 +8,6 @@
                 :hash-table-reader)
   (:shadowing-import-from :cl21.core.function
                           :function)
-  (:shadowing-import-from :cl21.core.package
-                          :*package-readtable-options*
-                          :find-package)
   (:import-from :cl-interpol
                 :*stream*
                 :*start-char*
@@ -22,6 +19,7 @@
                 :inner-reader
                 :read-char*)
   (:import-from :named-readtables
+                :defreadtable
                 :in-readtable
                 :find-readtable
                 :merge-readtables-into
@@ -52,24 +50,10 @@
 
    :enable-cl21-syntax
    :disable-cl21-syntax
-   :defreadtable
    :copy-readtable
    :*standard-readtable*
    :use-syntax))
 (in-package :cl21.core.readtable)
-
-(defmacro defreadtable (name &rest options)
-  `(prog1
-       (named-readtables:defreadtable ,name
-         ,@options)
-     ,@(if (keywordp name)
-           ;; Assuming this is a package-readtable if the name is a keyword.
-           `((setf (gethash ,name *package-readtable-options*)
-                   ',(remove-if (lambda (option)
-                                  (and (find (car option) '(:merge :fuze))
-                                       (keywordp (cadr option))))
-                                options)))
-           nil)))
 
 (defun string-reader (stream char)
   (let ((*stream* stream)
@@ -126,8 +110,9 @@
            (*readtable* (cl:copy-readtable nil)))
       (if-let (package (and pos
                             (not (zerop pos))
-                            (find-package (intern (string-upcase (subseq token 0 pos))
-                                                  :keyword))))
+                            (funcall (intern #.(string :find-package) :cl21.core.package)
+                                     (intern (string-upcase (subseq token 0 pos))
+                                             :keyword))))
         (values (read-from-string (concatenate 'string
                                                (package-name package)
                                                (subseq token pos))))

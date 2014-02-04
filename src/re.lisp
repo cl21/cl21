@@ -38,46 +38,45 @@
                          (function (funcall re))
                          (string re)) target-string keys))
 
-#-ccl
-(defun whitespacep (char)
-  (member char '(#\Space #\Tab #\Newline #\Return #\Linefeed) :test #'char=))
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  #-ccl
+  (defun whitespacep (char)
+    (member char '(#\Space #\Tab #\Newline #\Return #\Linefeed) :test #'char=))
 
-(defun segment-reader (stream ch n)
-  (if (> n 0)
-      (let ((chars))
-        (do ((curr (read-char stream)
-                   (read-char stream)))
-            ((char= ch curr))
-          (push curr chars))
-        (cons (coerce (nreverse chars) 'string)
-              (segment-reader stream ch (- n 1))))))
+  (defun segment-reader (stream ch n)
+    (if (> n 0)
+        (let ((chars))
+          (do ((curr (read-char stream)
+                     (read-char stream)))
+              ((char= ch curr))
+            (push curr chars))
+          (cons (coerce (nreverse chars) 'string)
+                (segment-reader stream ch (- n 1))))))
 
-(defun modifier-reader (stream)
-  (let ((char (read-char stream nil)))
-    (unread-char char stream)
-    (unless (#+ccl ccl:whitespacep
-             #-ccl whitespacep char)
-      (read-preserving-whitespace stream))))
+  (defun modifier-reader (stream)
+    (let ((char (read-char stream nil)))
+      (unread-char char stream)
+      (unless (#+ccl ccl:whitespacep
+               #-ccl whitespacep char)
+        (read-preserving-whitespace stream))))
 
-(defun regex-with-modifier (regex modifier)
-  (format nil "~@[(?~(~a~))~]~a" modifier regex))
+  (defun regex-with-modifier (regex modifier)
+    (format nil "~@[(?~(~a~))~]~a" modifier regex))
 
-(defun regexp-reader (stream sub-char numarg)
-  (declare (ignore numarg))
-  (let* ((segment (segment-reader stream sub-char 1))
-         (modifiers (modifier-reader stream)))
-    `(lambda (&optional str &rest keys)
-       (if str
-           (apply #'ppcre:scan-to-strings
-                  ,(regex-with-modifier (car segment) modifiers)
-                  str
-                  keys)
-           (values (ppcre:create-scanner
-                    ,(regex-with-modifier (car segment)
-                                          (and modifiers
-                                               (remove #\G (symbol-name modifiers)))))
-                   ,(coerce (symbol-name modifiers) 'simple-vector))))))
+  (defun regexp-reader (stream sub-char numarg)
+    (declare (ignore numarg))
+    (let* ((segment (segment-reader stream sub-char 1))
+           (modifiers (modifier-reader stream)))
+      `(lambda (&optional str &rest keys)
+         (if str
+             (apply #'ppcre:scan-to-strings
+                    ,(regex-with-modifier (car segment) modifiers)
+                    str
+                    keys)
+             (values (ppcre:create-scanner
+                      ,(regex-with-modifier (car segment)
+                                            (and modifiers
+                                                 (remove #\G (symbol-name modifiers)))))
+                     ,(coerce (symbol-name modifiers) 'simple-vector)))))))
 
-(defreadtable :cl21.re
-  (:merge :standard)
-  (:dispatch-macro-char #\# #\/ #'regexp-reader))
+(set-dispatch-macro-character #\# #\/ #'regexp-reader)

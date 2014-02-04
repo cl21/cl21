@@ -283,7 +283,6 @@ And, All external symbols of trivial-gray-streams.
 ### Readtable
 * enable-cl21-syntax
 * disable-cl21-syntax
-* defreadtable
 * \*standard-readtable\*
 * use-syntax
 
