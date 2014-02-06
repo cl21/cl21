@@ -238,6 +238,7 @@ All external symbols of Closer MOP.
 * list-push (Same as `cl:push`)
 * list-pushnew (Same as `cl:pushnew`)
 * list-pop (Same as `cl:pop`)
+* cons-last (Same as `cl:last`)
 
 ### Array
 * copy-array
@@ -334,6 +335,7 @@ And, All external symbols of trivial-gray-streams.
 * push
 * pushnew
 * pop
+* last
 * defpackage
 * in-package
 * find-package
