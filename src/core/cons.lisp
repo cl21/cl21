@@ -1,7 +1,6 @@
 (in-package :cl-user)
 (defpackage cl21.core.cons
   (:use :cl)
-  (:shadow :last)
   (:import-from :alexandria
                 :iota
                 :remove-from-plist
@@ -69,8 +68,6 @@
            :append
            :revappend
            :nreconc
-           :butlast
-           :nbutlast
            :ldiff
            :tailp
            :rest
@@ -125,7 +122,6 @@
            :eighth
            :ninth
            :tenth
-           :last
            :cons-last
 
            ;; Alexandria
@@ -143,9 +139,7 @@
 (defmacro list-pop (place)
   `(cl:pop ,place))
 
-(defun last (list)
-  (car (cl:last list)))
-(setf (symbol-function 'cons-last) #'cl:last)
+(setf (symbol-function 'cons-last) #'last)
 
 (defun maptree (fn tree)
   (labels ((rec (tree)

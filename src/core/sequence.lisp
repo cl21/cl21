@@ -3,7 +3,10 @@
   (:use :cl)
   (:shadow :push
            :pushnew
-           :pop)
+           :pop
+           :last
+           :butlast
+           :nbutlast)
   (:import-from :split-sequence
                 :split-sequence
                 :split-sequence-if)
@@ -62,6 +65,9 @@
            :push
            :pushnew
            :pop
+           :last
+           :butlast
+           :nbutlast
 
            ;; Alexandria
            :length=
@@ -165,3 +171,18 @@ of which has elements that satisfy PRED, the second which do not."
            type
            sequence
            more-sequences)))
+
+(defun last (seq)
+  (etypecase seq
+    (list (car (cl:last seq)))
+    (sequence (elt seq (1- (length seq))))))
+
+(defun butlast (seq &optional (n 1))
+  (etypecase seq
+    (list (cl:butlast seq n))
+    (sequence (subseq seq 0 (- (length seq) n)))))
+
+(defun nbutlast (seq &optional (n 1))
+  (etypecase seq
+    (list (cl:nbutlast seq n))
+    (sequence (butlast seq n))))
