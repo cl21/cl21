@@ -275,6 +275,10 @@
       (cl:export symbol))))
 
 (defmacro destructuring-bind (lambda-list expression &body body)
+  "Bind the variables in LAMBDA-LIST to the corresponding values in the
+tree structure resulting from the evaluation of EXPRESSION.
+
+CL21 Feature: NIL in LAMBDA-LIST will be ignored."
   (let* (gensym-list
          (new-lambda-list (maptree (lambda (elem)
                                      (cond
@@ -299,6 +303,7 @@
      ,@body))
 
 (defmacro while-let ((varsym expression) &body body)
+  "Executes `body` while `expression` is true and binds its return value to `varsym`"
   `(let (,varsym)
      (while (setf ,varsym ,expression)
        ,@body)))
