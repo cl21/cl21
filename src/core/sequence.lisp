@@ -35,7 +35,7 @@
            :reduce
            :count
            :count-if
-           :length ;; TODO: Write as a generic function
+           :length
            :reverse
            :nreverse
            :sort
