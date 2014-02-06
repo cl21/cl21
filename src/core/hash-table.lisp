@@ -31,7 +31,7 @@
            :alist-hash-table))
 (in-package :cl21.core.hash-table)
 
-(defmacro eql-hash-table (&rest contents)
+(defmacro equal-hash-table (&rest contents)
   (let ((hash (gensym "HASH")))
     `(let ((,hash (make-hash-table :test 'equal)))
        (setf ,@(do ((lst contents
@@ -44,7 +44,7 @@
 
 (defun hash-table-reader (stream sub-char numarg)
   (declare (ignore sub-char numarg))
-  `(eql-hash-table ,@(read-delimited-list #\} stream t)))
+  `(equal-hash-table ,@(read-delimited-list #\} stream t)))
 
 (defun hash-table-key-exists-p (hash key)
   (nth-value 1 (gethash hash key)))

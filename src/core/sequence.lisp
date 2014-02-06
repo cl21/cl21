@@ -70,7 +70,7 @@
            :drop
            :take-while
            :drop-while
-           :partition-by
+           :partition-if
            :subdivide
            :concat))
 (in-package :cl21.core.sequence)
@@ -120,7 +120,9 @@
         (subseq sequence pos)
         (subseq sequence 0 0))))
 
-(defun partition-by (pred sequence)
+;; TODO: Add keyword args, `start', `end', `count', `key', and `from-end'.
+;; TODO: Add `partition'.
+(defun partition-if (pred sequence)
   "Given a predicate PRED, partition SEQUENCE into two sublists, the first
 of which has elements that satisfy PRED, the second which do not."
   (let ((yes nil)
