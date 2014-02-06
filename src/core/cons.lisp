@@ -70,7 +70,6 @@
            :nreconc
            :ldiff
            :tailp
-           :rest
            :member
            :member-if
            :mapc
@@ -112,16 +111,6 @@
            :list-pushnew
            :list-pop
 
-           :first
-           :second
-           :third
-           :fourth
-           :fifth
-           :sixth
-           :seventh
-           :eighth
-           :ninth
-           :tenth
            :cons-last
 
            ;; Alexandria

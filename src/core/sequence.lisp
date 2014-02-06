@@ -6,7 +6,18 @@
            :pop
            :last
            :butlast
-           :nbutlast)
+           :nbutlast
+           :first
+           :second
+           :third
+           :fourth
+           :fifth
+           :sixth
+           :seventh
+           :eighth
+           :ninth
+           :tenth
+           :rest)
   (:import-from :split-sequence
                 :split-sequence
                 :split-sequence-if)
@@ -68,6 +79,17 @@
            :last
            :butlast
            :nbutlast
+           :first
+           :second
+           :third
+           :fourth
+           :fifth
+           :sixth
+           :seventh
+           :eighth
+           :ninth
+           :tenth
+           :rest
 
            ;; Alexandria
            :length=
@@ -186,3 +208,24 @@ of which has elements that satisfy PRED, the second which do not."
   (etypecase seq
     (list (cl:nbutlast seq n))
     (sequence (butlast seq n))))
+
+#.`(progn
+     ,@(loop for (function . n) in '((first . 0)
+                                     (second . 1)
+                                     (third . 2)
+                                     (fourth . 3)
+                                     (fifth . 4)
+                                     (sixth . 5)
+                                     (seventh . 6)
+                                     (eighth . 7)
+                                     (ninth . 8)
+                                     (tenth . 9))
+             collect `(defun ,function (seq)
+                        (etypecase seq
+                          (list (,(intern (string function) :cl) seq))
+                          (sequence (elt seq ,n))))))
+
+(defun rest (seq)
+  (etypecase seq
+    (list (cl:rest seq))
+    (sequence (drop 1 seq))))

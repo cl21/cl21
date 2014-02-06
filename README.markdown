@@ -336,6 +336,17 @@ And, All external symbols of trivial-gray-streams.
 * pushnew
 * pop
 * last
+* first
+* second
+* third
+* fourth
+* fifth
+* sixth
+* seventh
+* eighth
+* ninth
+* tenth
+* rest
 * defpackage
 * in-package
 * find-package
