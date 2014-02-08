@@ -266,7 +266,8 @@
                            :cl21.core.stream
                            :cl21.core.generic
                            :cl21.core.repl
-                           :cl21.core.readtable))
+                           :cl21.core.readtable
+                           :cl21.core.cltl2))
   (cl:let ((package (cl:find-package package-name)))
     (cl:unless package
       (cl:error "Package \"~A\" doesn't exist." package-name))

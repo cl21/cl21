@@ -296,6 +296,16 @@ And, All external symbols of trivial-gray-streams.
 * use-syntax
 * export-syntax
 
+### CLtL2
+* compiler-let
+* variable-information
+* function-information
+* declaration-information
+* augment-environment
+* define-declaration
+* parse-macro
+* enclose
+
 ### Regular Expression (cl21.re)
 * re-match
 * re-replace

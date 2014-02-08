@@ -27,7 +27,8 @@
                :split-sequence
                :alexandria
                :cl-utilities
-               :repl-utilities)
+               :repl-utilities
+               #+sbcl :sb-cltl2)
   :components ((:module "src"
                 :components
                 ((:file "cl21" :depends-on ("core"))
@@ -53,7 +54,8 @@
                    (:file "stream")
                    (:file "generic" :depends-on ("types"))
                    (:file "repl")
-                   (:file "readtable" :depends-on ("function" "array" "sequence" "hash-table" "generic"))))
+                   (:file "readtable" :depends-on ("function" "array" "sequence" "hash-table" "generic"))
+                   (:file "cltl2")))
                  (:file "re" :depends-on ("core"))
                  (:file "abbr" :depends-on ("core")))))
   :description "Common Lisp in the 21st Century."
