@@ -257,6 +257,7 @@ All external symbols of Closer MOP.
 * subdivide
 
 ### Hash Table
+* abstract-hash-table
 * hash-table-keys
 * hash-table-values
 * hash-table-key-exists-p
@@ -353,6 +354,16 @@ And, All external symbols of trivial-gray-streams.
 * copy-readtable
 * function
 * destructuring-bind
+* hash-table-p
+* hash-table-count
+* hash-table-rehash-size
+* hash-table-rehash-threshold
+* hash-table-size
+* hash-table-test
+* gethash
+* remhash
+* clrhash
+* maphash
 
 ## Setting the startup package of SLIME
 

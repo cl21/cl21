@@ -4,7 +4,7 @@
         :cl-test-more))
 (in-package :cl21-test.hash-table)
 
-(plan 5)
+(plan 10)
 
 (defparameter *hash* (make-hash-table))
 
@@ -24,5 +24,29 @@
       "Japan")
   (is (getf plist :name)
       "Eitarow Fukamachi"))
+
+(defclass my-hash-table (abstract-hash-table)
+  ((%hash :initform (make-hash-table :test 'equal))))
+
+(ok (hash-table-p (make-instance 'my-hash-table)))
+(ok (typep (make-instance 'my-hash-table) 'hash-table))
+(ok (not (typep (make-instance 'my-hash-table) 'cl-hash-table)))
+
+(defmethod gethash (key (hash my-hash-table) &optional (default 'undefined))
+  (multiple-value-bind (value existsp)
+      (gethash key (slot-value hash '%hash) default)
+    (if existsp
+        (values (format nil "[~A]" value) existsp)
+        (values value existsp))))
+
+(defmethod (setf gethash) (val key (hash my-hash-table))
+  (setf (gethash key (slot-value hash '%hash)) val))
+
+(let ((hash (make-instance 'my-hash-table)))
+  (is (gethash :dummy hash)
+      'undefined)
+  (setf (gethash :dummy hash) "Hi")
+  (is (gethash :dummy hash)
+      "[Hi]"))
 
 (finalize)
