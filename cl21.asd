@@ -49,7 +49,7 @@
                    (:file "array")
                    (:file "string")
                    (:file "sequence")
-                   (:file "hash-table" :depends-on ("generic"))
+                   (:file "hash-table" :depends-on ("generic" "cltl2"))
                    (:file "file")
                    (:file "stream")
                    (:file "generic" :depends-on ("types"))

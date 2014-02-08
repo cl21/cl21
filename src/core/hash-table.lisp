@@ -13,10 +13,15 @@
            :hash-table-test)
   (:shadowing-import-from :cl21.core.generic
                           :coerce)
+  (:import-from :cl21.core.cltl2
+                :variable-information)
   (:import-from :alexandria
                 :plist-hash-table
                 :alist-hash-table
                 :hash-table-plist)
+  (:import-from :cl-utilities
+                :collecting
+                :collect)
   (:export :hash-table
            :make-hash-table
            :gethash
@@ -78,26 +83,59 @@
 ;;
 ;; Generic functions
 
+(defmacro define-hash-compiler-macro (name lambda-list &optional options)
+  (let ((default-form `(list* ',(intern (string name)
+                                        (or (getf options :default-package)
+                                            :cl))
+                              (cdr form))))
+    `(define-compiler-macro ,name (&whole form &environment env ,@lambda-list)
+       (declare (ignorable ,@(remove-if (lambda (symb) (char= (aref (string symb) 0) #\&))
+                                        lambda-list)))
+       (if (and (constantp hash)
+                (typep hash 'hash-table))
+           ,default-form
+           (multiple-value-bind (kind local alist)
+               (variable-information hash env)
+             (declare (ignore kind local))
+             (if (eq 'hash-table (assoc 'type alist))
+                 ,default-form
+                 form))))))
+
 (defgeneric gethash (key hash &optional default)
   (:method (key (hash hash-table) &optional (default nil default-specified-p))
     (apply #'cl:gethash key hash (if default-specified-p (list default) nil))))
+(define-hash-compiler-macro gethash (key hash &optional default))
 
 (defmethod (setf gethash) (newval key (hash hash-table))
   (setf (cl:gethash key hash) newval))
 
+(define-compiler-macro (setf gethash) (&whole form &environment env newval key hash)
+  (if (and (constantp hash)
+           (typep hash 'hash-table))
+      `(setf (cl:gethash ,key ,hash) ,newval)
+      (multiple-value-bind (kind local alist)
+          (variable-information hash env)
+        (declare (ignore kind local))
+        (if (eq 'hash-table (assoc 'type alist))
+            `(setf (cl:gethash ,key ,hash) ,newval)
+            form))))
+
 (defgeneric remhash (key hash)
   (:method (key (hash hash-table))
     (cl:remhash key hash)))
+(define-hash-compiler-macro remhash (key hash))
 
 (defgeneric clrhash (hash)
   (:method ((hash hash-table))
     (cl:clrhash hash)))
+(define-hash-compiler-macro clrhash (hash))
 
 (defgeneric maphash (function hash)
   (:method (function (hash hash-table))
     (cl:maphash function hash))
   (:method (function (hash abstract-hash-table))
     (cl:maphash function (coerce hash 'cl-hash-table))))
+(define-hash-compiler-macro maphash (function hash))
 
 (defgeneric hash-table-keys (hash)
   (:method ((hash hash-table))
@@ -109,6 +147,8 @@
                  (push k keys))
                hash)
       keys)))
+(define-hash-compiler-macro hash-table-keys (hash)
+  (:default-package :alexandria))
 
 (defgeneric hash-table-values (hash)
   (:method ((hash hash-table))
@@ -120,19 +160,25 @@
                  (push v values))
                hash)
       values)))
+(define-hash-compiler-macro hash-table-values (hash)
+  (:default-package :alexandria))
 
 (defgeneric copy-hash-table (hash &key key test size rehash-size rehash-threshold)
   (:method ((hash hash-table) &rest args &key key test size rehash-size rehash-threshold)
+    (declare (ignore key test size rehash-size rehash-threshold))
     (apply #'alexandria:copy-hash-table hash args)))
+(define-hash-compiler-macro copy-hash-table (hash &key key test size rehash-size rehash-threshold)
+  (:default-package :alexandria))
 
 ;; Accessors
 #.`(progn
-     ,@(mapcar (lambda (fn)
-                 `(defgeneric ,fn (hash)
-                    (:method ((hash hash-table))
-                      (,(intern (string fn) :cl) hash))))
-               '(hash-table-count
-                 hash-table-rehash-size
-                 hash-table-rehash-threshold
-                 hash-table-size
-                 hash-table-test)))
+     ,@(collecting
+         (dolist (fn '(hash-table-count
+                       hash-table-rehash-size
+                       hash-table-rehash-threshold
+                       hash-table-size
+                       hash-table-test))
+           (collect `(defgeneric ,fn (hash)
+                       (:method ((hash hash-table))
+                         (,(intern (string fn) :cl) hash))))
+           (collect `(define-hash-compiler-macro ,fn (hash))))))
