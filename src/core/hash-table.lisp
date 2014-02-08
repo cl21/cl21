@@ -13,8 +13,8 @@
            :hash-table-test)
   (:shadowing-import-from :cl21.core.generic
                           :coerce)
-  (:import-from :cl21.core.cltl2
-                :variable-information)
+  (:import-from :cl21.core.util
+                :define-typecase-compiler-macro)
   (:import-from :alexandria
                 :plist-hash-table
                 :alist-hash-table
@@ -83,23 +83,13 @@
 ;;
 ;; Generic functions
 
-(defmacro define-hash-compiler-macro (name lambda-list &optional options)
-  (let ((default-form `(list* ',(intern (string name)
-                                        (or (getf options :default-package)
-                                            :cl))
-                              (cdr form))))
-    `(define-compiler-macro ,name (&whole form &environment env ,@lambda-list)
-       (declare (ignorable ,@(remove-if (lambda (symb) (char= (aref (string symb) 0) #\&))
-                                        lambda-list)))
-       (if (and (constantp hash)
-                (typep hash 'hash-table))
-           ,default-form
-           (multiple-value-bind (kind local alist)
-               (variable-information hash env)
-             (declare (ignore kind local))
-             (if (eq 'hash-table (assoc 'type alist))
-                 ,default-form
-                 form))))))
+(defmacro define-hash-compiler-macro (name lambda-list &optional default-form)
+  `(define-typecase-compiler-macro ,name (&whole form ,@lambda-list)
+     (typecase hash
+       (hash-table ,(or default-form
+                        (if (listp name)
+                            ``(setf ,(list* ',(intern (string (second name)) :cl) (cddr form)) ,,(car lambda-list))
+                            `(list* ',(intern (string name) :cl) (cdr form))))))))
 
 (defgeneric gethash (key hash &optional default)
   (:method (key (hash hash-table) &optional (default nil default-specified-p))
@@ -108,17 +98,7 @@
 
 (defmethod (setf gethash) (newval key (hash hash-table))
   (setf (cl:gethash key hash) newval))
-
-(define-compiler-macro (setf gethash) (&whole form &environment env newval key hash)
-  (if (and (constantp hash)
-           (typep hash 'hash-table))
-      `(setf (cl:gethash ,key ,hash) ,newval)
-      (multiple-value-bind (kind local alist)
-          (variable-information hash env)
-        (declare (ignore kind local))
-        (if (eq 'hash-table (assoc 'type alist))
-            `(setf (cl:gethash ,key ,hash) ,newval)
-            form))))
+(define-hash-compiler-macro (setf gethash) (newval key hash))
 
 (defgeneric remhash (key hash)
   (:method (key (hash hash-table))
@@ -148,7 +128,7 @@
                hash)
       keys)))
 (define-hash-compiler-macro hash-table-keys (hash)
-  (:default-package :alexandria))
+  `(alexandria:hash-table-keys ,hash))
 
 (defgeneric hash-table-values (hash)
   (:method ((hash hash-table))
@@ -161,14 +141,14 @@
                hash)
       values)))
 (define-hash-compiler-macro hash-table-values (hash)
-  (:default-package :alexandria))
+  `(alexandria:hash-table-values ,hash))
 
 (defgeneric copy-hash-table (hash &key key test size rehash-size rehash-threshold)
   (:method ((hash hash-table) &rest args &key key test size rehash-size rehash-threshold)
     (declare (ignore key test size rehash-size rehash-threshold))
     (apply #'alexandria:copy-hash-table hash args)))
-(define-hash-compiler-macro copy-hash-table (hash &key key test size rehash-size rehash-threshold)
-  (:default-package :alexandria))
+(define-hash-compiler-macro copy-hash-table (hash &rest args &key key test size rehash-size rehash-threshold)
+  `(apply #'alexandria:copy-hash-table ,hash ,args))
 
 ;; Accessors
 #.`(progn
