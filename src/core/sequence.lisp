@@ -59,8 +59,10 @@
            :remove
            :remove-if
            :remove-if-not
-           :filter
-           :filter-if
+           :keep
+           :keep-if
+           :nkeep
+           :nkeep-if
            :remove-duplicates
 
            :delete
@@ -103,12 +105,22 @@
            :concat))
 (in-package :cl21.core.sequence)
 
-(setf (symbol-function 'filter-if) (symbol-function 'remove-if-not))
-(defun filter (item sequence &rest args &key from-end (test #'eql test-specified-p) start end count key)
+(setf (symbol-function 'keep-if) (symbol-function 'remove-if-not))
+(setf (symbol-function 'nkeep-if) (symbol-function 'delete-if-not))
+(defun keep (item sequence &rest args &key from-end (test #'eql test-specified-p) start end count key)
   (declare (ignore from-end start end count key))
   (when test-specified-p
     (setq args (delete-from-plist args :test)))
-  (apply #'filter-if
+  (apply #'keep-if
+         (lambda (x)
+           (funcall test x item))
+         sequence
+         args))
+(defun nkeep (item sequence &rest args &key from-end (test #'eql test-specified-p) start end count key)
+  (declare (ignore from-end start end count key))
+  (when test-specified-p
+    (setq args (delete-from-plist args :test)))
+  (apply #'nkeep-if
          (lambda (x)
            (funcall test x item))
          sequence
