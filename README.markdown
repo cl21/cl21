@@ -257,13 +257,22 @@ All external symbols of Closer MOP.
 * subdivide
 
 ### Hash Table
-* abstract-hash-table
 * hash-table-keys
 * hash-table-values
 * hash-table-key-exists-p
 * copy-hash-table
 * plist-hash-table
 * alist-hash-table
+* abstract-hash-table
+* abstract-gethash
+* abstract-remhash
+* abstract-clrhash
+* abstract-copy-hash-table
+* abstract-hash-table-count
+* abstract-hash-table-rehash-size
+* abstract-hash-table-rehash-threshold
+* abstract-hash-table-size
+* abstract-hash-table-test
 
 ### Stream
 * make-null-stream

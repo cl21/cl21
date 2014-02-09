@@ -39,17 +39,20 @@
            ,declare-ignorable
            (let ((type (if (constantp ,symbol)
                            (type-of ,symbol)
-                           (assoc 'type
-                                  (nth-value 2 (variable-information ,symbol ,env-symbol))))))
-             (cond
-               ,@(mapcar (lambda (rule)
-                           `((or ,@(mapcar (lambda (tp)
-                                             `(subtypep type ',tp))
-                                           (ensure-list (car rule))))
-                             (destructuring-bind ,fn-lambda-list ,(if (listp name)
-                                                                 `(cddr ,form-symbol)
-                                                                 `(cdr ,form-symbol))
-                               ,declare-ignorable
-                               ,@(cdr rule))))
-                         rules)
-               (T ,form-symbol))))))))
+                           (and (symbolp ,symbol)
+                                (assoc 'type
+                                       (nth-value 2 (variable-information ',symbol ,env-symbol)))))))
+             (if (null type)
+                 ,form-symbol
+                 (cond
+                   ,@(mapcar (lambda (rule)
+                               `((or ,@(mapcar (lambda (tp)
+                                                 `(subtypep type ',tp))
+                                               (ensure-list (car rule))))
+                                 (destructuring-bind ,fn-lambda-list ,(if (listp name)
+                                                                          `(cddr ,form-symbol)
+                                                                          `(cdr ,form-symbol))
+                                   ,declare-ignorable
+                                   ,@(cdr rule))))
+                             rules)
+                   (T ,form-symbol)))))))))

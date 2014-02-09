@@ -44,7 +44,16 @@
            :plist-hash-table
            :alist-hash-table
 
-           :abstract-hash-table))
+           :abstract-hash-table
+           :abstract-gethash
+           :abstract-remhash
+           :abstract-clrhash
+           :abstract-copy-hash-table
+           :abstract-hash-table-count
+           :abstract-hash-table-rehash-size
+           :abstract-hash-table-rehash-threshold
+           :abstract-hash-table-size
+           :abstract-hash-table-test))
 (in-package :cl21.core.hash-table)
 
 (defmacro equal-hash-table (&rest contents)
@@ -88,65 +97,68 @@
      (typecase hash
        (hash-table ,(or default-form
                         (if (listp name)
-                            ``(setf ,(list* ',(intern (string (second name)) :cl) (cddr form)) ,,(car lambda-list))
+                            ``(setf ,(list* ',(intern (string (second name)) :cl) (cdddr form)) ,,(car lambda-list))
                             `(list* ',(intern (string name) :cl) (cdr form))))))))
 
-(defgeneric gethash (key hash &optional default)
-  (:method (key (hash hash-table) &optional (default nil default-specified-p))
-    (apply #'cl:gethash key hash (if default-specified-p (list default) nil))))
+(defun gethash (key hash &optional (default nil default-specified-p))
+  (typecase hash
+    (hash-table
+     (apply #'cl:gethash key hash (if default-specified-p (list default) nil)))
+    (otherwise
+     (apply #'abstract-gethash key hash (if default-specified-p (list default) nil)))))
+(defgeneric abstract-gethash (key hash &optional default))
 (define-hash-compiler-macro gethash (key hash &optional default))
 
-(defmethod (setf gethash) (newval key (hash hash-table))
-  (setf (cl:gethash key hash) newval))
+(defun (setf gethash) (newval key hash)
+  (typecase hash
+    (hash-table
+     (setf (cl:gethash key hash) newval))
+    (otherwise
+     (setf (abstract-gethash key hash) newval))))
+(defgeneric (setf abstract-gethash) (newval key hash))
 (define-hash-compiler-macro (setf gethash) (newval key hash))
 
-(defgeneric remhash (key hash)
-  (:method (key (hash hash-table))
-    (cl:remhash key hash)))
+(defun remhash (key hash)
+  (typecase hash
+    (hash-table
+     (cl:remhash key hash))
+    (otherwise (abstract-remhash key hash))))
+(defgeneric abstract-remhash (key hash))
 (define-hash-compiler-macro remhash (key hash))
 
-(defgeneric clrhash (hash)
-  (:method ((hash hash-table))
-    (cl:clrhash hash)))
+(defun clrhash (hash)
+  (typecase hash
+    (hash-table (cl:clrhash hash))
+    (otherwise (abstract-clrhash hash))))
+(defgeneric abstract-clrhash (hash))
 (define-hash-compiler-macro clrhash (hash))
 
-(defgeneric maphash (function hash)
-  (:method (function (hash hash-table))
-    (cl:maphash function hash))
-  (:method (function (hash abstract-hash-table))
-    (cl:maphash function (coerce hash 'cl-hash-table))))
+(defun maphash (function hash)
+  (typecase hash
+    (hash-table (cl:maphash function hash))
+    (otherwise (cl:maphash function (coerce hash 'hash-table)))))
 (define-hash-compiler-macro maphash (function hash))
 
-(defgeneric hash-table-keys (hash)
-  (:method ((hash hash-table))
-    (alexandria:hash-table-keys hash))
-  (:method ((hash abstract-hash-table))
-    (let ((keys '()))
-      (maphash (lambda (k v)
-                 (declare (ignore v))
-                 (push k keys))
-               hash)
-      keys)))
+(defun hash-table-keys (hash)
+  (typecase hash
+    (hash-table (alexandria:hash-table-keys hash))
+    (otherwise (alexandria:hash-table-keys (coerce hash 'hash-table)))))
 (define-hash-compiler-macro hash-table-keys (hash)
   `(alexandria:hash-table-keys ,hash))
 
-(defgeneric hash-table-values (hash)
-  (:method ((hash hash-table))
-    (alexandria:hash-table-values hash))
-  (:method ((hash abstract-hash-table))
-    (let ((values '()))
-      (maphash (lambda (k v)
-                 (declare (ignore k))
-                 (push v values))
-               hash)
-      values)))
+(defun hash-table-values (hash)
+  (typecase hash
+    (hash-table (alexandria:hash-table-values hash))
+    (otherwise (alexandria:hash-table-values (coerce hash 'hash-table)))))
 (define-hash-compiler-macro hash-table-values (hash)
   `(alexandria:hash-table-values ,hash))
 
-(defgeneric copy-hash-table (hash &key key test size rehash-size rehash-threshold)
-  (:method ((hash hash-table) &rest args &key key test size rehash-size rehash-threshold)
-    (declare (ignore key test size rehash-size rehash-threshold))
-    (apply #'alexandria:copy-hash-table hash args)))
+(defun copy-hash-table (hash &rest args &key key test size rehash-size rehash-threshold)
+  (declare (ignore key test size rehash-size rehash-threshold))
+  (typecase hash
+    (hash-table (apply #'alexandria:copy-hash-table hash args))
+    (otherwise (apply #'abstract-copy-hash-table hash args))))
+(defgeneric abstract-copy-hash-table (hash &key key test size rehash-size rehash-threshold))
 (define-hash-compiler-macro copy-hash-table (hash &rest args &key key test size rehash-size rehash-threshold)
   `(apply #'alexandria:copy-hash-table ,hash ,args))
 
@@ -158,7 +170,10 @@
                        hash-table-rehash-threshold
                        hash-table-size
                        hash-table-test))
-           (collect `(defgeneric ,fn (hash)
-                       (:method ((hash hash-table))
-                         (,(intern (string fn) :cl) hash))))
+           (collect `(defun ,fn (hash)
+                       (typecase hash
+                         (hash-table
+                          (,(intern (string fn) :cl) hash))
+                         (otherwise (,(intern (format nil "~A-~A" :abstract fn)) hash)))))
+           (collect `(defgeneric ,(intern (format nil "~A-~A" :abstract fn)) (hash)))
            (collect `(define-hash-compiler-macro ,fn (hash))))))

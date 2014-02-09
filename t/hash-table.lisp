@@ -29,17 +29,17 @@
   ((%hash :initform (make-hash-table :test 'equal))))
 
 (ok (hash-table-p (make-instance 'my-hash-table)))
-(ok (typep (make-instance 'my-hash-table) 'hash-table))
-(ok (not (typep (make-instance 'my-hash-table) 'cl-hash-table)))
+(ok (not (typep (make-instance 'my-hash-table) 'hash-table)))
+(ok (typep (make-instance 'my-hash-table) 'abstract-hash-table))
 
-(defmethod gethash (key (hash my-hash-table) &optional (default 'undefined))
+(defmethod abstract-gethash (key (hash my-hash-table) &optional (default 'undefined))
   (multiple-value-bind (value existsp)
       (gethash key (slot-value hash '%hash) default)
     (if existsp
         (values (format nil "[~A]" value) existsp)
         (values value existsp))))
 
-(defmethod (setf gethash) (val key (hash my-hash-table))
+(defmethod (setf abstract-gethash) (val key (hash my-hash-table))
   (setf (gethash key (slot-value hash '%hash)) val))
 
 (let ((hash (make-instance 'my-hash-table)))
