@@ -595,13 +595,17 @@
               when (funcall pred (funcall key x))
                 return x)))
   (:method (pred (sequence abstract-list) &rest args &key from-end (start 0) end (key #'identity))
-    (if (or end from-end)
+    (if from-end
         (apply #'cl:find-if pred (coerce sequence 'list) args)
-        (loop for seq = (drop start sequence)
-              until (emptyp seq)
+        (loop with seq = (drop start sequence)
+              with i = 0
+              until (or (and end
+                             (<= end i))
+                        (emptyp seq))
               for x = (pop seq)
               when (funcall pred (funcall key x))
-                return x))))
+                return x
+              do (incf i)))))
 
 (define-sequence-function-by-if find find-if)
 
@@ -629,12 +633,14 @@
               when (funcall pred (funcall key x))
                 return i)))
   (:method (pred (sequence abstract-list) &rest args &key from-end (start 0) end (key #'identity))
-    (if (or end from-end)
+    (if from-end
         (apply #'cl:position-if pred (coerce sequence 'list) args)
         (loop with seq = (drop start sequence)
               with i = 0
               for x = (pop seq)
-              until (emptyp seq)
+              until (or (and end
+                             (<= end i))
+                        (emptyp seq))
               when (funcall pred (funcall key x))
                 return (+ i start)
               do (incf i)))))
@@ -677,7 +683,7 @@
   (:method (sequence1 (sequence2 abstract-list) &rest args &key from-end (test #'eql) (start1 0) end1 (start2 0) end2 (key #'identity))
     (when (typep sequence1 'abstract-sequence)
       (setq sequence1 (coerce sequence1 'list)))
-    (if (or from-end end2)
+    (if from-end
         (apply #'cl:search sequence1 (coerce sequence2 'list) args)
         (progn
           (setq sequence1 (subseq sequence1 start1 end1))
@@ -685,7 +691,9 @@
                 with len = (cl:length sequence1)
                 with seq = (drop start2 sequence2)
                 with i = 0
-                until (emptyp seq)
+                until (or (and end2
+                               (< end2 (+ i len)))
+                          (emptyp seq))
                 for x = (pop seq)
                 when (and (funcall test (funcall key x) first-el)
                           (every (lambda (x y)
@@ -893,24 +901,28 @@ of which has elements that satisfy PRED, the second which do not."
   (:method (sequence1 (sequence2 abstract-list) &rest args &key from-end (test #'eql) (start1 0) end1 (start2 0) end2 (key #'identity))
     (when (typep sequence1 'abstract-sequence)
       (setq sequence1 (coerce sequence1 'list)))
-    (if (or from-end end2)
+    (if from-end
         (apply #'cl:mismatch sequence1 (coerce sequence2 'list) args)
         (if (funcall test
-                     (funcall key (abstract-first sequence2))
-                     (funcall key (car sequence1)))
+                     (funcall key (elt sequence2 start2))
+                     (funcall key (elt sequence1 start1)))
             (progn
               (setq sequence1 (subseq sequence1 start1 end1))
               (loop with first-el = (funcall key (car sequence1))
                     with len = (cl:length sequence1)
                     with seq = (drop start2 sequence2)
-                    until (emptyp seq)
+                    with i = 0
+                    until (or (and end2
+                                   (< end2 (+ i len)))
+                              (emptyp seq))
                     for x = (pop seq)
                     when (funcall test (funcall key x) first-el)
                       return (let ((res (mismatch (drop 1 sequence1) (take (1- len) seq)
                                                   :test test :key key)))
                                (if res
                                    (+ start2 res)
-                                   nil))))
+                                   nil))
+                    do (incf i)))
             0))))
 
 
@@ -1219,19 +1231,19 @@ of which has elements that satisfy PRED, the second which do not."
 (defgeneric abstract-split-sequence-if (pred sequence &key start end from-end count remove-empty-subseqs key)
   (:method (pred (sequence abstract-list) &rest args &key (start 0) end from-end count remove-empty-subseqs (key #'identity))
     (if (and (not from-end)
-             (not end)
-             count)
+             (or end count))
         (loop with subseqs = '()
               with buf = '()
               with seq = (drop start sequence)
               with i = 0
-              until (or (zerop count)
+              until (or (and count (zerop count))
+                        (and end (<= end i))
                         (emptyp seq))
               for x = (first seq)
               when (funcall pred (funcall key x))
                 do (when (or (null remove-empty-subseqs) buf)
                      (push (nreverse buf) subseqs)
-                     (decf count)
+                     (and count (decf count))
                      (setq buf nil))
               else
                 do (push x buf)
@@ -1243,7 +1255,11 @@ of which has elements that satisfy PRED, the second which do not."
                            (values
                             (cl:append (take start sequence)
                                        (nreverse subseqs))
-                            i))))
+                            (if (and remove-empty-subseqs
+                                     count
+                                     (zerop count))
+                                (1+ i)
+                                i)))))
         (apply #'split-sequence:split-sequence-if pred (coerce sequence 'list) args))))
 
 
