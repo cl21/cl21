@@ -94,6 +94,7 @@ This is an experimental project redesigning Common Lisp.
 (keep-if #'(and integerp (or oddp zerop)) (0.. 10))
 ;=> (0 1 3 5 7 9)
 
+
 ;;
 ;; Regular Expression
 
@@ -114,6 +115,23 @@ This is an experimental project redesigning Common Lisp.
 (re-replace #/a/g "Eitarow Fukamachi" "α")
 ;=> "Eitαrow Fukαmαchi"
 ;   T
+
+
+;;
+;; Lazy Sequence
+
+(use-package :cl21.lazy)
+
+(defun fib-seq ()
+  (labels ((rec (a b)
+             (lazy-sequence (cons a (rec b (+ a b))))))
+    (rec 0 1)))
+
+(take 20 (fib-seq))
+;=> (0 1 1 2 3 5 8 13 21 34 55 89 144 233 377 610 987 1597 2584 4181)
+
+(take 3 (drop-while (lambda (x) (< x 500)) (fib-seq)))
+;=> (610 987 1597)
 ```
 
 ## Features
@@ -361,6 +379,9 @@ And, All external symbols of trivial-gray-streams.
 * re-match
 * re-replace
 * re-split
+
+### Lazy Evaluation (cl21.lazy)
+* lazy-sequence
 
 ### Abbreviation (cl21.abbr)
 * dbind
