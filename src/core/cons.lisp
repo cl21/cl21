@@ -70,8 +70,6 @@
            :nreconc
            :ldiff
            :tailp
-           :member
-           :member-if
            :mapc
            :mapcar
            :mapcan

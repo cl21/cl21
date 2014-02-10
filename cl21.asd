@@ -48,7 +48,7 @@
                    (:file "cons")
                    (:file "array")
                    (:file "string")
-                   (:file "sequence")
+                   (:file "sequence" :depends-on ("generic" "util"))
                    (:file "hash-table" :depends-on ("generic" "util"))
                    (:file "file")
                    (:file "stream")
