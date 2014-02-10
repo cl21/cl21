@@ -58,6 +58,7 @@
                    (:file "cltl2")
                    (:file "util" :depends-on ("cltl2"))))
                  (:file "re" :depends-on ("core"))
+                 (:file "lazy" :depends-on ("core"))
                  (:file "abbr" :depends-on ("core")))))
   :description "Common Lisp in the 21st Century."
   :in-order-to ((test-op (test-op cl21-test))))

@@ -4,7 +4,7 @@
         :cl-test-more))
 (in-package :cl21-test.sequence)
 
-(plan 158)
+(plan 176)
 
 (is (take 3 '(1 3 5 6 7 8))
     '(1 3 5)
@@ -409,5 +409,70 @@
                      :remove-empty-subseqs t))
     '(((0) (2 3) (2 3)) 8)
     "split-sequence")
+(is (multiple-value-list
+     (split-sequence-if #'oddp (make-my-list 0 1 1 2 3 5 8 13 21)
+                        :count 3
+                        :remove-empty-subseqs t))
+    '(((0) (2) (8)) 9)
+    "split-sequence-if")
+
+
+(use-package :cl21.lazy)
+
+(defun fib-seq ()
+  (labels ((rec (a b)
+             (lazy-sequence (cons a (rec b (+ a b))))))
+    (rec 0 1)))
+
+(is (take 6 (fib-seq)) '(0 1 1 2 3 5)
+    "take")
+(is-type (drop 6 (fib-seq)) 'lazy-sequence
+         "drop")
+(is (take 3 (drop 6 (fib-seq))) '(8 13 21)
+    "drop & take")
+(is (take-while (lambda (x) (< x 500)) (fib-seq))
+    '(0 1 1 2 3 5 8 13 21 34 55 89 144 233 377)
+    "take-while")
+(is-type (drop-while (lambda (x) (< x 500)) (fib-seq))
+         'lazy-sequence
+         "drop-while")
+(is (take 3 (drop-while (lambda (x) (< x 500)) (fib-seq)))
+    '(610 987 1597)
+    "drop-while & take")
+(ok (not (emptyp (fib-seq))) "emptyp")
+(is (subseq (fib-seq) 10 13)
+    '(55 89 144)
+    "subseq")
+(is (position-if (lambda (x) (> x 500)) (fib-seq))
+    15
+    "position-if")
+(is (position-if (lambda (x) (> x 500000)) (fib-seq) :end 30)
+    29
+    "position-if")
+(is (position-if (lambda (x) (> x 500000)) (fib-seq) :end 20)
+    nil
+    "position-if")
+(is (find-if (lambda (x) (> x 500)) (fib-seq))
+    610
+    "find-if")
+(is (find-if (lambda (x) (> x 500000)) (fib-seq) :end 30)
+    514229
+    "find-if")
+(is (find-if (lambda (x) (> x 500000)) (fib-seq) :end 20)
+    nil
+    "find-if")
+
+(is (multiple-value-list
+     (split-sequence-if #'oddp (fib-seq) :count 3))
+    '(((0) nil (2)) 5)
+    "split-sequence-if")
+(is (multiple-value-list
+     (split-sequence-if #'oddp (fib-seq) :end 20))
+    '(((0) NIL (2) NIL (8) NIL (34) NIL (144) NIL (610) NIL (2584)) 20)
+    "split-sequence-if")
+(is (multiple-value-list
+     (split-sequence-if #'oddp (fib-seq) :count 3 :remove-empty-subseqs t))
+    '(((0) (2) (8)) 9)
+    "split-sequence-if")
 
 (finalize)
