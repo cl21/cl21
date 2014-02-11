@@ -1,5 +1,5 @@
 (in-package :cl-user)
-(defpackage cl21.core.cltl2
+(defpackage cl21.core.environment
   (:use :cl
         #+sbcl :sb-cltl2
         #+openmcl :ccl

@@ -53,7 +53,7 @@
   (:shadowing-import-from :cl21.core.generic
                           :emptyp
                           :coerce)
-  (:import-from :cl21.core.cltl2
+  (:import-from :cl21.core.environment
                 :variable-information)
   (:import-from :cl21.core.util
                 :define-typecase-compiler-macro)

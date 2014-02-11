@@ -1,7 +1,7 @@
 
 (in-package :cl-user)
 (defpackage :package-diff
-  (:use :cl21 :cl21.core.cltl2 :iterate)
+  (:use :cl21 :cl21.core.environment :iterate)
   (:shadowing-import-from :iterate
                           :collect
                           :until
@@ -44,7 +44,7 @@
            (generic-function :generic-function)
            (function :function))))
     ((find-class s nil) :class)
-    ((eq :special (sb-cltl2:variable-information 'x))
+    ((eq :special (variable-information 'x))
      :special-variable)
     ;; ((compiler-macro-function s) :compiler-macro)
     ))

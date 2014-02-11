@@ -1,7 +1,7 @@
 (in-package :cl-user)
 (defpackage cl21.core.util
   (:use :cl)
-  (:import-from :cl21.core.cltl2
+  (:import-from :cl21.core.environment
                 :variable-information)
   (:import-from :alexandria
                 :ensure-list)
