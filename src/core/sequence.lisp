@@ -734,21 +734,23 @@
                                      ;; FIXME: No need to coerce.
                                      (coerce (drop i sequence) 'vector))))))
   (:method (pred (sequence abstract-list) &rest args &key from-end (start 0) end count (key #'identity))
-    (if (or (not count)
-            end
-            from-end)
-        (apply #'cl:remove-if pred (coerce sequence 'list) args)
+    (if (and (not from-end)
+             (or end count))
         (loop with seq = (drop start sequence)
-              until (or (zerop count)
+              with i = 0
+              until (or (and count (zerop count))
+                        (and end (<= end i))
                         (emptyp seq))
               for x = (pop seq)
               when (funcall pred (funcall key x))
                 do (decf count)
               else
                 collect x into buf
+              do (incf i)
               finally (return
-                        ;; FIXME: No need to coerce.
-                        (concatenate 'list buf (coerce seq 'list)))))))
+                        (dolist (x (nreverse buf) seq)
+                          (push x seq))))
+        (apply #'cl:remove-if pred (coerce sequence 'list) args))))
 (define-typecase-compiler-macro remove-if (&whole form pred sequence &rest args)
   (typecase sequence
     (sequence `(cl:remove-if ,@(cdr form)))))
@@ -1241,7 +1243,8 @@ of which has elements that satisfy PRED, the second which do not."
                         (emptyp seq))
               for x = (first seq)
               when (funcall pred (funcall key x))
-                do (when (or (null remove-empty-subseqs) buf)
+                do (when (or (not remove-empty-subseqs)
+                             buf)
                      (push (nreverse buf) subseqs)
                      (and count (decf count))
                      (setq buf nil))
@@ -1253,13 +1256,13 @@ of which has elements that satisfy PRED, the second which do not."
                  (return (progn
                            (when buf (push (nreverse buf) subseqs))
                            (values
-                            (cl:append (take start sequence)
-                                       (nreverse subseqs))
-                            (if (and remove-empty-subseqs
-                                     count
-                                     (zerop count))
-                                (1+ i)
-                                i)))))
+                            (nreverse subseqs)
+                            (+ start
+                               (if (and remove-empty-subseqs
+                                        count
+                                        (zerop count))
+                                   (1+ i)
+                                   i))))))
         (apply #'split-sequence:split-sequence-if pred (coerce sequence 'list) args))))
 
 

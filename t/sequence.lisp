@@ -4,7 +4,7 @@
         :cl-test-more))
 (in-package :cl21-test.sequence)
 
-(plan 176)
+(plan 180)
 
 (is (take 3 '(1 3 5 6 7 8))
     '(1 3 5)
@@ -230,7 +230,7 @@
 (let ((seq (remove-if #'zerop
                       (make-my-list 1 0 2 3 0.0 4 5)
                       :count 1)))
-  (is-type seq 'list "remove-if")
+  (is-type seq 'my-list "remove-if")
   (is (coerce seq 'list) '(1 2 3 0.0 4 5)
       "remove-if"))
 (let ((seq (remove-if #'zerop
@@ -398,6 +398,14 @@
     "split-sequence")
 (is (split-sequence 1 (make-my-list 0 1 2 3 1 2 3)) '((0) (2 3) (2 3))
     "split-sequence")
+(is (multiple-value-list (split-sequence nil '(1 nil 2 nil 3) :start 2)) '(((2) (3)) 5)
+    "split-sequence")
+(is (multiple-value-list (split-sequence nil (make-my-list 1 nil 2 nil 3) :start 2)) '(((2) (3)) 5)
+    "split-sequence")
+(is (multiple-value-list (split-sequence nil '(1 nil 2 nil 3) :start 2 :count 1)) '(((2)) 4)
+    "split-sequence")
+(is (multiple-value-list (split-sequence nil (make-my-list 1 nil 2 nil 3) :start 2 :count 1)) '(((2)) 4)
+    "split-sequence")
 (is (multiple-value-list (split-sequence 1 (make-my-list 0 1 2 3 1 2 3) :count 1))
     '(((0)) 2)
     "split-sequence")
@@ -462,17 +470,14 @@
     nil
     "find-if")
 
-(is (multiple-value-list
-     (split-sequence-if #'oddp (fib-seq) :count 3))
-    '(((0) nil (2)) 5)
+(is (take 3 (split-sequence-if #'oddp (fib-seq)))
+    '((0) nil (2))
     "split-sequence-if")
-(is (multiple-value-list
-     (split-sequence-if #'oddp (fib-seq) :end 20))
-    '(((0) NIL (2) NIL (8) NIL (34) NIL (144) NIL (610) NIL (2584)) 20)
+(is (coerce (split-sequence-if #'oddp (fib-seq) :end 20) 'list)
+    '((0) NIL (2) NIL (8) NIL (34) NIL (144) NIL (610) NIL (2584))
     "split-sequence-if")
-(is (multiple-value-list
-     (split-sequence-if #'oddp (fib-seq) :count 3 :remove-empty-subseqs t))
-    '(((0) (2) (8)) 9)
+(is (take 3 (split-sequence-if #'oddp (fib-seq) :count 3 :remove-empty-subseqs t))
+    '((0) (2) (8))
     "split-sequence-if")
 
 (finalize)
