@@ -28,7 +28,9 @@
                :alexandria
                :cl-utilities
                :repl-utilities
-               #+sbcl :sb-cltl2)
+               #+sbcl :sb-cltl2
+               ;; for package-diff
+               :iterate)
   :components ((:module "src"
                 :components
                 ((:file "cl21" :depends-on ("core"))
@@ -59,7 +61,11 @@
                    (:file "util" :depends-on ("cltl2"))))
                  (:file "re" :depends-on ("core"))
                  (:file "lazy" :depends-on ("core"))
-                 (:file "abbr" :depends-on ("core")))))
+                 (:file "abbr" :depends-on ("core"))))
+               (:module "tools"
+                :components
+                ((:file :compare-cl-21))
+                :depends-on (:src)))
   :description "Common Lisp in the 21st Century."
   :in-order-to ((test-op (test-op cl21-test))))
 
