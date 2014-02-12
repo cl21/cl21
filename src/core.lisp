@@ -2,7 +2,8 @@
 (defpackage cl21.core
   (:use :cl)
   (:shadow :function
-           :destructuring-bind)
+           :destructuring-bind
+           :defconstant)
   (:import-from :cl21.core.cons
                 :maptree)
   (:import-from :alexandria
@@ -11,7 +12,8 @@
                 :when-let
                 :xor
                 :unwind-protect-case
-                :doplist)
+                :doplist
+                :define-constant)
   (:import-from :cl-utilities
                 :with-collectors
                 :collecting
@@ -274,6 +276,9 @@
     (cl:do-external-symbols (symbol package)
       (cl:shadowing-import symbol)
       (cl:export symbol))))
+
+(defmacro defconstant (name initial-value &key (test ''eql) documentation)
+  `(alexandria:define-constant ,name ,initial-value :test test :documentation documentation))
 
 (defmacro destructuring-bind (lambda-list expression &body body)
   "Bind the variables in LAMBDA-LIST to the corresponding values in the
