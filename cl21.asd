@@ -47,7 +47,7 @@
                    (:file "symbol")
                    (:file "number")
                    (:file "character")
-                   (:file "cons")
+                   (:file "cons" :depends-on ("sequence"))
                    (:file "array")
                    (:file "string")
                    (:file "sequence" :depends-on ("generic" "environment" "util"))

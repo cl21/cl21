@@ -46,8 +46,6 @@
            :substitute-if
            :nsubstitute
            :nsubstitute-if
-           :member
-           :member-if
            :remove-duplicates
            :delete-duplicates)
   (:shadowing-import-from :cl21.core.generic
@@ -94,9 +92,6 @@
 
            :map
            :map-into
-
-           :member
-           :member-if
 
            :remove
            :remove-if
@@ -184,9 +179,7 @@
            :abstract-substitute
            :abstract-remove-duplicates
            :abstract-split-sequence
-           :abstract-split-sequence-if
-           :abstract-member
-           :abstract-member-if))
+           :abstract-split-sequence-if))
 (in-package :cl21.core.sequence)
 
 #.`(progn
@@ -1295,40 +1288,3 @@ of which has elements that satisfy PRED, the second which do not."
 (define-typecase-compiler-macro delete-duplicates (&whole form sequence &rest args)
   (typecase sequence
     (sequence `(cl:delete-duplicates ,@(cdr form)))))
-
-
-;;
-;; Function: member, member-if
-;; Generic Function: abstract-member, abstract-member-if
-
-(defun member (item list &rest args &key key test)
-  (declare (ignore key test))
-  (etypecase list
-    (list (apply #'cl:member item list args))
-    (abstract-list (apply #'abstract-member item list args))))
-(define-typecase-compiler-macro member (&whole form item list &rest args)
-  (typecase list
-    (list `(cl:member ,@(cdr form)))))
-
-(defgeneric abstract-member (item list &key key test)
-  (:method (item (list abstract-list) &key (key #'identity) (test #'eql))
-    (drop-while (lambda (x)
-                  (not (funcall test (funcall key x) item)))
-                list)))
-
-(defun member-if (test list &rest args &key key)
-  (declare (ignore key))
-  (etypecase list
-    (list (apply #'cl:member-if test list args))
-    (abstract-list (apply #'abstract-member-if test list args))))
-(define-typecase-compiler-macro member-if (&whole form test list &rest args)
-  (typecase list
-    (list `(cl:member-if ,@(cdr form)))))
-
-(defgeneric abstract-member-if (test list &key key)
-  (:method (test (list abstract-list) &key key)
-    (drop-while (if key
-                    (lambda (x)
-                      (not (funcall test (funcall key x))))
-                    (complement test))
-                list)))
