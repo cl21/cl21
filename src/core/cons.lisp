@@ -15,7 +15,7 @@
                 :ensure-list
                 :ensure-cons
                 :ensure-car
-                :flatten
+                #+nil :flatten
                 :mappend)
   (:export :list
            :null
@@ -110,7 +110,6 @@
            :ensure-list
            :ensure-cons
            :ensure-car
-           :flatten
 
            :list-push
            :list-pushnew
@@ -129,7 +128,10 @@
            :member
            :member-if
            :abstract-member
-           :abstract-member-if))
+           :abstract-member-if
+
+           :flatten
+           :abstract-flatten))
 (in-package :cl21.core.cons)
 
 (defmacro list-push (value place)
@@ -198,3 +200,20 @@
                       (not (funcall test (funcall key x))))
                     (complement test))
                 list)))
+
+
+;;
+;; Function: flatten
+;; Generic Function: abstract-flatten
+
+(defun flatten (tree)
+  (etypecase tree
+    (list (alexandria:flatten tree))
+    (abstract-list (abstract-flatten tree))))
+
+(defgeneric abstract-flatten (tree)
+  (:method ((tree abstract-list))
+    (loop with seq = tree
+          until (empty seq)
+          for x = (pop seq)
+          append (flatten x))))

@@ -77,6 +77,16 @@
               (apply #'abstract-remove-if pred sequence args))))
       (call-next-method)))
 
+(defmethod abstract-flatten ((tree lazy-sequence))
+  (if *return-lazy*
+      (if (emptyp tree)
+          nil
+          (lazy-sequence
+            (append (flatten (first tree))
+                    (let ((*return-lazy* nil))
+                      (flatten (rest tree))))))
+      (call-next-method)))
+
 
 ;;
 ;; Useful functions
