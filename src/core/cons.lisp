@@ -72,6 +72,7 @@
            :endp
            :null
            :nconc
+           :nappend
            :append
            :revappend
            :nreconc
@@ -133,6 +134,8 @@
            :flatten
            :abstract-flatten))
 (in-package :cl21.core.cons)
+
+(setf (symbol-function 'nappend) #'nconc)
 
 (defmacro list-push (value place)
   `(cl:push ,value ,place))

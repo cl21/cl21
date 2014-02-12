@@ -242,6 +242,7 @@ And, All external symbols of trivial-gray-streams.
 # Deprecated Symbols
 * remove-if-not (Use `keep-if`)
 * delete-if-not (Use `nkeep-if`)
+* nconc (Use `nappend`)
 
 # Redefined
 * equalp
