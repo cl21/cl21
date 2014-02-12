@@ -1,7 +1,8 @@
 (in-package :cl21-user)
 (defpackage cl21.lazy
   (:use :cl21)
-  (:export :lazy-sequence))
+  (:export :lazy-sequence
+           :cycle))
 (in-package :cl21.lazy)
 
 (defmacro memoized-lambda (lambda-list &body body)
@@ -75,3 +76,12 @@
             (let ((*return-lazy* nil))
               (apply #'abstract-remove-if pred sequence args))))
       (call-next-method)))
+
+
+;;
+;; Useful functions
+
+(defun cycle (elements)
+  (unless (listp elements)
+    (setf elements (coerce elements 'list)))
+  (lazy-sequence (apply #'alexandria:circular-list elements)))
