@@ -210,9 +210,10 @@
 ;; Generic Function: abstract-flatten
 
 (defun flatten (tree)
-  (etypecase tree
+  (typecase tree
     (list (alexandria:flatten tree))
-    (abstract-list (abstract-flatten tree))))
+    (abstract-list (abstract-flatten tree))
+    (otherwise (list tree))))
 
 (defgeneric abstract-flatten (tree)
   (:method ((tree abstract-list))
