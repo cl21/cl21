@@ -19,11 +19,6 @@ This is an experimental project redesigning Common Lisp.
 ;=> "Hello, World!
 ;   "
 
-(let ((name "John"))
-  (princ "Hello, ${name}!"))
-;-> Hello, John!
-;=> "Hello, John!"
-
 
 ;;
 ;; Hash Table

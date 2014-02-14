@@ -67,7 +67,7 @@
         (*start-char* char)
         (*term-char* char)
         (*pair-level* 0)
-        (*inner-delimiters* '((#\{ . #\})))
+        (*inner-delimiters* '())
         *saw-backslash*
         *readtable-copy*)
     (prog1
