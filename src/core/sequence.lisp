@@ -830,32 +830,47 @@ of which has elements that satisfy PRED, the second which do not."
 ;; Function: subdivide
 ;; Generic Function: abstract-subdivide
 
-(defun subdivide (sequence chunk-size)
+;; TODO: from-end
+;; TODO: Should return multiple values for indicating how long characters are traversed, just like split-sequence?
+(defun subdivide (sequence chunk-size &rest args &key (start 0) end count)
   "Split `sequence` into subsequences of size `chunk-size`."
   (check-type chunk-size (integer 1))
 
   (etypecase sequence
-    ; Since lists have O(N) access time, we iterate through manually,
-    ; collecting each chunk as we pass through it. Using SUBSEQ would
-    ; be O(N^2).
-    (list (loop :while sequence
-                :collect
-                (loop :repeat chunk-size
-                      :while sequence
-                      :collect (pop sequence))))
+    (list
+     (setq sequence (cl:subseq sequence start end))
+     (if count
+         (loop repeat count
+               while sequence
+               collect
+               (loop repeat chunk-size
+                     while sequence
+                     collect (pop sequence)))
+         (loop while sequence
+               collect
+               (loop repeat chunk-size
+                     while sequence
+                     collect (pop sequence)))))
 
-    ; For other sequences like strings or arrays, we can simply chunk
-    ; by repeated SUBSEQs.
-    (cl:sequence (loop :with len := (cl:length sequence)
-                       :for i :below len :by chunk-size
-                       :collect (cl:subseq sequence i (min len (+ chunk-size i)))))
-    (abstract-sequence (abstract-subdivide sequence chunk-size) )))
+    (sequence
+     (setq sequence (cl:subseq sequence start end))
+     (if count
+         (loop with len = (cl:length sequence)
+               with end = (min len (* count chunk-size))
+               for i below end by chunk-size
+               collect (cl:subseq sequence i (min end (+ chunk-size i))))
+         (loop with len = (cl:length sequence)
+               for i below len by chunk-size
+               collect (cl:subseq sequence i (min len (+ chunk-size i))))))
+    (abstract-sequence (apply #'abstract-subdivide sequence chunk-size args) )))
 
-(defgeneric abstract-subdivide (sequence chunk-size)
-  (:method ((sequence abstract-vector) chunk-size)
-    (subdivide (coerce sequence 'vector) chunk-size))
-  (:method ((sequence abstract-list) chunk-size)
-    (subdivide (coerce sequence 'list) chunk-size)))
+(defgeneric abstract-subdivide (sequence chunk-size &key start end count)
+  (:method ((sequence abstract-vector) chunk-size &rest args &key start end count)
+    (declare (ignore start end count))
+    (apply #'subdivide (coerce sequence 'vector) chunk-size args))
+  (:method ((sequence abstract-list) chunk-size &rest args &key start end count)
+    (declare (ignore start end count))
+    (apply #'subdivide (coerce sequence 'list) chunk-size args)))
 
 
 ;;
