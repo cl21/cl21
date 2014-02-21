@@ -16,8 +16,22 @@
   `(multiple-value-bind ,vars ,value-form ,@body))
 
 (defmacro dlet (letargs &body body)
+  (if (oddp (length letargs))
+      (error "Odd number of arguments. DLET doesn't support variable with no value.")
+      (if (null (cddr letargs))
+          `(destructuring-bind ,(car letargs) ,(cadr letargs)
+             ,@body)
+          `(destructuring-bind ,(car letargs) ,(cadr letargs)
+             (dlet (,(caddr letargs) ,(cadddr letargs)) ,@body)))))
 
-  ,@body)
+(defmacro mlet (letargs &body body)
+  (if (oddp (length letargs))
+      (error "Odd number of arguments. MLET doesn't support variable with no value.")
+      (if (null (cddr letargs))
+          `(multiple-value-bind ,(car letargs) ,(cadr letargs)
+             ,@body)
+          `(multiple-value-bind ,(car letargs) ,(cadr letargs)
+             (mlet (,(caddr letargs) ,(cadddr letargs)) ,@body)))))
 
 (defmacro mvcall (function arg &rest arguments)
   `(multiple-value-call ,function ,arg ,@arguments))
