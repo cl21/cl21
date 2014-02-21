@@ -57,7 +57,8 @@
 (in-package :cl21.core.hash-table)
 
 (defun group (source n)
-  (if (zerop n) (error "zero length"))
+  (if (zerop n)
+      (error "zero length"))
   (labels ((rec (source acc)
              (let ((rest (nthcdr n source)))
                (if (consp rest)
