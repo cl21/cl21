@@ -15,6 +15,10 @@
 (defmacro mvbind (vars value-form &body body)
   `(multiple-value-bind ,vars ,value-form ,@body))
 
+(defmacro dlet (letargs &body body)
+
+  ,@body)
+
 (defmacro mvcall (function arg &rest arguments)
   `(multiple-value-call ,function ,arg ,@arguments))
 
