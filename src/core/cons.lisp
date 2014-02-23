@@ -5,7 +5,9 @@
            :member-if)
   (:import-from :cl21.core.sequence
                 :abstract-list
-                :drop-while)
+                :drop-while
+                :do-abstract-sequence
+                :make-sequence-like)
   (:import-from :cl21.core.util
                 :define-typecase-compiler-macro)
   (:import-from :alexandria
@@ -175,11 +177,11 @@
 (defun member (item list &rest args &key key test)
   (declare (ignore key test))
   (etypecase list
-    (list (apply #'cl:member item list args))
+    (cl:list (apply #'cl:member item list args))
     (abstract-list (apply #'abstract-member item list args))))
 (define-typecase-compiler-macro member (&whole form item list &rest args)
   (typecase list
-    (list `(cl:member ,@(cdr form)))))
+    (cl:list `(cl:member ,@(cdr form)))))
 
 (defgeneric abstract-member (item list &key key test)
   (:method (item (list abstract-list) &key (key #'identity) (test #'eql))
@@ -190,11 +192,11 @@
 (defun member-if (test list &rest args &key key)
   (declare (ignore key))
   (etypecase list
-    (list (apply #'cl:member-if test list args))
+    (cl:list (apply #'cl:member-if test list args))
     (abstract-list (apply #'abstract-member-if test list args))))
 (define-typecase-compiler-macro member-if (&whole form test list &rest args)
   (typecase list
-    (list `(cl:member-if ,@(cdr form)))))
+    (cl:list `(cl:member-if ,@(cdr form)))))
 
 (defgeneric abstract-member-if (test list &key key)
   (:method (test (list abstract-list) &key key)
@@ -211,13 +213,16 @@
 
 (defun flatten (tree)
   (typecase tree
-    (list (alexandria:flatten tree))
+    (cl:list (alexandria:flatten tree))
     (abstract-list (abstract-flatten tree))
     (otherwise (list tree))))
 
 (defgeneric abstract-flatten (tree)
   (:method ((tree abstract-list))
-    (loop with seq = tree
-          until (empty seq)
-          for x = (pop seq)
-          append (flatten x))))
+    (let ((buf '())
+          (length 0))
+      (do-abstract-sequence (x tree) ()
+        (incf length)
+        (push (flatten x) buf))
+      (make-sequence-like tree length
+                          :initial-contents (nreverse buf)))))
