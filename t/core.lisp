@@ -54,15 +54,15 @@
     "Vector -> Vector")
 
 (is-print (destructuring-bind (a &optional b &rest c) '(1 (2 3) 4)
-            (princ "A: ${a}, B: ${b}, C: ${c}"))
+            (format t "A: ~A, B: ~A, C: ~A" a b c))
           "A: 1, B: (2 3), C: (4)"
           "destructuring-bind")
 (is-print (destructuring-bind (a (b c) &optional d) '(1 (2 3) 4)
-            (princ "A: ${a}, B: ${b}, C: ${c}, D: ${d}"))
+            (format t "A: ~A, B: ~A, C: ~A, D: ~A" a b c d))
           "A: 1, B: 2, C: 3, D: 4"
           "destructuring-bind")
 (is-print (destructuring-bind (a (b nil c) &optional d) '(1 (2 3 100) 4)
-            (princ "A: ${a}, B: ${b}, C: ${c}, D: ${d}"))
+            (format t "A: ~A, B: ~A, C: ~A, D: ~A" a b c d))
           "A: 1, B: 2, C: 100, D: 4"
           "destructuring-bind")
 
@@ -78,11 +78,11 @@
     '(10 20 30 40 50)
     "doeach (list)")
 (is-print (doeach ((i j) '((1 2) (3 4)))
-            (princ "${i} - ${j}\n"))
+            (format t "~A - ~A\n" i j))
           "1 - 2\n3 - 4\n"
           "doeach (list) with destructuring-binding")
 (is-print (doeach ((i j &rest k) '((1 2 3) (3 4 5)))
-            (princ "${i} - ${j} - ${k}\n"))
+            (format t "~A - ~A - ~A\n" i j k))
           "1 - 2 - (3)\n3 - 4 - (5)\n"
           "doeach (list) with destructuring-binding")
 (is (collecting
@@ -91,7 +91,7 @@
     '(10 20 30 40 50)
     "doeach (vector)")
 (is-print (doeach ((i j) #('(1 2) '(3 4)))
-            (princ "${i} - ${j}\n"))
+            (format t "~A - ~A\n" i j))
           "1 - 2\n3 - 4\n"
           "doeach (vector) with destructuring-binding")
 
@@ -99,7 +99,7 @@
   (setf (getf hash :name) "Eitarow Fukamachi")
 
   (is-print (doeach ((key val) hash)
-              (princ "${key}: ${val}\n"))
+              (format t "~A: ~A\n" key val))
             "NAME: Eitarow Fukamachi\n"
             "doeach (hash-table)"))
 
