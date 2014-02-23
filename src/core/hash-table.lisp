@@ -13,6 +13,8 @@
            :hash-table-test)
   (:shadowing-import-from :cl21.core.generic
                           :coerce)
+  (:import-from :cl21.core.sequence
+                :subdivide)
   (:import-from :cl21.core.util
                 :define-typecase-compiler-macro)
   (:import-from :alexandria
@@ -56,19 +58,6 @@
            :abstract-hash-table-test))
 (in-package :cl21.core.hash-table)
 
-(defun group (source n)
-  (if (zerop n)
-      (error "zero length"))
-  (labels ((rec (source acc)
-             (let ((rest (nthcdr n source)))
-               (if (consp rest)
-                   (rec rest (cons
-                              (subseq source 0 n)
-                              acc))
-                   (nreverse
-                    (cons source acc))))))
-    (if source (rec source nil) nil)))
-
 (defmacro equal-hash-table (&rest contents)
   (flet ((repeated-keys-p (pairs)
            (dolist (p pairs)
@@ -77,7 +66,7 @@
                  (return t)))))
     (if (oddp (length contents))
         (error "Odd number of values in hash-table literal")
-        (if (repeated-keys-p (group contents 2))
+        (if (repeated-keys-p (subdivide contents 2))
             (error "Repeated keys in hash-table literal")
             (let ((hash (gensym "HASH")))
               `(let ((,hash (make-hash-table :test 'equal)))

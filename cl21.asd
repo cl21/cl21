@@ -51,7 +51,7 @@
                    (:file "array")
                    (:file "string")
                    (:file "sequence" :depends-on ("generic" "environment" "util"))
-                   (:file "hash-table" :depends-on ("generic" "util"))
+                   (:file "hash-table" :depends-on ("generic" "sequence" "util"))
                    (:file "file")
                    (:file "stream")
                    (:file "generic" :depends-on ("types"))
