@@ -56,16 +56,38 @@
            :abstract-hash-table-test))
 (in-package :cl21.core.hash-table)
 
+(defun group (source n)
+  (if (zerop n)
+      (error "zero length"))
+  (labels ((rec (source acc)
+             (let ((rest (nthcdr n source)))
+               (if (consp rest)
+                   (rec rest (cons
+                              (subseq source 0 n)
+                              acc))
+                   (nreverse
+                    (cons source acc))))))
+    (if source (rec source nil) nil)))
+
 (defmacro equal-hash-table (&rest contents)
-  (let ((hash (gensym "HASH")))
-    `(let ((,hash (make-hash-table :test 'equal)))
-       (setf ,@(do ((lst contents
-                         (cddr lst))
-                    (acc nil))
-                   ((null lst) (nreverse acc))
-                   (push `(gethash ,(car lst) ,hash) acc)
-                   (push (cadr lst) acc)))
-       ,hash)))
+  (flet ((repeated-keys-p (pairs)
+           (dolist (p pairs)
+             (if (< 1
+                    (count (car p) pairs :key #'car))
+                 (return t)))))
+    (if (oddp (length contents))
+        (error "Odd number of values in hash-table literal")
+        (if (repeated-keys-p (group contents 2))
+            (error "Repeated keys in hash-table literal")
+            (let ((hash (gensym "HASH")))
+              `(let ((,hash (make-hash-table :test 'equal)))
+                 (setf ,@(do ((lst contents
+                                   (cddr lst))
+                              (acc nil))
+                             ((null lst) (nreverse acc))
+                             (push `(gethash ,(car lst) ,hash) acc)
+                             (push (cadr lst) acc)))
+                 ,hash))))))
 
 (defun hash-table-reader (stream sub-char numarg)
   (declare (ignore sub-char numarg))
