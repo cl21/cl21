@@ -5,33 +5,88 @@
            :cycle))
 (in-package :cl21.lazy)
 
+(defclass memoized-lambda ()
+  ((function :type function
+             :initarg :function)
+   (%cache :type cons))
+  (:metaclass funcallable-standard-class))
+
+(defmethod initialize-instance :after ((this memoized-lambda) &key)
+  (set-funcallable-instance-function this
+                                     (lambda ()
+                                       (if (slot-boundp this '%cache)
+                                           (slot-value this '%cache)
+                                           (progn
+                                             (setf (slot-value this '%cache)
+                                                   (funcall (slot-value this 'function)))
+                                             (slot-value this '%cache))))))
+
 (defmacro memoized-lambda (lambda-list &body body)
-  (with-gensyms (cache undef)
-    `(let ((,cache ',undef))
-       (lambda ,lambda-list
-         (if (eq ',undef ,cache)
-             (setq ,cache (progn ,@body))
-             ,cache)))))
+  `(make-instance 'memoized-lambda
+                  :function (lambda ,lambda-list ,@body)))
+
+(defun %copy-memoized-lambda (object)
+  (declare (type object memoized-lambda))
+  (let ((copied
+          (make-instance 'memoized-lambda
+                         :function (slot-value object 'function))))
+    (when (slot-boundp object '%cache)
+      (setf (slot-value copied '%cache)
+            (copy-list (slot-value object '%cache))))
+    copied))
+
 
 (defclass lazy-sequence (abstract-list)
-  ((lazy-function :type function
-                  :initarg :function
-                  :initform (lambda () nil))))
+  ((function :type memoized-lambda
+             :initarg :function)))
 
 (defmacro lazy-sequence (&body body)
   `(make-instance 'lazy-sequence :function (memoized-lambda () ,@body)))
 
 (defmethod abstract-first ((seq lazy-sequence))
-  (car (funcall (slot-value seq 'lazy-function))))
+  (if (slot-boundp seq 'function)
+      (car (funcall (slot-value seq 'function)))
+      (make-instance 'lazy-sequence)))
+
+(defmethod (setf abstract-first) (newval (seq lazy-sequence))
+  ;; Ensure the cache exists.
+  (unless (slot-boundp seq 'function)
+    (setf (slot-value seq 'function)
+          (memoized-lambda ()
+            (cons (make-instance 'lazy-sequence)
+                  (make-instance 'lazy-sequence)))))
+  (funcall (slot-value seq 'function))
+  (setf (car (slot-value (slot-value seq 'function) '%cache))
+        newval))
 
 (defmethod abstract-rest ((seq lazy-sequence))
-  (cdr (funcall (slot-value seq 'lazy-function))))
+  (if (slot-boundp seq 'function)
+      (cdr (funcall (slot-value seq 'function)))
+      (make-instance 'lazy-sequence)))
 
-(defmethod abstract-cons (object (seq lazy-sequence))
-  (lazy-sequence (cons object seq)))
+(defmethod (setf abstract-rest) (newval (seq lazy-sequence))
+  ;; Ensure the cache exists.
+  (funcall (slot-value seq 'function))
+  (setf (cdr (funcall (slot-value seq 'function))) newval))
+
+(defmethod make-sequence-like ((seq lazy-sequence) length &rest args &key initial-element (initial-contents nil icp))
+  (declare (ignore initial-element))
+  (unless icp
+    (setf icp (apply #'make-list length args)))
+  (reduce (lambda (x y)
+            (lazy-sequence (cons x y)))
+          initial-contents
+          :initial-value (make-instance 'lazy-sequence)
+          :from-end t))
 
 (defmethod emptyp ((seq lazy-sequence))
-  (null (funcall (slot-value seq 'lazy-function))))
+  (not (slot-boundp seq 'function)))
+
+(defmethod abstract-copy-seq ((seq lazy-sequence))
+  (if (slot-boundp seq 'function)
+      (make-instance 'lazy-sequence
+                     :function (%copy-memoized-lambda (slot-value seq 'function)))
+      (make-instance 'lazy-sequence)))
 
 (defvar *return-lazy* t)
 
@@ -71,7 +126,7 @@
 (defmethod abstract-remove-if (pred (sequence lazy-sequence) &rest args &key &allow-other-keys)
   (if *return-lazy*
       (if (emptyp sequence)
-          nil
+          sequence
           (lazy-sequence
             (let ((*return-lazy* nil))
               (apply #'abstract-remove-if pred sequence args))))
