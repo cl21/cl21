@@ -4,10 +4,52 @@
   (:shadow :member
            :member-if)
   (:import-from :cl21.core.sequence
-                :abstract-list
+                :abstract-sequence
                 :drop-while
+                :make-sequence-like
+                :method-unimplemented-error
+
+                :abstract-length
+                :abstract-elt
+                :abstract-first
+                :abstract-rest
+                :adjust-sequence
+                :abstract-replace
+                :abstract-copy-seq
+                :abstract-subseq
+                :abstract-take
+                :abstract-drop
+                :abstract-take-while
+                :abstract-drop-while
+                :abstract-last
+                :abstract-find-if
+                :abstract-position-if
+                :abstract-search
+                :abstract-delete-if
+                :abstract-count-if
+                :abstract-nreverse
+                :abstract-nsubstitute-if
+                :abstract-delete-duplicates
+                :abstract-mismatch
+                :make-sequence-iterator
+                :iterator-endp
+                :iterator-next
+                :iterator-pointer
+                :with-sequence-iterator
                 :do-abstract-sequence
-                :make-sequence-like)
+                :take
+                :drop)
+  (:shadowing-import-from :cl21.core.sequence
+                          :first
+                          :rest
+                          :length
+                          :subseq
+                          :nreverse
+                          :replace
+                          :copy-seq)
+  (:shadowing-import-from :cl21.core.generic
+                          :emptyp
+                          :coerce)
   (:import-from :cl21.core.util
                 :define-typecase-compiler-macro)
   (:import-from :alexandria
@@ -18,7 +60,8 @@
                 :ensure-cons
                 :ensure-car
                 #+nil :flatten
-                :mappend)
+                :mappend
+                :with-gensyms)
   (:export :list
            :null
            :cons
@@ -128,6 +171,8 @@
            :0..
 
            ;; Abstract List
+           :abstract-list
+
            :member
            :member-if
            :abstract-member
@@ -168,6 +213,353 @@
 
 ;;
 ;; Abstract List
+
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (defclass abstract-list (abstract-sequence) ()))
+
+(defmethod abstract-length ((sequence abstract-list))
+  (do-abstract-sequence (nil sequence i) (i)))
+
+(defmethod abstract-elt ((sequence abstract-list) index)
+  (abstract-first (drop index sequence)))
+
+(defmethod (setf abstract-elt) (newval (sequence abstract-list) index)
+  (setf (abstract-first (%nthrest index sequence)) newval))
+
+(defmethod abstract-first ((sequence abstract-list))
+  (method-unimplemented-error 'abstract-first sequence))
+
+(defmethod (setf abstract-first) (newval (sequence abstract-list))
+  (declare (ignore newval))
+  (method-unimplemented-error '(setf abstract-first) sequence))
+
+(defmethod abstract-rest ((sequence abstract-list))
+  (method-unimplemented-error 'abstract-rest sequence))
+
+(defmethod (setf abstract-rest) (newval (sequence abstract-list))
+  (declare (ignore newval))
+  (method-unimplemented-error '(setf abstract-rest) sequence))
+
+(defmethod adjust-sequence ((seq abstract-list) length &key initial-element (initial-contents nil icp))
+  (if (eql length 0)
+      (make-sequence-like seq 0)
+      (let ((olength (abstract-length seq)))
+        (cond
+          ((eql length olength)
+           (if icp
+               (abstract-replace seq initial-contents)
+               seq))
+          ((< length olength)
+           (setf (%nthrest length seq) (make-sequence-like seq 0))
+           (if icp
+               (abstract-replace seq initial-contents)
+               seq))
+          ((zerop olength)
+           (let ((result (make-sequence-like seq length :initial-element initial-element)))
+             (if icp
+                 (abstract-replace result initial-contents)
+                 result)))
+          (t (setf (%nthrest olength seq)
+                   (make-sequence-like seq
+                                       (- length olength)
+                                       :initial-element initial-element))
+             (if icp
+                 (abstract-replace seq initial-contents)
+                 seq))))))
+
+(defmethod coerce ((object abstract-list) type)
+  (ecase type
+    (list
+     (let ((results '()))
+       (do-abstract-sequence (x object (cl:nreverse results)) ()
+         (cl:push x results))))
+    ((vector simple-vector)
+     (apply #'vector (coerce object 'list)))
+    (string
+     (cl:coerce (coerce object 'list) 'string))))
+
+(eval-when (:compile-toplevel :load-toplevel :execute)
+
+  (defstruct (list-iterator (:constructor %make-list-iterator (sequence &key pointer limit step next-fn)))
+    (pointer 0 :type integer)
+    (limit nil :type (or integer null))
+    (step +1 :type integer)
+    (sequence nil :type (or cl:list abstract-list))
+    (next-fn #'first :type function))
+
+  (defmethod make-sequence-iterator ((sequence abstract-list) &key (start 0) end from-end)
+    (if from-end
+        (let ((end (or end
+                       (abstract-length sequence))))
+          (%make-list-iterator (abstract-nreverse (abstract-subseq sequence start end))
+                               :pointer (1- end)
+                               :step -1
+                               :limit (1- start)))
+        (%make-list-iterator (%nthrest start sequence)
+                             :pointer start
+                             :step +1
+                             :limit end)))
+
+  (defmethod make-sequence-iterator ((sequence cl:list) &key (start 0) end from-end)
+    (if from-end
+        (let ((seq (cl:nreverse (cl:subseq sequence start end))))
+          (%make-list-iterator seq
+                               :pointer (1- (or end (cl:length seq)))
+                               :step -1
+                               :limit (1- start)))
+        (%make-list-iterator (cl:nthcdr start sequence)
+                             :pointer start
+                             :step +1
+                             :limit end)))
+
+  (defmethod iterator-pointer ((iterator list-iterator))
+    (list-iterator-pointer iterator))
+
+  (defmethod iterator-endp ((iterator list-iterator))
+    (or (eql (list-iterator-limit iterator)
+             (list-iterator-pointer iterator))
+        (emptyp (list-iterator-sequence iterator))))
+
+  (defmethod iterator-next ((iterator list-iterator))
+    (prog1
+        (funcall (list-iterator-next-fn iterator)
+                 (list-iterator-sequence iterator))
+      (setf (list-iterator-sequence iterator)
+            (rest (list-iterator-sequence iterator)))
+      (incf (list-iterator-pointer iterator)
+            (list-iterator-step iterator))))
+
+  (defun make-cons-iterator (sequence &key (start 0) end from-end)
+    (if from-end
+        (let ((end (or end
+                       (length sequence)))
+              (buf '()))
+          (dotimes (i start)
+            (setq sequence (rest sequence)))
+          (do ((i start (1+ i)))
+              ((= i end))
+            (cl:push sequence buf)
+            (setq sequence (rest sequence)))
+          (%make-list-iterator buf
+                               :pointer (1- end)
+                               :step -1
+                               :limit (1- start)))
+        (%make-list-iterator (%nthrest start sequence)
+                             :pointer start
+                             :step +1
+                             :limit end
+                             :next-fn #'identity))))
+
+(defmacro do-abstract-cons ((var sequence &rest result-form) (&optional (i (gensym "I")) (start 0) end from-end) &body body)
+  (with-gensyms (iterator)
+    `(let ((,iterator (make-cons-iterator ,sequence :start ,start :end ,end :from-end ,from-end)))
+       (with-sequence-iterator (,var ,iterator ,@result-form) (,i)
+         ,@body))))
+
+;; Generic version of nthcdr.
+(defun %nthrest (i sequence)
+  (if (zerop i)
+      sequence
+      (dotimes (n (1- i) (rest sequence))
+        (setq sequence (rest sequence)))))
+
+(defun (setf %nthrest) (newrest i sequence)
+  (when (> i 1)
+    (dotimes (n (1- i))
+      (setq sequence (rest sequence))))
+  (setf (rest sequence) newrest))
+
+(defmethod abstract-copy-seq ((sequence abstract-list))
+  (cond
+    ((emptyp sequence) (make-sequence-like sequence 0))
+    ((emptyp (abstract-rest sequence))
+     (make-sequence-like sequence 1
+                         :initial-contents (list (abstract-first sequence))))
+    (T (let ((new (make-sequence-like sequence 1)))
+         (setf (abstract-first new) (abstract-first sequence)
+               (abstract-rest new) (copy-seq (abstract-rest sequence)))
+         new))))
+
+(defmethod abstract-subseq ((sequence abstract-list) start &optional end)
+  (let ((results '()))
+    (do-abstract-sequence (x sequence (make-sequence-like sequence (- i start)
+                                                          :initial-contents
+                                                          (cl:nreverse results)))
+        (i start end)
+      (cl:push x results))))
+
+(defmethod abstract-take (n (sequence abstract-list))
+  (let ((results '()))
+    (do-abstract-sequence (x sequence (make-sequence-like sequence n
+                                                          :initial-contents
+                                                          (cl:nreverse results)))
+        (i 0 n)
+      (cl:push x results))))
+
+(defmethod abstract-drop (n (sequence abstract-list))
+  (copy-seq (%nthrest n sequence)))
+
+(defmethod abstract-take-while (pred (sequence abstract-list))
+  (let ((results '()))
+    (flet ((final (length)
+             (make-sequence-like sequence length
+                                 :initial-contents (cl:nreverse results))))
+      (do-abstract-sequence (x sequence (final i)) (i)
+        (unless (funcall pred x)
+          (return (final i)))
+        (cl:push x results)))))
+
+(defmethod abstract-drop-while (pred (sequence abstract-list))
+  (do-abstract-cons (x sequence) (i 0)
+    (unless (funcall pred (abstract-first x))
+      (return x))))
+
+(defmethod abstract-last ((sequence abstract-list))
+  (do-abstract-cons (x sequence) ()
+    (when (emptyp (abstract-rest x))
+      (return (abstract-first x)))))
+
+(defmethod abstract-find-if (pred (sequence abstract-list) &key from-end (start 0) end (key #'identity))
+  (do-abstract-sequence (x sequence) (i start end from-end)
+    (when (funcall pred (funcall key x))
+      (return x))))
+
+(defmethod abstract-position-if (pred (sequence abstract-list) &key from-end (start 0) end (key #'identity))
+  (do-abstract-sequence (x sequence) (i start end from-end)
+    (when (funcall pred (funcall key x))
+      (return i))))
+
+(defmethod abstract-search (sequence1 (sequence2 abstract-list) &key from-end (test #'eql) (start1 0) end1 (start2 0) end2 (key #'identity))
+  (when (typep sequence1 'abstract-sequence)
+    (setq sequence1 (coerce sequence1 'list)))
+  (setq sequence1 (cl:subseq sequence1 start1 end1))
+  (let ((length (cl:length sequence1))
+        (first-el (funcall key (car sequence1))))
+    (do-abstract-cons (x sequence2) (i start2 end2 from-end)
+      (when (and (funcall test (funcall key (abstract-first x)) first-el)
+                 (every (lambda (x y)
+                          (funcall test
+                                   (funcall key x)
+                                   (funcall key y)))
+                        (cdr sequence1)
+                        (coerce (take (1- length) (abstract-rest x)) 'list)))
+        (return i)))))
+
+(defmethod abstract-delete-if (pred (sequence abstract-list) &key from-end (start 0) end count (key #'identity))
+  (let ((removed-count 0))
+    (unless from-end
+      (loop while (and (not (eql removed-count count))
+                       (funcall pred (funcall key (abstract-first sequence))))
+            do (setq sequence (abstract-rest sequence))
+               (incf removed-count)))
+    (do-abstract-cons (x sequence sequence) (i start end from-end)
+      (when (eql removed-count count)
+        (return sequence))
+      (let ((rest (abstract-rest x)))
+        (when (and (not (emptyp rest))
+                   (funcall pred (funcall key (abstract-first rest))))
+          (incf removed-count)
+          (setf (abstract-rest x)
+                (abstract-rest rest)))))))
+
+(defmethod abstract-mismatch (sequence1 (sequence2 abstract-list) &key from-end (test #'eql) (start1 0) end1 (start2 0) end2 (key #'identity))
+  (let ((end1 (and from-end
+                   (or end1
+                       (length sequence1))))
+        (current (if from-end
+                     (nreverse (subseq sequence2 start2 end2))
+                     (drop start2 sequence2))))
+    (do-abstract-sequence (x sequence1 (cond
+                                         ((emptyp current) nil)
+                                         ((and end2
+                                               (= (- end2 start2) (- i start1))) nil)
+                                         (from-end (- end1 i))
+                                         (t i)))
+        (i start1 end1 from-end)
+      (when (emptyp current)
+        (return (if from-end
+                    (1+ i)
+                    (1- i))))
+      (unless (funcall test (funcall key x) (funcall key (first current)))
+        (return (if from-end
+                    (- end1 i)
+                    i)))
+      (setq current (rest current)))))
+
+(defmethod abstract-count-if (pred (sequence abstract-list) &key from-end (start 0) end (key #'identity))
+  (let ((count 0))
+    (do-abstract-sequence (x sequence count) (i start end from-end)
+      (when (funcall pred (funcall key x))
+        (incf count)))))
+
+(defmethod abstract-nreverse ((sequence abstract-list))
+  (if (emptyp sequence)
+      sequence
+      (let ((current (make-sequence-like sequence 0)))
+        (do ()
+            ((emptyp sequence) current)
+          (let ((next-rest (abstract-rest sequence)))
+            (setf (abstract-rest sequence) current)
+            (setq current sequence)
+            (setq sequence next-rest))))))
+
+(defmethod abstract-nsubstitute-if (new pred (sequence abstract-list) &key from-end (start 0) end count (key #'identity))
+  (let ((subst-count 0))
+    (if (and count
+             (zerop count))
+        sequence
+        (do-abstract-cons (x sequence sequence) (i start end from-end)
+          (when (eql count subst-count)
+            (return sequence))
+          (when (funcall pred (funcall key (abstract-first x)))
+            (incf subst-count)
+            (setf (abstract-first x) new))))))
+
+(defmethod abstract-delete-duplicates ((sequence abstract-list) &key from-end (test #'eql) (start 0) end (key #'identity))
+  (if from-end
+      (let ((buf '())
+            (length 0))
+        (do-abstract-sequence (x sequence) (i start end nil)
+          (incf length)
+          (cl:push x buf))
+        (setq buf (cl:nreverse (cl:delete-duplicates buf
+                                                     :test test
+                                                     :key key)))
+        (replace sequence
+                 buf
+                 :start1 start
+                 :end1 end)
+        (if end
+            (progn
+              (setf (%nthrest (+ start length -1) sequence)
+                    (%nthrest end sequence))
+              sequence)
+            (adjust-sequence sequence (+ start (cl:length buf)))))
+
+      (flet ((find-dup (x seq &key (start 0) end)
+               (do-abstract-sequence (y seq) (i start end nil)
+                 (when (funcall test (funcall key x) (funcall key y))
+                   (return t)))))
+        (let ((seq (%nthrest start sequence)))
+          (loop while (find-dup (abstract-first seq) (abstract-rest seq)
+                                :start 0 :end (and end (1- end)))
+                do (setq seq (abstract-rest seq)))
+          (do-abstract-cons (x seq) (i start end nil)
+            (let ((rest (abstract-rest x)))
+              (when (emptyp rest)
+                (return))
+              (when (find-dup (abstract-first rest) (abstract-rest rest)
+                              :start 0 :end (and end
+                                                 (- end i 1)))
+                (setf (abstract-rest x) (abstract-rest rest))
+                (return))))
+          (cond
+            ((zerop start) (setq sequence seq))
+            ((= start 1)
+             (setf (abstract-rest sequence) seq))
+            (t (setf (%nthrest sequence start)
+                     seq)))
+          sequence))))
 
 
 ;;
@@ -223,6 +615,6 @@
           (length 0))
       (do-abstract-sequence (x tree) ()
         (incf length)
-        (push (flatten x) buf))
+        (cl:push (flatten x) buf))
       (make-sequence-like tree length
                           :initial-contents (nreverse buf)))))
