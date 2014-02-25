@@ -588,7 +588,7 @@ implemented for the class of SEQUENCE."))
          (vector (vector-push-extend ,value ,place-g))))))
 
 (defmacro pushnew (value place &rest keys &key key test test-not)
-  #.(or (documentation 'cl:push 'function) "")
+  #.(or (documentation 'cl:pushnew 'function) "")
   (declare (ignore key test test-not))
   (let ((place-g (gensym "PLACE")))
     `(let ((,place-g ,place))
