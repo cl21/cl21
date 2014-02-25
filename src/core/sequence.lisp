@@ -187,7 +187,13 @@
            :abstract-split-sequence
            :abstract-split-sequence-if
            :abstract-copy-seq
-           :abstract-replace))
+           :abstract-replace
+
+           :make-sequence-iterator
+           :iterator-pointer
+           :iterator-endp
+           :iterator-next
+           :with-sequence-iterator))
 (in-package :cl21.core.sequence)
 
 #.`(progn
@@ -480,20 +486,6 @@ to the elements of SEQUENCE if neither is supplied. Signals a
 ABSTRACT-METHOD-UNIMPLEMENTED error if the sequence method is not
 implemented for the class of SEQUENCE."))
 
-(defmethod coerce ((object abstract-vector) type)
-  (ecase type
-    (list
-     (let ((results '()))
-       (do-abstract-sequence (x object (cl:nreverse results)) ()
-         (cl:push x results))))
-    ((vector simple-vector)
-     (let* ((length (abstract-length object))
-            (result (make-array length)))
-       (do-abstract-sequence (x object result) (i 0)
-         (setf (aref result i) x))))
-    (string
-     (cl:coerce (coerce object 'vector) 'string))))
-
 
 ;; Iteration
 
@@ -549,6 +541,24 @@ implemented for the class of SEQUENCE."))
     `(let ((,iterator (make-sequence-iterator ,sequence :start ,start :end ,end :from-end ,from-end)))
        (with-sequence-iterator (,var ,iterator ,@result-form) (,i)
          ,@body))))
+
+
+;;
+;; coerce
+
+(defmethod coerce ((object abstract-vector) type)
+  (ecase type
+    (list
+     (let ((results '()))
+       (do-abstract-sequence (x object (cl:nreverse results)) ()
+         (cl:push x results))))
+    ((vector simple-vector)
+     (let* ((length (abstract-length object))
+            (result (make-array length)))
+       (do-abstract-sequence (x object result) (i 0)
+         (setf (aref result i) x))))
+    (string
+     (cl:coerce (coerce object 'vector) 'string))))
 
 
 ;;
