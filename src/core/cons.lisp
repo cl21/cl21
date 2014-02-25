@@ -161,7 +161,7 @@
            :list-pushnew
            :list-pop
 
-           :cons-last
+           :last-cons
 
            ;; Alexandria
            :mappend
@@ -191,7 +191,7 @@
 (defmacro list-pop (place)
   `(cl:pop ,place))
 
-(setf (symbol-function 'cons-last) #'last)
+(setf (symbol-function 'last-cons) #'last)
 
 (defun maptree (fn tree)
   (labels ((rec (tree)
