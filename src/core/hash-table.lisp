@@ -13,6 +13,8 @@
            :hash-table-test)
   (:shadowing-import-from :cl21.core.generic
                           :coerce)
+  (:import-from :cl21.core.condition
+                :method-unimplemented-error)
   (:import-from :cl21.core.sequence
                 :subdivide)
   (:import-from :cl21.core.util
@@ -91,87 +93,161 @@
 
 
 ;;
+;; Macro
+
+(defmacro define-hash-compiler-macro (name lambda-list &optional default-form)
+  `(define-typecase-compiler-macro ,name (&whole form ,@lambda-list)
+     (typecase hash
+       (cl:hash-table ,(or default-form
+                           (if (listp name)
+                               ``(setf ,(list* ',(intern (string (second name)) :cl) (cdddr form)) ,,(car lambda-list))
+                               `(list* ',(intern (string name) :cl) (cdr form))))))))
+
+
+;;
 ;; Abstract Hash Table
 
 (defclass abstract-hash-table () ())
 
 (defun hash-table-p (object)
-  (or (typep object 'hash-table)
+  (or (typep object 'cl:hash-table)
       (typep object 'abstract-hash-table)))
 
 
 ;;
-;; Generic functions
-
-(defmacro define-hash-compiler-macro (name lambda-list &optional default-form)
-  `(define-typecase-compiler-macro ,name (&whole form ,@lambda-list)
-     (typecase hash
-       (hash-table ,(or default-form
-                        (if (listp name)
-                            ``(setf ,(list* ',(intern (string (second name)) :cl) (cdddr form)) ,,(car lambda-list))
-                            `(list* ',(intern (string name) :cl) (cdr form))))))))
+;; Function: gethash, (setf gethash)
+;; Generic Function: abstract-gethash, (setf abstract-gethash)
 
 (defun gethash (key hash &optional (default nil default-specified-p))
-  (typecase hash
-    (hash-table
+  (etypecase hash
+    (cl:hash-table
      (apply #'cl:gethash key hash (if default-specified-p (list default) nil)))
-    (otherwise
+    (abstract-hash-table
      (apply #'abstract-gethash key hash (if default-specified-p (list default) nil)))))
-(defgeneric abstract-gethash (key hash &optional default))
 (define-hash-compiler-macro gethash (key hash &optional default))
 
+(defgeneric abstract-gethash (key hash &optional default)
+  (:method (key (hash abstract-hash-table) &optional default)
+    (method-unimplemented-error 'abstract-gethash hash)))
+
 (defun (setf gethash) (newval key hash)
-  (typecase hash
-    (hash-table
+  (etypecase hash
+    (cl:hash-table
      (setf (cl:gethash key hash) newval))
-    (otherwise
+    (abstract-hash-table
      (setf (abstract-gethash key hash) newval))))
-(defgeneric (setf abstract-gethash) (newval key hash))
 (define-hash-compiler-macro (setf gethash) (newval key hash))
 
+(defgeneric (setf abstract-gethash) (newval key hash)
+  (:method (newval key (hash abstract-hash-table))
+    (method-unimplemented-error '(setf abstract-gethash) hash)))
+
+
+;;
+;; Function: remhash
+;; Generic Function: abstract-remhash
+
 (defun remhash (key hash)
-  (typecase hash
-    (hash-table
+  (etypecase hash
+    (cl:hash-table
      (cl:remhash key hash))
-    (otherwise (abstract-remhash key hash))))
-(defgeneric abstract-remhash (key hash))
+    (abstract-hash-table (abstract-remhash key hash))))
 (define-hash-compiler-macro remhash (key hash))
 
+(defgeneric abstract-remhash (key hash)
+  (:method (key (hash abstract-hash-table))
+    (method-unimplemented-error 'abstract-remhash hash)))
+
+
+;;
+;; Function: clrhash
+;; Generic Function: abstract-clrhash
+
 (defun clrhash (hash)
-  (typecase hash
-    (hash-table (cl:clrhash hash))
-    (otherwise (abstract-clrhash hash))))
-(defgeneric abstract-clrhash (hash))
+  (etypecase hash
+    (cl:hash-table (cl:clrhash hash))
+    (abstract-hash-table (abstract-clrhash hash))))
 (define-hash-compiler-macro clrhash (hash))
 
+(defgeneric abstract-clrhash (hash)
+  (:method ((hash abstract-hash-table))
+    (method-unimplemented-error 'abstract-clrhash hash)))
+
+
+;;
+;; Function: maphash
+;; Generic Function: abstract-maphash
+
 (defun maphash (function hash)
-  (typecase hash
-    (hash-table (cl:maphash function hash))
-    (otherwise (cl:maphash function (coerce hash 'hash-table)))))
+  (etypecase hash
+    (cl:hash-table (cl:maphash function hash))
+    (abstract-hash-table (abstract-maphash function hash))))
 (define-hash-compiler-macro maphash (function hash))
 
+(defgeneric abstract-maphash (function hash)
+  (:method (function (hash abstract-hash-table))
+    (method-unimplemented-error 'abstract-maphash hash)))
+
+
+;;
+;; Function: hash-table-keys
+;; Generic Function: abstract-hash-table-keys
+
 (defun hash-table-keys (hash)
-  (typecase hash
-    (hash-table (alexandria:hash-table-keys hash))
-    (otherwise (alexandria:hash-table-keys (coerce hash 'hash-table)))))
+  (etypecase hash
+    (cl:hash-table (alexandria:hash-table-keys hash))
+    (abstract-hash-table (abstract-hash-table-keys hash))))
 (define-hash-compiler-macro hash-table-keys (hash)
   `(alexandria:hash-table-keys ,hash))
 
+(defgeneric abstract-hash-table-keys (hash)
+  (:method ((hash abstract-hash-table))
+    (let ((results '()))
+      (abstract-maphash (lambda (k v)
+                          (declare (ignore v))
+                          (push k results))
+                        hash)
+      results)))
+
+
+;;
+;; Function: hash-table-values
+;; Generic Function: abstract-hash-table-values
+
 (defun hash-table-values (hash)
-  (typecase hash
-    (hash-table (alexandria:hash-table-values hash))
-    (otherwise (alexandria:hash-table-values (coerce hash 'hash-table)))))
+  (etypecase hash
+    (cl:hash-table (alexandria:hash-table-values hash))
+    (abstract-hash-table (abstract-hash-table-values hash))))
 (define-hash-compiler-macro hash-table-values (hash)
   `(alexandria:hash-table-values ,hash))
 
+(defgeneric abstract-hash-table-values (hash)
+  (:method ((hash abstract-hash-table))
+    (let ((results '()))
+      (abstract-maphash (lambda (k v)
+                          (declare (ignore k))
+                          (push v results))
+                        hash)
+      results)))
+
+
+;;
+;; Function: copy-hash-table
+;; Generic Function: abstract-copy-hash-table
+
 (defun copy-hash-table (hash &rest args &key key test size rehash-size rehash-threshold)
   (declare (ignore key test size rehash-size rehash-threshold))
-  (typecase hash
-    (hash-table (apply #'alexandria:copy-hash-table hash args))
-    (otherwise (apply #'abstract-copy-hash-table hash args))))
-(defgeneric abstract-copy-hash-table (hash &key key test size rehash-size rehash-threshold))
+  (etypecase hash
+    (cl:hash-table (apply #'alexandria:copy-hash-table hash args))
+    (abstract-hash-table (apply #'abstract-copy-hash-table hash args))))
 (define-hash-compiler-macro copy-hash-table (hash &rest args &key key test size rehash-size rehash-threshold)
   `(apply #'alexandria:copy-hash-table ,hash ,args))
+
+(defgeneric abstract-copy-hash-table (hash &key key test size rehash-size rehash-threshold)
+  (:method ((hash abstract-hash-table) &key key test size rehash-size rehash-threshold)
+    (declare (ignore key test size rehash-size rehash-threshold))
+    (method-unimplemented-error 'abstract-copy-hash-table hash)))
+
 
 ;; Accessors
 #.`(progn
@@ -186,5 +262,8 @@
                          (hash-table
                           (,(intern (string fn) :cl) hash))
                          (otherwise (,(intern (format nil "~A-~A" :abstract fn)) hash)))))
-           (collect `(defgeneric ,(intern (format nil "~A-~A" :abstract fn)) (hash)))
+           (collect `(defgeneric ,(intern (format nil "~A-~A" :abstract fn)) (hash)
+                       (:method ((hash abstract-hash-table))
+                         (method-unimplemented-error ',(intern (format nil "~A-~A" :abstract fn))
+                                                     hash))))
            (collect `(define-hash-compiler-macro ,fn (hash))))))

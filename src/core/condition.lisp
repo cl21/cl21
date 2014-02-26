@@ -50,5 +50,23 @@
            :control-error
            :program-error
 
-           :reader-error
-           ))
+           :reader-error))
+(in-package :cl21.core.condition)
+
+(define-condition abstract-method-unimplemented (simple-error)
+  ((class-name :type symbol
+               :initarg :class-name)
+   (method-name :type (or symbol list)
+                :initarg :method-name))
+  (:documentation "An error raised if the abstract-sequence class has not specified a mandatory method.")
+  (:report
+   (lambda (condition stream)
+     (format stream
+             "Method ~S for ~S must be implemented."
+             (slot-value condition 'method-name)
+             (slot-value condition 'class-name)))))
+
+(defun method-unimplemented-error (method-name sequence)
+  (error 'abstract-method-unimplemented
+         :class-name (class-name (class-of sequence))
+         :method-name method-name))
