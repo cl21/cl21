@@ -29,7 +29,7 @@
   ((%hash :initform (make-hash-table :test 'equal))))
 
 (ok (hash-table-p (make-instance 'my-hash-table)))
-(ok (not (typep (make-instance 'my-hash-table) 'hash-table)))
+(ok (typep (make-instance 'my-hash-table) 'hash-table))
 (ok (typep (make-instance 'my-hash-table) 'abstract-hash-table))
 
 (defmethod abstract-gethash (key (hash my-hash-table) &optional (default 'undefined))

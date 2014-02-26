@@ -1,7 +1,8 @@
 (in-package :cl-user)
 (defpackage cl21.core.hash-table
   (:use :cl)
-  (:shadow :gethash
+  (:shadow :hash-table
+           :gethash
            :remhash
            :clrhash
            :maphash
@@ -87,7 +88,7 @@
 (defun hash-table-key-exists-p (hash key)
   (nth-value 1 (gethash hash key)))
 
-(defmethod print-object ((object hash-table) stream)
+(defmethod print-object ((object cl:hash-table) stream)
   (format stream "~<#{~;~\@{~S ~S~^ ~_~}~;}~:>"
           (hash-table-plist object)))
 
@@ -109,9 +110,10 @@
 
 (defclass abstract-hash-table () ())
 
+(deftype hash-table () '(or cl:hash-table abstract-hash-table))
+
 (defun hash-table-p (object)
-  (or (typep object 'cl:hash-table)
-      (typep object 'abstract-hash-table)))
+  (typep object 'hash-table))
 
 
 ;;
@@ -258,10 +260,10 @@
                        hash-table-size
                        hash-table-test))
            (collect `(defun ,fn (hash)
-                       (typecase hash
-                         (hash-table
+                       (etypecase hash
+                         (cl:hash-table
                           (,(intern (string fn) :cl) hash))
-                         (otherwise (,(intern (format nil "~A-~A" :abstract fn)) hash)))))
+                         (abstract-hash-table (,(intern (format nil "~A-~A" :abstract fn)) hash)))))
            (collect `(defgeneric ,(intern (format nil "~A-~A" :abstract fn)) (hash)
                        (:method ((hash abstract-hash-table))
                          (method-unimplemented-error ',(intern (format nil "~A-~A" :abstract fn))
