@@ -1,7 +1,8 @@
 (in-package :cl-user)
 (defpackage cl21.core.sequence
   (:use :cl)
-  (:shadow :push
+  (:shadow :sequence
+           :push
            :pushnew
            :pop
            :last
@@ -269,6 +270,9 @@
 
 (defclass abstract-sequence () ())
 (defclass abstract-vector (abstract-sequence) ())
+
+(deftype sequence () '(or cl:sequence abstract-sequence))
+
 
 ;;; Basic methods
 
