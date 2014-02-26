@@ -31,6 +31,7 @@
                 :abstract-nsubstitute-if
                 :abstract-delete-duplicates
                 :abstract-mismatch
+                :abstract-fill
                 :make-sequence-iterator
                 :iterator-endp
                 :iterator-next
@@ -387,6 +388,10 @@
                                                           (cl:nreverse results)))
         (i start end)
       (cl:push x results))))
+
+(defmethod abstract-fill ((sequence abstract-list) item &key (start 0) end)
+  (do-abstract-cons (x sequence sequence) (i start end)
+    (setf (abstract-first x) item)))
 
 (defmethod abstract-take (n (sequence abstract-list))
   (let ((results '()))

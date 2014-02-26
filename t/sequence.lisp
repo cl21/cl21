@@ -4,7 +4,7 @@
         :cl-test-more))
 (in-package :cl21-test.sequence)
 
-(plan 258)
+(plan 267)
 
 (is (take 3 '(1 3 5 6 7 8))
     '(1 3 5)
@@ -528,6 +528,30 @@
             :from-end t :initial-value 'foo)
     '(1 (2 (3 (4 foo))))
     "reduce")
+
+(is (fill (list 0 1 2 3 4 5) '(444))
+    '((444) (444) (444) (444) (444) (444))
+    "fill")
+(is (fill (copy-seq "01234") #\e :start 3) "012ee" "fill")
+(let ((x (vector 'a 'b 'c 'd 'e)))
+  (is (fill x 'z :start 1 :end 3)
+      #('A 'Z 'Z 'D 'E)
+      :test #'equalp
+      "fill")
+  (is (fill x 'p) #('P 'P 'P 'P 'P) :test #'equalp "fill")
+  (is x #('P 'P 'P 'P 'P) :test #'equalp "fill"))
+
+(is (coerce (fill (make-my-list 0 1 2 3 4 5) '(444)) 'list)
+    '((444) (444) (444) (444) (444) (444))
+    "fill")
+
+(let ((x (make-my-vector 'a 'b 'c 'd 'e)))
+  (is (coerce (fill x 'z :start 1 :end 3) 'vector)
+      #('A 'Z 'Z 'D 'E)
+      :test #'equalp
+      "fill")
+  (is (coerce (fill x 'p) 'vector) #('P 'P 'P 'P 'P) :test #'equalp "fill")
+  (is (coerce x 'vector) #('P 'P 'P 'P 'P) :test #'equalp "fill"))
 
 
 (use-package :cl21.lazy)

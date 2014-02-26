@@ -48,7 +48,8 @@
            :remove-duplicates
            :delete-duplicates
            :copy-seq
-           :replace)
+           :replace
+           :fill)
   (:shadowing-import-from :cl21.core.generic
                           :emptyp
                           :coerce)
@@ -191,6 +192,7 @@
            :abstract-split-sequence-if
            :abstract-copy-seq
            :abstract-replace
+           :abstract-fill
 
            :make-sequence-iterator
            :iterator-pointer
@@ -656,6 +658,25 @@ implemented for the class of SEQUENCE."))
           ((or (<= end1 i)
                (<= end2 j)))
         (setf (elt sequence1 i) (elt sequence2 j))))))
+
+
+;;
+;; Function: fill
+;; Generic Function: abstract-fill
+
+(defun fill (sequence item &rest args &key start end)
+  (declare (ignore start end))
+  (etypecase sequence
+    (cl:sequence (apply #'cl:fill sequence item args))
+    (abstract-sequence (apply #'abstract-fill sequence item args))))
+(define-typecase-compiler-macro fill (&whole form sequence item &key start end)
+  (typecase sequence
+    (cl:sequence `(cl:fill ,@(cdr form)))))
+
+(defgeneric abstract-fill (sequence item &key start end)
+  (:method ((sequence abstract-vector) item &key (start 0) end)
+    (do-abstract-sequence (() sequence sequence) (i start end)
+      (setf (abstract-elt sequence i) item))))
 
 
 ;;
