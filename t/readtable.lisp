@@ -9,10 +9,8 @@
 
 (plan nil)
 
-(let ((name "John"))
-  (declare (ignorable name))
-  (is-print (princ "Hello, ${name}!\n")
-            "Hello, ${name}!n"))
+(is-print (princ "Hello, World!\n")
+          "Hello, World!n")
 
 (cl21:in-package :cl21-test.readtable/cl21)
 
@@ -22,17 +20,13 @@
           "Hello, World!
 ")
 
-(let ((name "John"))
-  (declare (ignorable name))
-  (is-print (princ "Hello, ${name}!\n")
-            "Hello, John!
-"))
+(is-print (princ "Hello, World!\n")
+          "Hello, World!
+")
 
 (cl21:in-package :cl21-test.readtable)
 
-(let ((name "John"))
-  (declare (ignorable name))
-  (is-print (princ "Hello, ${name}!\n")
-            "Hello, ${name}!n"))
+(is-print (princ "Hello, World!\n")
+          "Hello, World!n")
 
 (finalize)
