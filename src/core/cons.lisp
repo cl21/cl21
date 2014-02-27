@@ -12,6 +12,15 @@
                 :abstract-length
                 :abstract-elt
                 :abstract-first
+                :abstract-second
+                :abstract-third
+                :abstract-fourth
+                :abstract-fifth
+                :abstract-sixth
+                :abstract-seventh
+                :abstract-eighth
+                :abstract-ninth
+                :abstract-tenth
                 :abstract-rest
                 :adjust-sequence
                 :abstract-replace
@@ -233,6 +242,26 @@
 (defmethod (setf abstract-first) (newval (sequence abstract-list))
   (declare (ignore newval))
   (method-unimplemented-error '(setf abstract-first) sequence))
+
+#.`(progn
+     ,@(loop for (function . n) in '((second . 1)
+                                     (third . 2)
+                                     (fourth . 3)
+                                     (fifth . 4)
+                                     (sixth . 5)
+                                     (seventh . 6)
+                                     (eighth . 7)
+                                     (ninth . 8)
+                                     (tenth . 9))
+             for abstract-fun = (intern (format nil "~A-~A" :abstract function))
+             append
+             `((defmethod ,abstract-fun ((sequence abstract-list))
+                 (dotimes (n ,n (abstract-first sequence))
+                   (setq sequence (abstract-rest sequence))))
+               (defmethod (setf ,abstract-fun) (newval (sequence abstract-list))
+                 (dotimes (n ,n)
+                   (setq sequence (abstract-rest sequence)))
+                 (setf (abstract-first sequence) newval)))))
 
 (defmethod abstract-rest ((sequence abstract-list))
   (method-unimplemented-error 'abstract-rest sequence))
