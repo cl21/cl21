@@ -595,8 +595,20 @@ implemented for the class of SEQUENCE."))
   (let ((place-g (gensym "PLACE")))
     `(let ((,place-g ,place))
        (etypecase ,place-g
-         (list (cl:push ,value ,place))
-         (vector (vector-push-extend ,value ,place-g))))))
+         (cl:list (cl:push ,value ,place))
+         (cl:vector
+          (let ((len (cl:length ,place-g)))
+            (unless (adjustable-array-p ,place-g)
+              (error "~S is not an adjustable array." ,place-g))
+            (if (= len (array-dimension ,place-g 0))
+                (adjust-array ,place-g (1+ len) :fill-pointer (1+ len))
+                (incf (fill-pointer ,place-g)))
+            (do ((i len (1- i)))
+                ((< i 1))
+              (setf (aref ,place-g i)
+                    (aref ,place-g (1- i))))
+            (setf (aref ,place-g 0) ,value)
+            ,place-g))))))
 
 (defmacro pushnew (value place &rest keys &key key test test-not)
   #.(or (documentation 'cl:pushnew 'function) "")
@@ -604,8 +616,9 @@ implemented for the class of SEQUENCE."))
   (let ((place-g (gensym "PLACE")))
     `(let ((,place-g ,place))
        (etypecase ,place-g
-         (cl:vector (or (cl:find ,value ,place-g ,@keys)
-                        (vector-push-extend ,value ,place-g)))
+         (cl:vector (if (cl:find ,value ,place-g ,@keys)
+                        ,place-g
+                        (push ,value ,place-g)))
          (cl:list (cl:pushnew ,value ,place-g ,@keys))))))
 
 (defmacro pop (place)
@@ -613,12 +626,17 @@ implemented for the class of SEQUENCE."))
   (let ((place-g (gensym "PLACE")))
     `(let ((,place-g ,place))
        (etypecase ,place-g
-         (cl:vector (cl:vector-pop ,place-g))
          (cl:list (cl:pop ,place))
-         (abstract-sequence
-          (prog1
-           (abstract-first ,place-g)
-           (setf ,place (abstract-rest ,place-g))))))))
+         (cl:vector
+          (unless (adjustable-array-p ,place-g)
+            (error "~S is not an adjustable array." ,place-g))
+          (prog1 (aref ,place-g 0)
+            (let ((len (length ,place-g)))
+              (do ((i 0 (1+ i)))
+                  ((= i (1- len)))
+                (setf (aref ,place-g i)
+                      (aref ,place-g (1+ i))))
+              (decf (fill-pointer ,place-g)))))))))
 
 
 ;;
