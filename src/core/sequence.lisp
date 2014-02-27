@@ -49,7 +49,11 @@
            :delete-duplicates
            :copy-seq
            :replace
-           :fill)
+           :fill
+           :every
+           :some
+           :notevery
+           :notany)
   (:shadowing-import-from :cl21.core.generic
                           :emptyp
                           :coerce)
@@ -902,14 +906,14 @@ implemented for the class of SEQUENCE."))
       (do-abstract-sequence (x sequence2) (i start2 end2 from-end)
         (when (and (funcall test (funcall key x) first-el)
                    (or (not from-end) (>= i length))
-                   (every (lambda (x y)
-                            (funcall test (funcall key x) (funcall key y)))
-                          sequence1
-                          (coerce
-                           (if from-end
-                               (abstract-subseq sequence2 (- i length) i)
-                               (abstract-subseq sequence2 i (+ i length)))
-                           'vector)))
+                   (cl:every (lambda (x y)
+                               (funcall test (funcall key x) (funcall key y)))
+                             sequence1
+                             (coerce
+                              (if from-end
+                                  (abstract-subseq sequence2 (- i length) i)
+                                  (abstract-subseq sequence2 i (+ i length)))
+                              'vector)))
           (return i))))))
 
 
@@ -1139,8 +1143,8 @@ of which has elements that satisfy PRED, the second which do not."
 ;; Function: length=
 
 (defun length= (&rest sequences)
-  (if (every (lambda (seq) (not (typep seq 'abstract-sequence)))
-             sequences)
+  (if (cl:every (lambda (seq) (not (typep seq 'abstract-sequence)))
+                sequences)
       (apply #'alexandria:length= sequences)
       (multiple-value-bind (intargs sequences)
           (partition-if #'integerp sequences)
@@ -1150,18 +1154,18 @@ of which has elements that satisfy PRED, the second which do not."
                      ((emptyp seq) nil)
                      (T (check-take (1- n) (rest seq)))))
                  (check-seqs (sequences)
-                   (if (every (lambda (seq) (check-take 1 seq)) sequences)
+                   (if (cl:every (lambda (seq) (check-take 1 seq)) sequences)
                        (check-seqs (mapcar #'rest sequences))
-                       (every #'emptyp sequences))))
+                       (cl:every #'emptyp sequences))))
           (cond
             ((and (cdr intargs)
                   (not (apply #'= intargs)))
              nil)
             (intargs
              (if (zerop (car intargs))
-                 (every #'emptyp sequences)
-                 (not (some (lambda (seq) (check-take (1+ (car intargs)) seq))
-                            sequences))))
+                 (cl:every #'emptyp sequences)
+                 (not (cl:some (lambda (seq) (check-take (1+ (car intargs)) seq))
+                               sequences))))
             (T (check-seqs sequences)))))))
 (define-compiler-macro length= (&whole form &environment env &rest sequences)
   (flet ((get-type (x)
@@ -1170,10 +1174,10 @@ of which has elements that satisfy PRED, the second which do not."
                (and (symbolp x)
                     (assoc 'type
                            (nth-value 2 (variable-information x env)))))))
-    (if (every (lambda (seq)
-                 (let ((type (get-type seq)))
-                   (and type
-                        (subtypep type 'sequence))))
+    (if (cl:every (lambda (seq)
+                    (let ((type (get-type seq)))
+                      (and type
+                           (subtypep type 'sequence))))
                sequences)
         `(alexandria:length= ,@(cdr form))
         form)))
@@ -1516,3 +1520,35 @@ of which has elements that satisfy PRED, the second which do not."
                            (funcall key (abstract-elt sequence j)))
               (incf deleted-count)
               (return))))))))
+
+
+;;
+;; Function: every, some, notevery, notany
+
+(defun every (pred &rest sequences)
+  (let ((iterators (mapcar #'make-sequence-iterator sequences)))
+    (do ()
+        ((cl:some #'iterator-endp iterators) t)
+      (unless (apply pred (mapcar #'iterator-next iterators))
+        (return)))))
+
+(defun some (pred &rest sequences)
+  (let ((iterators (mapcar #'make-sequence-iterator sequences)))
+    (do ()
+        ((cl:some #'iterator-endp iterators) nil)
+      (when (apply pred (mapcar #'iterator-next iterators))
+        (return t)))))
+
+(defun notevery (pred &rest sequences)
+  (let ((iterators (mapcar #'make-sequence-iterator sequences)))
+    (do ()
+        ((cl:some #'iterator-endp iterators) nil)
+      (unless (apply pred (mapcar #'iterator-next iterators))
+        (return t)))))
+
+(defun notany (pred &rest sequences)
+  (let ((iterators (mapcar #'make-sequence-iterator sequences)))
+    (do ()
+        ((cl:some #'iterator-endp iterators) t)
+      (when (apply pred (mapcar #'iterator-next iterators))
+        (return nil)))))

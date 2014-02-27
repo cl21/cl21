@@ -4,7 +4,7 @@
         :cl-test-more))
 (in-package :cl21-test.sequence)
 
-(plan 267)
+(plan 279)
 
 (is (take 3 '(1 3 5 6 7 8))
     '(1 3 5)
@@ -552,6 +552,21 @@
       "fill")
   (is (coerce (fill x 'p) 'vector) #('P 'P 'P 'P 'P) :test #'equalp "fill")
   (is (coerce x 'vector) #('P 'P 'P 'P 'P) :test #'equalp "fill"))
+
+(is (every #'characterp "abc") t "every")
+(is (some #'= '(1 2 3 4 5) '(5 4 3 2 1)) t "some")
+(is (notevery #'< '(1 2 3 4) '(5 6 7 8) '(9 10 11 12)) nil "notevery")
+(is (notany #'> '(1 2 3 4) '(5 6 7 8) '(9 10 11 12)) t "notany")
+
+(is (every #'characterp (make-my-list #\a #\b #\c)) t "every")
+(is (some #'= (make-my-list 1 2 3 4 5) '(5 4 3 2 1)) t "some")
+(is (notevery #'< (make-my-list 1 2 3 4) '(5 6 7 8) '(9 10 11 12)) nil "notevery")
+(is (notany #'> (make-my-list 1 2 3 4) '(5 6 7 8) '(9 10 11 12)) t "notany")
+
+(is (every #'characterp (make-my-vector #\a #\b #\c)) t "every")
+(is (some #'= (make-my-vector 1 2 3 4 5) '(5 4 3 2 1)) t "some")
+(is (notevery #'< (make-my-vector 1 2 3 4) '(5 6 7 8) '(9 10 11 12)) nil "notevery")
+(is (notany #'> (make-my-vector 1 2 3 4) '(5 6 7 8) '(9 10 11 12)) t "notany")
 
 
 (use-package :cl21.lazy)
