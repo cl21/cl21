@@ -135,6 +135,11 @@
            :tenth
            :rest
 
+           :every
+           :some
+           :notevery
+           :notany
+
            ;; Alexandria
            :length=
 

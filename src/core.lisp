@@ -83,10 +83,6 @@
    :identity
    :complement
    :constantly
-   :every
-   :some
-   :notevery
-   :notany
    :and
    :cond
    :if
