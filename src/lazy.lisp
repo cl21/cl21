@@ -72,7 +72,7 @@
 (defmethod make-sequence-like ((seq lazy-sequence) length &rest args &key initial-element (initial-contents nil icp))
   (declare (ignore initial-element))
   (unless icp
-    (setf icp (apply #'make-list length args)))
+    (setf initial-contents (apply #'make-list length args)))
   (reduce (lambda (x y)
             (lazy-sequence (cons x y)))
           initial-contents
@@ -99,17 +99,16 @@
           (lazy-sequence
             (multiple-value-bind (res i) (let ((*return-lazy* nil))
                                            (apply #'split-sequence-if pred sequence :count 1 args))
-              (append
-               res
-               (if (and end (= end i))
-                   nil
-                   (let ((*return-lazy* t))
-                     (when count
-                       (decf (getf args :count)))
-                     (setf (getf args :start) 0)
-                     (when end
-                       (decf (getf args :end) i))
-                     (apply #'split-sequence-if pred (drop i sequence) args)))))))
+              (if (and end (= end i))
+                  res
+                  `(,@res .
+                          ,(let ((*return-lazy* t))
+                             (when count
+                               (decf (getf args :count)))
+                             (setf (getf args :start) 0)
+                             (when end
+                               (decf (getf args :end) i))
+                             (apply #'split-sequence-if pred (drop i sequence) args)))))))
       (call-next-method)))
 
 ;; FIXME: Doesn't work for infinite sequences without :count argument.
