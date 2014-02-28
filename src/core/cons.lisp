@@ -133,10 +133,7 @@
            :nreconc
            :ldiff
            :tailp
-           :mapc
-           :mapcar
            :mapcan
-           :mapl
            :maplist
            :mapcon
            :acons
