@@ -12,7 +12,6 @@
                 :when-let
                 :xor
                 :unwind-protect-case
-                :doplist
                 :define-constant)
   (:export
    :compile
@@ -127,7 +126,6 @@
    :do*
    :dotimes
    :dolist
-   :doplist ;; from Alexandria
    :loop-finish
 
    :until
