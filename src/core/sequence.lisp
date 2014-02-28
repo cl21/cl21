@@ -53,7 +53,8 @@
            :every
            :some
            :notevery
-           :notany)
+           :notany
+           :map)
   (:shadowing-import-from :cl21.core.generic
                           :emptyp
                           :coerce)
@@ -100,6 +101,7 @@
            :merge
 
            :map
+           :map-to
            :map-into
 
            :remove
@@ -1070,14 +1072,14 @@ implemented for the class of SEQUENCE."))
   (let ((yes nil)
         (no nil)
         (sequence (subseq sequence start end)))
-    (map nil
-         #'(lambda (x)
-             (if (funcall pred (funcall key x))
-                 (cl:push x yes)
-                 (cl:push x no)))
-         (if from-end
-             (nreverse sequence)
-             sequence))
+    (cl:map nil
+            #'(lambda (x)
+                (if (funcall pred (funcall key x))
+                    (cl:push x yes)
+                    (cl:push x no)))
+            (if from-end
+                (nreverse sequence)
+                sequence))
     (values yes no)))
 
 (defun partition-if (pred sequence &rest args &key from-end start end key)
@@ -1603,3 +1605,16 @@ of which has elements that satisfy PRED, the second which do not."
         ((cl:some #'iterator-endp iterators) t)
       (when (apply pred (mapcar #'iterator-next iterators))
         (return nil)))))
+
+
+;;
+;; Function: map
+
+(defun map (function &rest sequences)
+  (let ((type (etypecase (car sequences)
+                (string 'string)
+                (list   'list)
+                (vector 'vector))))
+    (apply #'cl:map type function sequences)))
+
+(setf (symbol-function 'map-to) #'cl:map)

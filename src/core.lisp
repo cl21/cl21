@@ -307,14 +307,14 @@ CL21 Feature: NIL in LAMBDA-LIST will be ignored."
       `(block nil
          (etypecase ,object
            (sequence
-            (map nil
-                 ,(if (listp varsym)
-                      `(lambda (,elem)
-                         (destructuring-bind ,varsym ,elem
-                           (tagbody ,@body)))
-                      `(lambda (,varsym)
-                         (tagbody ,@body)))
-                 ,object))
+            (cl:map nil
+                    ,(if (listp varsym)
+                         `(lambda (,elem)
+                            (destructuring-bind ,varsym ,elem
+                              (tagbody ,@body)))
+                         `(lambda (,varsym)
+                            (tagbody ,@body)))
+                    ,object))
            (hash-table
             ,(if (and (listp varsym)
                       (null (cddr varsym)))
