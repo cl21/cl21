@@ -26,7 +26,6 @@
                :cl-ppcre
                :split-sequence
                :alexandria
-               :cl-utilities
                :repl-utilities
                #+sbcl :sb-cltl2
                ;; for package-diff

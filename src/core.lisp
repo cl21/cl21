@@ -14,10 +14,6 @@
                 :unwind-protect-case
                 :doplist
                 :define-constant)
-  (:import-from :cl-utilities
-                :with-collectors
-                :collecting
-                :collect)
   (:export
    :compile
    :eval
@@ -133,10 +129,6 @@
    :dolist
    :doplist ;; from Alexandria
    :loop-finish
-
-   :with-collectors
-   :collecting
-   :collect
 
    :until
    :while

@@ -24,9 +24,6 @@
                 :plist-hash-table
                 :alist-hash-table
                 :hash-table-plist)
-  (:import-from :cl-utilities
-                :collecting
-                :collect)
   (:export :hash-table
            :make-hash-table
            :gethash
@@ -253,19 +250,18 @@
 
 ;; Accessors
 #.`(progn
-     ,@(collecting
-         (dolist (fn '(hash-table-count
-                       hash-table-rehash-size
-                       hash-table-rehash-threshold
-                       hash-table-size
-                       hash-table-test))
-           (collect `(defun ,fn (hash)
-                       (etypecase hash
-                         (cl:hash-table
-                          (,(intern (string fn) :cl) hash))
-                         (abstract-hash-table (,(intern (format nil "~A-~A" :abstract fn)) hash)))))
-           (collect `(defgeneric ,(intern (format nil "~A-~A" :abstract fn)) (hash)
-                       (:method ((hash abstract-hash-table))
-                         (method-unimplemented-error ',(intern (format nil "~A-~A" :abstract fn))
-                                                     hash))))
-           (collect `(define-hash-compiler-macro ,fn (hash))))))
+     ,@(loop for fn in '(hash-table-count
+                         hash-table-rehash-size
+                         hash-table-rehash-threshold
+                         hash-table-size
+                         hash-table-test)
+             collect `(defun ,fn (hash)
+                        (etypecase hash
+                          (cl:hash-table
+                           (,(intern (string fn) :cl) hash))
+                          (abstract-hash-table (,(intern (format nil "~A-~A" :abstract fn)) hash))))
+             collect `(defgeneric ,(intern (format nil "~A-~A" :abstract fn)) (hash)
+                        (:method ((hash abstract-hash-table))
+                          (method-unimplemented-error ',(intern (format nil "~A-~A" :abstract fn))
+                                                      hash)))
+             collect `(define-hash-compiler-macro ,fn (hash))))

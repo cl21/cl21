@@ -72,10 +72,10 @@
           "123"
           "while-let")
 
-(is (collecting
-      (doeach (i '(1 2 3 4 5))
-        (collect (* i 10))))
-    '(10 20 30 40 50)
+(is (let ((results '()))
+      (doeach (i '(1 2 3 4 5) results)
+        (push (* i 10) results)))
+    '(50 40 30 20 10)
     "doeach (list)")
 (is-print (doeach ((i j) '((1 2) (3 4)))
             (format t "~A - ~A\n" i j))
@@ -85,10 +85,10 @@
             (format t "~A - ~A - ~A\n" i j k))
           "1 - 2 - (3)\n3 - 4 - (5)\n"
           "doeach (list) with destructuring-binding")
-(is (collecting
-      (doeach (i #(1 2 3 4 5))
-        (collect (* i 10))))
-    '(10 20 30 40 50)
+(is (let ((results '()))
+      (doeach (i #(1 2 3 4 5) results)
+        (push (* i 10) results)))
+    '(50 40 30 20 10)
     "doeach (vector)")
 (is-print (doeach ((i j) #('(1 2) '(3 4)))
             (format t "~A - ~A\n" i j))

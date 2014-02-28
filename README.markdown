@@ -65,11 +65,12 @@ This is an experimental project redesigning Common Lisp.
 ;;   `doeach` is similar to `dolist`, but it can be used with all sequences.
 ;;
 
-(collecting
-  (doeach (x '("al" "bob" "joe"))
-    (when (> (length x) 2)
-      (collect x))))
-;=> ("bob" "joe")
+(doeach (x '("al" "bob" "joe"))
+  (when (> (length x) 2)
+    (princ x)
+    (fresh-line)))
+;-> bob
+;   joe
 
 
 ;;
