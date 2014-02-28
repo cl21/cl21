@@ -5,6 +5,7 @@
            :member-if)
   (:import-from :cl21.core.sequence
                 :abstract-sequence
+                :abstract-list
                 :drop-while
                 :make-sequence-like
                 :method-unimplemented-error
@@ -181,8 +182,6 @@
            :0..
 
            ;; Abstract List
-           :abstract-list
-
            :member
            :member-if
            :abstract-member
@@ -223,9 +222,6 @@
 
 ;;
 ;; Abstract List
-
-(eval-when (:compile-toplevel :load-toplevel :execute)
-  (defclass abstract-list (abstract-sequence) ()))
 
 (defmethod abstract-length ((sequence abstract-list))
   (do-abstract-sequence (nil sequence i) (i)))

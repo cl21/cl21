@@ -158,6 +158,7 @@
 
            :abstract-sequence
            :abstract-vector
+           :abstract-list
            :make-sequence-like
            :adjust-sequence
            :abstract-first
@@ -266,6 +267,7 @@
 
 (defclass abstract-sequence () ())
 (defclass abstract-vector (abstract-sequence) ())
+(defclass abstract-list (abstract-sequence) ())
 
 (deftype sequence () '(or cl:sequence abstract-sequence))
 
@@ -484,7 +486,11 @@ SEQUENCE."))
        (if icp
            (cl:replace seq initial-contents)
            seq))
-      (t (apply #'adjust-array seq length args))))
+      (t (let ((newseq (apply #'adjust-array seq length args)))
+           (when (and (array-has-fill-pointer-p newseq)
+                      (<= (fill-pointer newseq) length))
+             (setf (fill-pointer newseq) length))
+           newseq))))
   (:method ((seq abstract-vector) length &key initial-element initial-contents)
     (declare (ignore length initial-element initial-contents))
     (method-unimplemented-error 'adjust-sequence seq))
@@ -608,7 +614,19 @@ implemented for the class of SEQUENCE."))
               (setf (aref ,place-g i)
                     (aref ,place-g (1- i))))
             (setf (aref ,place-g 0) ,value)
-            ,place-g))))))
+            ,place-g))
+         (abstract-vector
+          (setf ,place (adjust-sequence ,place-g (1+ (abstract-length ,place-g))))
+          (abstract-replace ,place ,place
+                            :start1 1)
+          (setf (abstract-elt ,place 0) ,value)
+          ,place)
+         (abstract-list
+          (let ((new (make-sequence-like ,place-g 1
+                                         :initial-contents (list ,value))))
+            (setf (abstract-rest new) ,place-g)
+            (setf ,place new)
+            ,place))))))
 
 (defmacro pushnew (value place &rest keys &key key test test-not)
   #.(or (documentation 'cl:pushnew 'function) "")
@@ -618,8 +636,12 @@ implemented for the class of SEQUENCE."))
        (etypecase ,place-g
          (cl:vector (if (cl:find ,value ,place-g ,@keys)
                         ,place-g
-                        (push ,value ,place-g)))
-         (cl:list (cl:pushnew ,value ,place-g ,@keys))))))
+                        (push ,value ,place)))
+         (cl:list (cl:pushnew ,value ,place-g ,@keys))
+         (abstract-sequence
+          (if (abstract-find ,value ,place-g ,@keys)
+              ,place-g
+              (push ,value ,place)))))))
 
 (defmacro pop (place)
   #.(documentation 'cl:pop 'function)
@@ -636,7 +658,14 @@ implemented for the class of SEQUENCE."))
                   ((= i (1- len)))
                 (setf (aref ,place-g i)
                       (aref ,place-g (1+ i))))
-              (decf (fill-pointer ,place-g)))))))))
+              (decf (fill-pointer ,place-g)))))
+         (abstract-sequence
+          (prog1
+              (abstract-first ,place-g)
+            (abstract-replace ,place-g ,place-g
+                              :start2 1)
+            (setf ,place
+                  (adjust-sequence ,place-g (1- (abstract-length ,place-g))))))))))
 
 
 ;;
@@ -695,12 +724,16 @@ implemented for the class of SEQUENCE."))
     (let ((end1 (or end1
                     (length sequence1)))
           (end2 (or end2
-                    (length sequence2))))
+                    (length sequence2)))
+          (setpairs '()))
       (do ((i start1 (1+ i))
            (j start2 (1+ j)))
           ((or (<= end1 i)
                (<= end2 j)))
-        (setf (elt sequence1 i) (elt sequence2 j))))))
+        (cl:push (elt sequence2 j) setpairs)
+        (cl:push `(elt ,sequence1 ,i) setpairs))
+      (eval `(psetf ,@setpairs))
+      sequence1)))
 
 
 ;;
