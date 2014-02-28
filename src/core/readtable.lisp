@@ -74,7 +74,7 @@
         (inner-reader nil nil nil nil)
       (read-char*))))
 
-(defun |#'-reader| (stream sub-char narg)
+(defun function-reader (stream sub-char narg)
   (declare (ignore sub-char narg))
   (let ((expr (read stream t nil t)))
     (if (and (consp expr)
@@ -215,14 +215,14 @@
     (:merge #+ccl :current
             #-ccl :standard)
     (:macro-char #\" #'string-reader)
-    (:dispatch-macro-char #\# #\' (function |#'-reader|))
+    (:dispatch-macro-char #\# #\' #'function-reader)
     (:dispatch-macro-char #\# #\( #'vector-reader)
     (:dispatch-macro-char #\# #\{ #'hash-table-reader)
     (:macro-char #\} (get-macro-character #\)))))
 
 (defsyntax :cl21
   (#\" #'string-reader)
-  ((#\# #\') (function |#'-reader|))
+  ((#\# #\') #'function-reader)
   ((#\# #\() #'vector-reader)
   ((#\# #\{) #'hash-table-reader)
   (#\} (get-macro-character #\))))
