@@ -732,7 +732,7 @@ implemented for the class of SEQUENCE."))
                (<= end2 j)))
         (cl:push (elt sequence2 j) setpairs)
         (cl:push `(elt ,sequence1 ,i) setpairs))
-      (eval `(psetf ,@setpairs))
+      (eval `(setf ,@setpairs))
       sequence1)))
 
 
