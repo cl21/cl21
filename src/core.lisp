@@ -108,7 +108,6 @@
    :prog
    :prog*
    :prog1
-   :prog2
    :progn
    :define-modify-macro
    :defsetf
