@@ -203,7 +203,7 @@
    :*load-verbose*
 
    ;; Environment
-   :export :decode-universal-time
+   :decode-universal-time
    :encode-universal-time
    :get-universal-time
    :get-decoded-time
