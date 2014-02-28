@@ -4,7 +4,7 @@
         :cl-test-more))
 (in-package :cl21-test.sequence)
 
-(plan 287)
+(plan 290)
 
 (is (take 3 '(1 3 5 6 7 8))
     '(1 3 5)
@@ -185,6 +185,25 @@
   (let ((poped (pop seq)))
     (is poped 0 "pop")
     (is (coerce seq 'list) '(10 1 2 3) "pop")))
+
+(let ((seq (make-array 3
+                       :initial-contents
+                       (let (result)
+                         (dotimes (i 3 (nreverse result))
+                           (push (make-array 1
+                                             :initial-element i
+                                             :adjustable t
+                                             :fill-pointer t)
+                                 result)))))
+      (index 0))
+  (pushnew 'a (aref seq (incf index)))
+  (is (map (rcurry #'coerce 'list) (coerce seq 'list))
+      '((0) (a 1) (2)) "pushnew")
+  (is index 1 "pushnew"))
+
+(let ((seq (make-array 1 :initial-element (list))))
+  (pushnew 'a (aref seq 0))
+  (is (coerce seq 'list) '((a)) "pushnew"))
 
 (let ((seq (make-my-vector 1 2 3)))
   (let ((seq-rest (drop 3 seq)))
