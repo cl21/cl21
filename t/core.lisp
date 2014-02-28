@@ -4,7 +4,7 @@
         :cl-test-more))
 (in-package :cl21-test.core)
 
-(plan 31)
+(plan 34)
 
 (is (coerce "10" 'integer) 10
     "String -> Integer")
@@ -18,6 +18,22 @@
     "String -> Keyword")
 (is (coerce "name" 'number) 0
     "Non-number string -> Number")
+
+(is (coerce (make-array 2 :element-type 'bit
+			:initial-contents '(1 1))
+	    'number)
+    3
+    "bit vector -> Number")
+(is (coerce (make-array 2 :element-type '(unsigned-byte 8)
+			:initial-contents '(1 1))
+	    'number)
+    9
+    "Unsigned byte 8 vector -> Number")
+(is (coerce (make-array 2 :element-type '(unsigned-byte 16)
+			:initial-contents '(1 1))
+	    'number)
+    17
+    "Unsigned byte 16 vector -> Number")
 
 (is (coerce 10 'string) "10"
     "Integer -> String")

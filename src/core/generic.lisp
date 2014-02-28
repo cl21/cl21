@@ -66,6 +66,18 @@
     (string (write-to-string object))
     (T (cl:coerce object output-type-spec))))
 
+(defmethod coerce ((object vector) output-type-spec)
+  (case output-type-spec
+    (number (let ((shift (etypecase object
+			   ((vector (unsigned-byte 2) *) 1)
+			   ((vector (unsigned-byte 8) *) 3)
+			   ((vector (unsigned-byte 16) *) 4)))
+		  (result 0))
+	     (loop :for bit :across object :do
+		(setf result (+ (ash result shift) bit)))
+	     result))
+    (T (cl:coerce object output-type-spec))))
+
 (defmethod coerce ((object hash-table) output-type-spec)
   (ecase output-type-spec
     (plist
