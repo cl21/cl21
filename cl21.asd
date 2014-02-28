@@ -55,7 +55,7 @@
                    (:file "stream")
                    (:file "generic" :depends-on ("types"))
                    (:file "repl")
-                   (:file "readtable" :depends-on ("function" "array" "sequence" "hash-table" "generic"))
+                   (:file "readtable" :depends-on ("function" "array" "cons" "hash-table"))
                    (:file "environment")
                    (:file "util" :depends-on ("environment"))))
                  (:file "re" :depends-on ("core"))

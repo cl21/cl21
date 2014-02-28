@@ -8,6 +8,8 @@
                 :hash-table-reader)
   (:shadowing-import-from :cl21.core.function
                           :function)
+  (:import-from :cl21.core.cons
+                :maptree)
   (:import-from :cl-interpol
                 :*stream*
                 :*start-char*
@@ -59,7 +61,9 @@
    :make-syntax
    :find-syntax
    :use-syntax
-   :export-syntax))
+   :export-syntax
+   :_
+   :_..))
 (in-package :cl21.core.readtable)
 
 (defun string-reader (stream char)
@@ -84,6 +88,25 @@
                             #+sbcl sb-int:named-lambda))))
         `(cl21.core.function:function ,expr)
         `(cl:function ,expr))))
+
+(defun lambda-reader (stream char)
+  (declare (ignore char))
+  (let ((form (read stream t nil t))
+        (args '()))
+    (flet ((add-arg ()
+             (let ((symb (gensym "ARG")))
+               (push symb args)
+               symb)))
+      (let ((form
+              (maptree (lambda (x)
+                         (case x
+                           (_ (add-arg))
+                           (_..
+                            (push 'cl:&rest args)
+                            (add-arg))
+                           (otherwise x)))
+                       form)))
+        `(lambda ,(nreverse args) ,form)))))
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defun read-token (stream)
@@ -216,6 +239,7 @@
             #-ccl :standard)
     (:macro-char #\" #'string-reader)
     (:dispatch-macro-char #\# #\' #'function-reader)
+    (:macro-char #\^ #'lambda-reader)
     (:dispatch-macro-char #\# #\( #'vector-reader)
     (:dispatch-macro-char #\# #\{ #'hash-table-reader)
     (:macro-char #\} (get-macro-character #\)))))
@@ -223,6 +247,7 @@
 (defsyntax :cl21
   (#\" #'string-reader)
   ((#\# #\') #'function-reader)
+  (#\^ #'lambda-reader)
   ((#\# #\() #'vector-reader)
   ((#\# #\{) #'hash-table-reader)
   (#\} (get-macro-character #\))))
