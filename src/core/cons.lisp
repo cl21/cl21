@@ -129,7 +129,6 @@
            :null
            :nconc
            :nappend
-           :append
            :revappend
            :nreconc
            :ldiff

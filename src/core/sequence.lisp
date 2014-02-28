@@ -54,7 +54,8 @@
            :some
            :notevery
            :notany
-           :map)
+           :map
+           :append)
   (:shadowing-import-from :cl21.core.generic
                           :emptyp
                           :coerce)
@@ -156,7 +157,7 @@
            :partition
            :partition-if
            :subdivide
-           :concat
+           :append
 
            :abstract-sequence
            :abstract-vector
@@ -213,7 +214,7 @@
            :with-sequence-iterator))
 (in-package :cl21.core.sequence)
 
-(defun concat (sequence &rest more-sequences)
+(defun append (sequence &rest more-sequences)
   (let ((type (etypecase sequence
                 (string 'string)
                 (list   'list)
