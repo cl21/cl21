@@ -19,6 +19,13 @@ This is an experimental project redesigning Common Lisp.
 ;=> "Hello, World!
 ;   "
 
+;; String interpolation
+(let ((name "John"))
+  (princ #"Hello, ${name}!\n"))
+;-> Hello, John!
+;=> "Hello, John!
+;   "
+
 
 ;;
 ;; Hash Table
@@ -67,8 +74,7 @@ This is an experimental project redesigning Common Lisp.
 
 (doeach (x '("al" "bob" "joe"))
   (when (> (length x) 2)
-    (princ x)
-    (fresh-line)))
+    (princ #"${x}\n")))
 ;-> bob
 ;   joe
 

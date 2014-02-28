@@ -78,6 +78,19 @@
         (inner-reader nil nil nil nil)
       (read-char*))))
 
+(defun string-interpol-reader (stream sub-char narg)
+  (declare (ignore narg))
+  (let ((*stream* stream)
+        (*start-char* sub-char)
+        (*term-char* sub-char)
+        (*pair-level* 0)
+        (*inner-delimiters* '((#\{ . #\})))
+        *saw-backslash*
+        *readtable-copy*)
+    (prog1
+        (inner-reader nil nil nil nil)
+      (read-char*))))
+
 (defun function-reader (stream sub-char narg)
   (declare (ignore sub-char narg))
   (let ((expr (read stream t nil t)))
@@ -238,6 +251,7 @@
     (:merge #+ccl :current
             #-ccl :standard)
     (:macro-char #\" #'string-reader)
+    (:dispatch-macro-char #\# #\" #'string-interpol-reader)
     (:dispatch-macro-char #\# #\' #'function-reader)
     (:macro-char #\^ #'lambda-reader)
     (:dispatch-macro-char #\# #\( #'vector-reader)
@@ -246,6 +260,7 @@
 
 (defsyntax :cl21
   (#\" #'string-reader)
+  ((#\# #\") #'string-interpol-reader)
   ((#\# #\') #'function-reader)
   (#\^ #'lambda-reader)
   ((#\# #\() #'vector-reader)
