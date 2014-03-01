@@ -414,14 +414,6 @@
   (do-abstract-cons (x sequence sequence) (i start end)
     (setf (abstract-first x) item)))
 
-(defmethod abstract-take (n (sequence abstract-list))
-  (let ((results '()))
-    (do-abstract-sequence (x sequence (make-sequence-like sequence n
-                                                          :initial-contents
-                                                          (cl:nreverse results)))
-        (i 0 n)
-      (cl:push x results))))
-
 (defmethod abstract-drop (n (sequence abstract-list))
   (copy-seq (%nthrest n sequence)))
 
@@ -444,16 +436,6 @@
   (do-abstract-cons (x sequence) ()
     (when (emptyp (abstract-rest x))
       (return (abstract-first x)))))
-
-(defmethod abstract-find-if (pred (sequence abstract-list) &key from-end (start 0) end (key #'identity))
-  (do-abstract-sequence (x sequence) (i start end from-end)
-    (when (funcall pred (funcall key x))
-      (return x))))
-
-(defmethod abstract-position-if (pred (sequence abstract-list) &key from-end (start 0) end (key #'identity))
-  (do-abstract-sequence (x sequence) (i start end from-end)
-    (when (funcall pred (funcall key x))
-      (return i))))
 
 (defmethod abstract-search (sequence1 (sequence2 abstract-list) &key from-end (test #'eql) (start1 0) end1 (start2 0) end2 (key #'identity))
   (when (typep sequence1 'abstract-sequence)
@@ -511,12 +493,6 @@
                     (- end1 i)
                     i)))
       (setq current (rest current)))))
-
-(defmethod abstract-count-if (pred (sequence abstract-list) &key from-end (start 0) end (key #'identity))
-  (let ((count 0))
-    (do-abstract-sequence (x sequence count) (i start end from-end)
-      (when (funcall pred (funcall key x))
-        (incf count)))))
 
 (defmethod abstract-nreverse ((sequence abstract-list))
   (if (emptyp sequence)

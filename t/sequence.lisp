@@ -99,7 +99,7 @@
   (not (slot-boundp object 'head)))
 
 
-(defclass my-vector (abstract-vector)
+(defclass my-vector (abstract-sequence)
   ((elements :type vector :initarg :elements :initform (make-array 0 :adjustable t :fill-pointer 0))))
 (defun make-my-vector (&rest elements)
   (make-instance 'my-vector :elements (make-array (length elements) :adjustable t :fill-pointer t
