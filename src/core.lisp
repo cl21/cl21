@@ -305,6 +305,14 @@ CL21 Feature: NIL in LAMBDA-LIST will be ignored."
        ,@body)))
 
 (defmacro doeach ((varsym object &optional return) &body body)
+" `doeach' is similar to `dolist', but it can be used with any kind of sequences, e.g.
+
+(doeach (x '("al" "bob" "joe"))
+  (when (> (length x) 2)
+    (princ #"${x}\n")))
+;-> bob
+;   joe
+"
   (let ((elem (gensym "ELEM")))
     (once-only (object)
       `(block nil
