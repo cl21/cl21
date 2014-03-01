@@ -2,7 +2,13 @@
 (defpackage cl21.lazy
   (:use :cl21)
   (:export :lazy-sequence
-           :cycle))
+           :cycle)
+  (:documentation
+   "An implementation of lazy evaluation.
+Note that the basic features are implemented with funcallable-standard-class
+in Meta Object Protocol, which is not so fast because most implementations
+do not optimize the call related to MOP and CLOS objects.
+Future improvements are awaited."))
 (in-package :cl21.lazy)
 
 (defclass memoized-lambda ()
