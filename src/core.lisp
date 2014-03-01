@@ -7,6 +7,7 @@
   (:import-from :cl21.core.cons
                 :maptree)
   (:import-from :alexandria
+                :with-gensyms
                 :once-only
                 :if-let
                 :when-let
