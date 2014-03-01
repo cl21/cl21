@@ -22,8 +22,9 @@
                 :iterator-pointer
                 :iterator-next
                 :iterator-endp
-                :map-to
                 :subdivide)
+  (:shadowing-import-from :cl21.core.sequence
+                          :map)
   (:import-from :cl21.core.util
                 :define-typecase-compiler-macro)
   (:import-from :alexandria
@@ -224,20 +225,11 @@
 
 ;;
 ;; Function: maphash
-;; Generic Function: abstract-maphash
 
 (defun maphash (function hash)
-  (etypecase hash
-    (cl:hash-table (map-to 'cl:hash-table
-                           (lambda (pair)
-                             (funcall function (car pair) (cdr pair)))
-                           hash))
-    (abstract-hash-table (abstract-maphash function hash))))
-(define-hash-compiler-macro maphash (function hash))
-
-(defgeneric abstract-maphash (function hash)
-  (:method (function (hash abstract-hash-table))
-    (method-unimplemented-error 'abstract-maphash hash)))
+  (map (lambda (pair)
+         (funcall function (car pair) (cdr pair)))
+       hash))
 
 
 ;;
@@ -253,11 +245,12 @@
 
 (defgeneric abstract-hash-table-keys (hash)
   (:method ((hash abstract-hash-table))
-    (let ((results '()))
-      (abstract-maphash (lambda (k v)
-                          (declare (ignore v))
-                          (push k results))
-                        hash)
+    (let ((results '())
+          (iterator (make-sequence-iterator hash)))
+      (do ()
+          ((iterator-endp iterator))
+        (push (car (iterator-next iterator))
+              results))
       results)))
 
 
@@ -274,11 +267,12 @@
 
 (defgeneric abstract-hash-table-values (hash)
   (:method ((hash abstract-hash-table))
-    (let ((results '()))
-      (abstract-maphash (lambda (k v)
-                          (declare (ignore k))
-                          (push v results))
-                        hash)
+    (let ((results '())
+          (iterator (make-sequence-iterator hash)))
+      (do ()
+          ((iterator-endp iterator))
+        (push (cdr (iterator-next iterator))
+              results))
       results)))
 
 
