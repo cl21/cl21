@@ -235,6 +235,7 @@
    :once-only))
 (in-package :cl21.core)
 
+;; concatenating all sub-packages into cl21
 (cl:dolist (package-name '(:cl21.core.types
                            :cl21.core.condition
                            :cl21.core.package
@@ -263,7 +264,11 @@
       (cl:export symbol))))
 
 (defmacro defconstant (name initial-value &key (test ''eql) documentation)
-  `(alexandria:define-constant ,name ,initial-value :test test :documentation documentation))
+  #.(cl:concatenate 'cl:string
+                    "In cl21, cl:defconstant is overridden by alexandria:define-constant."
+                    (cl:documentation 'alexandria:define-constant
+                                      'cl:function))
+  `(alexandria:define-constant ,name ,initial-value :test ,test :documentation ,documentation))
 
 (defmacro destructuring-bind (lambda-list expression &body body)
   "Bind the variables in LAMBDA-LIST to the corresponding values in the
