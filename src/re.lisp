@@ -10,6 +10,9 @@
            :re-split))
 (in-package :cl21.re)
 
+;; TODO: since ppcre does lots of compile-time optimizations,
+;;       inlining these functions are quite necessary.
+
 (defun re-match (re string &rest keys &key start end)
   (declare (ignore start end))
   (etypecase re
