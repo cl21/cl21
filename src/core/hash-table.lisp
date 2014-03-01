@@ -157,6 +157,10 @@
 (defun hash-table-p (object)
   (typep object 'hash-table))
 
+(defmethod make-sequence-iterator ((hash-table abstract-hash-table) &key start end from-end)
+  (declare (ignore start end from-end))
+  (method-unimplemented-error 'make-sequence-iterator hash-table))
+
 
 ;;
 ;; Function: gethash, (setf gethash)
