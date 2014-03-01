@@ -146,9 +146,6 @@
            :notevery
            :notany
 
-           ;; Alexandria
-           :length=
-
            :take
            :drop
            :take-while
@@ -1178,50 +1175,6 @@ of which has elements that satisfy PRED, the second which do not."
                       (- end1 i)
                       i)))
         (incf current (if from-end -1 1))))))
-
-
-;;
-;; Function: length=
-
-(defun length= (&rest sequences)
-  (if (cl:every (lambda (seq) (not (typep seq 'abstract-sequence)))
-                sequences)
-      (apply #'alexandria:length= sequences)
-      (multiple-value-bind (intargs sequences)
-          (partition-if #'integerp sequences)
-        (labels ((check-take (n seq)
-                   (cond
-                     ((zerop n) t)
-                     ((emptyp seq) nil)
-                     (T (check-take (1- n) (rest seq)))))
-                 (check-seqs (sequences)
-                   (if (cl:every (lambda (seq) (check-take 1 seq)) sequences)
-                       (check-seqs (mapcar #'rest sequences))
-                       (cl:every #'emptyp sequences))))
-          (cond
-            ((and (cdr intargs)
-                  (not (apply #'= intargs)))
-             nil)
-            (intargs
-             (if (zerop (car intargs))
-                 (cl:every #'emptyp sequences)
-                 (not (cl:some (lambda (seq) (check-take (1+ (car intargs)) seq))
-                               sequences))))
-            (T (check-seqs sequences)))))))
-(define-compiler-macro length= (&whole form &environment env &rest sequences)
-  (flet ((get-type (x)
-           (if (constantp x)
-               (type-of x)
-               (and (symbolp x)
-                    (assoc 'type
-                           (nth-value 2 (variable-information x env)))))))
-    (if (cl:every (lambda (seq)
-                    (let ((type (get-type seq)))
-                      (and type
-                           (subtypep type 'sequence))))
-               sequences)
-        `(alexandria:length= ,@(cdr form))
-        form)))
 
 
 ;;
