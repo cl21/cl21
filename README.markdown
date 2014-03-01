@@ -69,7 +69,7 @@ Discussion is highly welcome, join the issues thread and post some ideas!
 
 ;; Functional programming
 
-(mapcar (compose #'sin #'1+) '(1 2 3))
+(map (compose #'sin #'1+) '(1 2 3))
 ;=> (0.9092974 0.14112 -0.7568025)
 
 ;; remove-if-not -> keep-if
