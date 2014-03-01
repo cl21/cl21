@@ -57,7 +57,7 @@ This is an experimental project redesigning Common Lisp.
 ;=> 1
 
 (push 3 *vector*)
-(elt *vector* 1)
+(elt *vector* 0)
 ;=> 3
 
 (pop *vector*)
