@@ -304,34 +304,52 @@ CL21 Feature: NIL in LAMBDA-LIST will be ignored."
      (while (setf ,varsym ,expression)
        ,@body)))
 
-(defmacro doeach ((varsym object &optional return) &body body)
-" `doeach' is similar to `dolist', but it can be used with any kind of sequences, e.g.
+(defmacro doeach ((binding object &optional return) &body body)
+" `doeach' is similar to `dolist', but it can be used with any kind of sequences.
+Each body is an implicit `tagbody' and the whole form has an implicit `block'.
 
-(doeach (x '("al" "bob" "joe"))
-  (when (> (length x) 2)
-    (princ #"${x}\n")))
+ (doeach (x '(\"al\" \"bob\" \"joe\"))
+   (when (> (length x) 2)
+     (princ #\"${x}\n\"))) ; TODO: this is an older syntax for string interpolation
+;
 ;-> bob
 ;   joe
+
+Implicit destructuring-bind is available.
+
+ (doeach ((x y) '((1 2) (2 3) (3 4)))
+   (print (+ x y)))
+;-> 3
+;   5
+;   7
+
+For hash-table,
+
+ (doeach ((key value) #{'a 2 'b 3})
+   (when (> value 2)
+     (print key)))
+;
+; -> B
 "
-  (let ((elem (gensym "ELEM")))
-    (once-only (object)
+(once-only (object)
       `(block nil
          (etypecase ,object
            (sequence
             (cl:map nil
-                    ,(if (listp varsym)
-                         `(lambda (,elem)
-                            (destructuring-bind ,varsym ,elem
-                              (tagbody ,@body)))
-                         `(lambda (,varsym)
+                    ,(if (listp binding)
+                         (with-gensyms (elem)
+                           `(lambda (,elem)
+                              (destructuring-bind ,binding ,elem
+                                (tagbody ,@body))))
+                         `(lambda (,binding)
                             (tagbody ,@body)))
                     ,object))
            (hash-table
-            ,(if (and (listp varsym)
-                      (null (cddr varsym)))
-                 `(maphash (lambda ,varsym
+            ,(if (and (listp binding)
+                      (null (cddr binding)))
+                 `(maphash (lambda ,binding
                              (tagbody ,@body))
                            ,object)
-                 `(error "~A can't be destructured against the key/value pairs of a hash-table."
-                         ',varsym))))
-         ,return))))
+                 `(error "binding = ~A : for a hash-table, binding should be of the form (key value)"
+                         ',binding))))
+         ,return)))
