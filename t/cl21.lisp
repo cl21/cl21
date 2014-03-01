@@ -4,7 +4,7 @@
         :cl-test-more))
 (in-package :cl21-test)
 
-(plan 960)
+(plan 959)
 
 (defvar *ignore-symbols*
   '(prog2
@@ -24,6 +24,7 @@
     mapl
     mapc
     mapcar
+    map-into
     *modules*))
 
 (let ((cl21 (find-package :cl21)))

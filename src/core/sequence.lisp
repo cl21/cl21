@@ -103,7 +103,6 @@
 
            :map
            :map-to
-           :map-into
 
            :remove
            :remove-if
