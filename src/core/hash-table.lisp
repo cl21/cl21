@@ -13,11 +13,16 @@
            :hash-table-size
            :hash-table-test)
   (:shadowing-import-from :cl21.core.generic
-                          :coerce)
+                          :coerce
+                          :emptyp)
   (:import-from :cl21.core.condition
                 :method-unimplemented-error)
   (:import-from :cl21.core.sequence
                 :abstract-reduce
+                :make-sequence-iterator
+                :iterator-pointer
+                :iterator-next
+                :iterator-endp
                 :subdivide)
   (:import-from :cl21.core.util
                 :define-typecase-compiler-macro)
@@ -111,6 +116,46 @@
                     (funcall function
                              current
                              (funcall key (next-entry))))))))))
+
+
+;;
+;; Sequence Iterator
+
+(defmethod make-sequence-iterator ((hash-table cl:hash-table) &key start end from-end)
+  (assert (not (or start end from-end)))
+  (with-hash-table-iterator (next hash-table)
+    (make-hash-table-iterator hash-table (lambda () (next)))))
+
+(defstruct (hash-table-iterator (:constructor %make-hash-table-iterator))
+  (pointer 0 :type integer)
+  (endp nil :type boolean)
+  (next-kv nil :type cons)
+  (next-fn nil :type function))
+
+(defun make-hash-table-iterator (hash-table next-fn)
+  (let ((emptyp (emptyp hash-table)))
+    (multiple-value-bind (more key val) (funcall next-fn)
+      (%make-hash-table-iterator
+       :next-fn next-fn
+       :next-kv (cons key val)
+       :endp (or emptyp (not more))))))
+
+(defmethod iterator-pointer ((iterator hash-table-iterator))
+  (hash-table-iterator-pointer iterator))
+
+(defmethod iterator-endp ((iterator hash-table-iterator))
+  (hash-table-iterator-endp iterator))
+
+(defmethod iterator-next ((iterator hash-table-iterator))
+  (incf (hash-table-iterator-pointer iterator))
+  (prog1
+      (hash-table-iterator-next-kv iterator)
+    (multiple-value-bind (more key val)
+        (funcall (hash-table-iterator-next-fn iterator))
+      (if more
+          (setf (hash-table-iterator-next-kv iterator) (cons key val))
+          (setf (hash-table-iterator-endp iterator) t)))))
+
 
 ;;
 ;; Macro
