@@ -213,16 +213,6 @@
            :with-sequence-iterator))
 (in-package :cl21.core.sequence)
 
-(defun append (sequence &rest more-sequences)
-  (let ((type (etypecase sequence
-                (string 'string)
-                (list   'list)
-                (vector 'vector))))
-    (apply #'concatenate
-           type
-           sequence
-           more-sequences)))
-
 
 ;;
 ;; Macro
@@ -1658,3 +1648,43 @@ of which has elements that satisfy PRED, the second which do not."
                 (list 'list)
                 (abstract-sequence (type-of (car sequences))))))
     (apply #'map-to type function sequences)))
+
+
+;;
+;; Function: append
+
+(defun append (&rest sequences)
+  (flet ((append-to-list (sequences)
+           (let* ((results (cons nil nil))
+                  (current results))
+             (dolist (sequence sequences)
+               (if (typep sequence 'sequence)
+                   (do-abstract-sequence (x sequence) ()
+                     (setf (cdr current) (cons x nil))
+                     (setq current (cdr current)))
+                   (progn
+                     (setf (cdr current) sequence)
+                     (setq current (cdr current)))))
+             (cdr results)))
+         (append-to-vector (sequences)
+           (let* ((len (reduce #'+ sequences :key #'length))
+                  (result (make-array len))
+                  (i 0))
+             (dolist (sequence sequences)
+               (do-abstract-sequence (x sequence) ()
+                 (setf (aref result i) x)
+                 (incf i)))))
+         (append-to-string (sequences)
+           (with-output-to-string (s)
+             (dolist (sequence sequences)
+               (do-abstract-sequence (x sequence) ()
+                 (write-char x s))))))
+    (etypecase (car sequences)
+      (string (append-to-string sequences))
+      (list (append-to-list sequences))
+      (vector (append-to-vector sequences))
+      (abstract-sequence
+       (let ((result (append-to-vector sequences)))
+         (make-sequence-like (car sequences)
+                             (cl:length result)
+                             :initial-contents (cl:coerce result 'list)))))))
