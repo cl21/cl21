@@ -56,6 +56,7 @@
 (in-package :cl21.core.array)
 
 (defmacro adjustable-vector (&key (dimension nil dimension-specified-p) initial-contents)
+  "A variant of `cl:vector' that returns an adjustable vector, not a simple-vector."
   (let ((len (length initial-contents)))
     (if dimension-specified-p
         (when (> dimension len)
