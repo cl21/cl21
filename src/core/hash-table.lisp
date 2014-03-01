@@ -14,6 +14,7 @@
            :hash-table-test)
   (:shadowing-import-from :cl21.core.generic
                           :coerce
+                          :getf
                           :emptyp)
   (:import-from :cl21.core.condition
                 :method-unimplemented-error)
@@ -161,6 +162,17 @@
 (defmethod make-sequence-iterator ((hash-table abstract-hash-table) &key start end from-end)
   (declare (ignore start end from-end))
   (method-unimplemented-error 'make-sequence-iterator hash-table))
+
+(defmethod getf ((place abstract-hash-table) key &optional (default nil default-specified-p))
+  (apply #'abstract-gethash key place (if default-specified-p
+                                          (list default)
+                                          nil)))
+
+(defmethod (setf getf) (newval (place abstract-hash-table) key)
+  (setf (abstract-gethash key place) newval))
+
+(defmethod emptyp ((object abstract-hash-table))
+  (method-unimplemented-error 'emptyp hash-table))
 
 
 ;;

@@ -57,6 +57,7 @@
            :map
            :append)
   (:shadowing-import-from :cl21.core.generic
+                          :getf
                           :emptyp
                           :coerce)
   (:import-from :cl21.core.condition
@@ -268,6 +269,14 @@
   "Returns T if SEQUENCE is an empty sequence and NIL
 otherwise."
   (zerop (abstract-length object)))
+
+(defmethod getf ((place abstract-sequence) key &optional default)
+  (if (< key (abstract-length place))
+      (values (abstract-elt place key) t)
+      (values default nil)))
+
+(defmethod (setf getf) (newval (place abstract-sequence) key)
+  (setf (abstract-elt place key) newval))
 
 (defun length (sequence)
   #.(documentation 'cl:length 'function)

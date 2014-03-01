@@ -60,6 +60,7 @@
                           :copy-seq)
   (:shadowing-import-from :cl21.core.generic
                           :emptyp
+                          :getf
                           :coerce)
   (:import-from :cl21.core.util
                 :define-typecase-compiler-macro)
@@ -217,6 +218,18 @@
 
 ;;
 ;; Abstract List
+
+(defmethod emptyp ((sequence abstract-list))
+  (method-unimplemented-error 'emptyp sequence))
+
+(defmethod getf ((place abstract-list) key &optional default)
+  (let ((rest (%nthrest key place)))
+    (if (emptyp rest)
+        (values default nil)
+        (values (abstract-first rest) t))))
+
+(defmethod (setf getf) (newval (place abstract-list) key)
+  (setf (abstract-elt place key) newval))
 
 (defmethod abstract-length ((sequence abstract-list))
   (do-abstract-sequence (nil sequence i) (i)))
