@@ -1303,7 +1303,7 @@ of which has elements that satisfy PRED, the second which do not."
   (declare (ignore key from-end start end initial-value))
   (etypecase sequence
     (cl:sequence (apply #'cl:reduce function sequence args))
-    ((or cl:hash-table abstract-sequence) (apply #'abstract-reduce function sequence args))))
+    (abstract-sequence (apply #'abstract-reduce function sequence args))))
 (define-typecase-compiler-macro reduce (&whole form function sequence &rest args)
   (typecase sequence
     (cl:sequence `(cl:reduce ,@(cdr form)))))
