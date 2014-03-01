@@ -126,6 +126,9 @@
            :push
            :pushnew
            :pop
+           :push-back
+           :pushnew-back
+           :pop-back
            :last
            :butlast
            :nbutlast
@@ -581,58 +584,98 @@ implemented for the class of SEQUENCE."))
 
 
 ;;
-;; Macro: push, pushnew, pop
+;; Macro: push, pushnew, pop, push-back, pushnew-back, pop-back
 
 (defmacro push (value place)
   #.(documentation 'cl:push 'function)
-  (let ((place-g (gensym "PLACE")))
+  (with-gensyms (place-g len new)
     `(let ((,place-g ,place))
        (etypecase ,place-g
          (cl:list (cl:push ,value ,place))
          (cl:vector
-          (let ((len (cl:length ,place-g)))
+          (let ((,len (cl:length ,place-g)))
             (unless (adjustable-array-p ,place-g)
               (error "~S is not an adjustable array." ,place-g))
-            (if (= len (array-dimension ,place-g 0))
-                (adjust-array ,place-g (1+ len) :fill-pointer (1+ len))
+            (if (= ,len (array-dimension ,place-g 0))
+                (adjust-array ,place-g (1+ ,len) :fill-pointer (1+ ,len))
                 (incf (fill-pointer ,place-g)))
-            (do ((i len (1- i)))
+            (do ((i ,len (1- i)))
                 ((< i 1))
               (setf (aref ,place-g i)
                     (aref ,place-g (1- i))))
             (setf (aref ,place-g 0) ,value)
             ,place-g))
          (abstract-list
-          (let ((new (make-sequence-like ,place-g 1
+          (let ((,new (make-sequence-like ,place-g 1
                                          :initial-contents (list ,value))))
-            (setf (abstract-rest new) ,place-g)
-            (setf ,place new)
-            ,place))
+            (setf (abstract-rest ,new) ,place-g)
+            (setf ,place ,new)))
          (abstract-sequence
-          (setf ,place (adjust-sequence ,place-g (1+ (abstract-length ,place-g))))
-          (abstract-replace ,place ,place
+          (setq ,place-g
+                (setf ,place (adjust-sequence ,place-g (1+ (abstract-length ,place-g)))))
+          (abstract-replace ,place-g ,place-g
                             :start1 1)
-          (setf (abstract-elt ,place 0) ,value)
-          ,place)))))
+          (setf (abstract-elt ,place-g 0) ,value)
+          ,place-g)))))
 
-(defmacro pushnew (value place &rest keys &key key test test-not)
+(defmacro push-back (value place)
+  (with-gensyms (place-g last current len)
+    `(let ((,place-g ,place))
+       (etypecase ,place-g
+         (cl:list
+          (rplacd (cl:last ,place-g) (list ,value))
+          ,place-g)
+         (cl:vector
+          (cl:vector-push-extend ,value ,place-g))
+         (abstract-list
+          (let ((,last
+                  (do ((,current ,place-g (abstract-rest ,current)))
+                      ((emptyp (abstract-rest ,current)) ,current))))
+            (setf (abstract-rest ,last)
+                  (make-sequence-like ,place-g 1
+                                      :initial-contents (list ,value))))
+          ,place-g)
+         (abstract-sequence
+          (let ((,len (abstract-length ,place-g)))
+            (adjust-sequence ,place-g (1+ ,len))
+            (setf (abstract-elt ,place-g ,len) ,value)
+            ,place-g))))))
+
+(defmacro pushnew (value place &rest keys &key key test)
   #.(or (documentation 'cl:pushnew 'function) "")
-  (declare (ignore key test test-not))
-  (let ((place-g (gensym "PLACE")))
+  (declare (ignore key test))
+  (with-gensyms (place-g)
     `(let ((,place-g ,place))
        (etypecase ,place-g
          (cl:vector (if (cl:find ,value ,place-g ,@keys)
                         ,place-g
                         (push ,value ,place)))
-         (cl:list (cl:pushnew ,value ,place-g ,@keys))
+         (cl:list (cl:pushnew ,value ,place ,@keys))
          (abstract-sequence
           (if (abstract-find ,value ,place-g ,@keys)
               ,place-g
               (push ,value ,place)))))))
 
+(defmacro pushnew-back (value place &rest keys &key key test)
+  (declare (ignore key test))
+  (with-gensyms (place-g)
+    `(let ((,place-g ,place))
+       (etypecase ,place-g
+         (cl:vector (if (cl:find ,value ,place-g ,@keys)
+                        ,place-g
+                        (push-back ,value ,place)))
+         (cl:list
+          (unless (cl:find ,value ,place-g ,@keys)
+            (rplacd (cl:last ,place-g) (list ,value)))
+          ,place-g)
+         (abstract-sequence
+          (if (abstract-find ,value ,place-g ,@keys)
+              ,place-g
+              (push-back ,value ,place)))))))
+
 (defmacro pop (place)
   #.(documentation 'cl:pop 'function)
-  (let ((place-g (gensym "PLACE")))
+  (with-gensyms (place-g len i)
     `(let ((,place-g ,place))
        (etypecase ,place-g
          (cl:list (cl:pop ,place))
@@ -640,11 +683,11 @@ implemented for the class of SEQUENCE."))
           (unless (adjustable-array-p ,place-g)
             (error "~S is not an adjustable array." ,place-g))
           (prog1 (aref ,place-g 0)
-            (let ((len (length ,place-g)))
-              (do ((i 0 (1+ i)))
-                  ((= i (1- len)))
-                (setf (aref ,place-g i)
-                      (aref ,place-g (1+ i))))
+            (let ((,len (length ,place-g)))
+              (do ((,i 0 (1+ ,i)))
+                  ((= i (1- ,len)))
+                (setf (aref ,place-g ,i)
+                      (aref ,place-g (1+ ,i))))
               (decf (fill-pointer ,place-g)))))
          (abstract-sequence
           (prog1
@@ -653,6 +696,30 @@ implemented for the class of SEQUENCE."))
                               :start2 1)
             (setf ,place
                   (adjust-sequence ,place-g (1- (abstract-length ,place-g))))))))))
+
+(defmacro pop-back (place)
+  (with-gensyms (place-g last2 current len)
+    `(let ((,place-g ,place))
+       (etypecase ,place-g
+         (cl:list
+          (let ((,last2 (cl:last ,place-g 2)))
+            (prog1
+                (cadr ,last2)
+              (rplacd ,last2 nil))))
+         (cl:vector
+          (cl:vector-pop ,place-g))
+         (abstract-list
+          (let ((,last2
+                  (do ((,current ,place-g (abstract-rest ,current)))
+                      ((emptyp (abstract-rest (abstract-rest ,current))) ,current))))
+            (prog1
+                (second ,last2)
+              (setf (abstract-rest ,last2)
+                    (make-sequence-like ,place-g 0)))))
+         (abstract-sequence
+          (let ((,len (abstract-length ,place-g)))
+            (prog1 (abstract-elt ,place-g (1- ,len))
+              (adjust-sequence ,place-g (1- ,len)))))))))
 
 
 ;;
