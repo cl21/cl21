@@ -22,6 +22,7 @@
                 :iterator-pointer
                 :iterator-next
                 :iterator-endp
+                :map-to
                 :subdivide)
   (:import-from :cl21.core.util
                 :define-typecase-compiler-macro)
@@ -223,7 +224,10 @@
 
 (defun maphash (function hash)
   (etypecase hash
-    (cl:hash-table (cl:maphash function hash))
+    (cl:hash-table (map-to 'cl:hash-table
+                           (lambda (pair)
+                             (funcall function (car pair) (cdr pair)))
+                           hash))
     (abstract-hash-table (abstract-maphash function hash))))
 (define-hash-compiler-macro maphash (function hash))
 
