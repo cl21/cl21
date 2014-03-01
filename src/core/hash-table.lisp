@@ -17,6 +17,7 @@
   (:import-from :cl21.core.condition
                 :method-unimplemented-error)
   (:import-from :cl21.core.sequence
+                :abstract-reduce
                 :subdivide)
   (:import-from :cl21.core.util
                 :define-typecase-compiler-macro)
@@ -89,6 +90,27 @@
   (format stream "~<#{~;~\@{~S ~S~^ ~_~}~;}~:>"
           (hash-table-plist object)))
 
+(defmethod abstract-reduce (function (hash-table cl:hash-table) &key (key #'identity) from-end start end (initial-value nil ivp))
+  (assert (not (or start end)))
+  (with-hash-table-iterator (next hash-table)
+    (let (current)
+      (flet ((next-entry ()
+               (multiple-value-bind (more key val) (next)
+                 (unless more
+                   (return-from abstract-reduce current))
+                 (cons key val))))
+        (setq current (if ivp
+                          initial-value
+                          (funcall key (next-entry))))
+        (loop
+          (setq current
+                (if from-end
+                    (funcall function
+                             (funcall key (next-entry))
+                             current)
+                    (funcall function
+                             current
+                             (funcall key (next-entry))))))))))
 
 ;;
 ;; Macro
