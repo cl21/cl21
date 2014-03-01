@@ -168,8 +168,6 @@
            :list-pushnew
            :list-pop
 
-           :last-cons
-
            ;; Alexandria
            :mappend
 
@@ -184,7 +182,10 @@
            :abstract-member-if
 
            :flatten
-           :abstract-flatten))
+           :abstract-flatten
+
+           :last-cons
+           :abstract-last-cons))
 (in-package :cl21.core.cons)
 
 (setf (symbol-function 'nappend) #'nconc)
@@ -195,8 +196,6 @@
   `(cl:pushnew ,value ,place ,@keys))
 (defmacro list-pop (place)
   `(cl:pop ,place))
-
-(setf (symbol-function 'last-cons) #'last)
 
 (defun maptree (fn tree)
   (labels ((rec (tree)
@@ -620,3 +619,18 @@
         (cl:push (flatten x) buf))
       (make-sequence-like tree length
                           :initial-contents (nreverse buf)))))
+
+
+;;
+;; Function: last-cons
+;; Generic Function: abstract-last-cons
+
+(defun last-cons (list &optional (n 1))
+  (etypecase list
+    (cl:list (cl:last list n))
+    (abstract-list (abstract-last-cons list n))))
+
+(defgeneric abstract-last-cons (list &optional n)
+  (:method ((list abstract-list) &optional (n 1))
+    (do ((current list (abstract-rest current)))
+        ((emptyp (%nthrest n current)) current))))

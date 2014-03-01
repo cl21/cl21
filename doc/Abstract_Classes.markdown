@@ -227,6 +227,7 @@ And, you can also define the following methods as you needed.
 * abstract-member
 * abstract-member-if
 * abstract-flatten
+* abstract-last-cons
 
 ### Limitations
 
