@@ -114,8 +114,8 @@ And, you can also define the following methods as you needed.
 * abstract-nsubstitute
 * abstract-remove-duplicates
 * abstract-delete-duplicates
-* abstract-split-sequence
-* abstract-split-sequence-if
+* abstract-split
+* abstract-split-if
 * abstract-copy-seq
 * abstract-replace
 * abstract-fill
@@ -219,8 +219,8 @@ And, you can also define the following methods as you needed.
 * abstract-nsubstitute
 * abstract-remove-duplicates
 * abstract-delete-duplicates
-* abstract-split-sequence
-* abstract-split-sequence-if
+* abstract-split
+* abstract-split-if
 * abstract-copy-seq
 * abstract-replace
 * abstract-fill

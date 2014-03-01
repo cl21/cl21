@@ -96,7 +96,7 @@ Future improvements are awaited."))
 
 (defvar *return-lazy* t)
 
-(defmethod abstract-split-sequence-if (pred (sequence lazy-sequence) &rest args &key count end &allow-other-keys)
+(defmethod abstract-split-if (pred (sequence lazy-sequence) &rest args &key count end &allow-other-keys)
   (if *return-lazy*
       (if (or (and count
                    (< count 1))
@@ -104,7 +104,7 @@ Future improvements are awaited."))
           nil
           (lazy-sequence
             (multiple-value-bind (res i) (let ((*return-lazy* nil))
-                                           (apply #'split-sequence-if pred sequence :count 1 args))
+                                           (apply #'split-if pred sequence :count 1 args))
               (if (and end (= end i))
                   res
                   `(,@res .
@@ -114,7 +114,7 @@ Future improvements are awaited."))
                              (setf (getf args :start) 0)
                              (when end
                                (decf (getf args :end) i))
-                             (apply #'split-sequence-if pred (drop i sequence) args)))))))
+                             (apply #'split-if pred (drop i sequence) args)))))))
       (call-next-method)))
 
 ;; FIXME: Doesn't work for infinite sequences without :count argument.
@@ -126,7 +126,7 @@ Future improvements are awaited."))
 ;;                 (lazy-sequence (cons a (rec b (+ a b))))))
 ;;        (rec 0 1)))
 ;;
-;;     (take 1 (remove-if #'null (split-sequence-if #'oddp (fib-seq))))
+;;     (take 1 (remove-if #'null (split-if #'oddp (fib-seq))))
 ;;
 (defmethod abstract-remove-if (pred (sequence lazy-sequence) &rest args &key &allow-other-keys)
   (if *return-lazy*

@@ -1,7 +1,6 @@
 (in-package :cl21-user)
 (defpackage cl21.re
-  (:use :cl21
-        :cl-ppcre)
+  (:use :cl21)
   (:import-from :cl-ppcre
                 :create-scanner
                 :scan-to-strings)

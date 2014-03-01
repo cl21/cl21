@@ -72,8 +72,8 @@
   (:import-from :alexandria
                 :delete-from-plist
                 :with-gensyms)
-  (:export :split-sequence
-           :split-sequence-if
+  (:export :split
+           :split-if
 
            :sequence
            :fill
@@ -196,8 +196,8 @@
            :abstract-nsubstitute-if
            :abstract-remove-duplicates
            :abstract-delete-duplicates
-           :abstract-split-sequence
-           :abstract-split-sequence-if
+           :abstract-split
+           :abstract-split-if
            :abstract-copy-seq
            :abstract-replace
            :abstract-fill
@@ -1385,41 +1385,41 @@ of which has elements that satisfy PRED, the second which do not."
 
 
 ;;
-;; Function: split-sequence, split-sequence-if
-;; Generic Function: abstract-split-sequence, abstract-split-sequence-if
+;; Function: split, split-if
+;; Generic Function: abstract-split, abstract-split-if
 
-(defun split-sequence (delimiter sequence &rest args &key start end from-end count remove-empty-subseqs test key)
+(defun split (delimiter sequence &rest args &key start end from-end count remove-empty-subseqs test key)
   #.(or (documentation 'split-sequence:split-sequence 'function) "")
   (declare (ignore start end from-end count remove-empty-subseqs test key))
   (etypecase sequence
     (cl:sequence (apply #'split-sequence:split-sequence delimiter sequence args))
-    (abstract-sequence (apply #'abstract-split-sequence delimiter sequence args))))
-(define-typecase-compiler-macro split-sequence (&whole form delimiter sequence &rest args)
+    (abstract-sequence (apply #'abstract-split delimiter sequence args))))
+(define-typecase-compiler-macro split (&whole form delimiter sequence &rest args)
   (typecase sequence
     (cl:sequence `(split-sequence:split-sequence ,@(cdr form)))))
 
-(defgeneric abstract-split-sequence (delimiter sequence &key start end from-end count remove-empty-subseqs test key)
+(defgeneric abstract-split (delimiter sequence &key start end from-end count remove-empty-subseqs test key)
   (:method (delimiter (sequence abstract-sequence) &rest args &key start end from-end count remove-empty-subseqs (test #'eql test-specified-p) (key #'identity))
     (declare (ignore start end from-end count remove-empty-subseqs))
     (when test-specified-p
       (setq args (delete-from-plist args :test)))
-    (apply #'abstract-split-sequence-if
+    (apply #'abstract-split-if
            (lambda (x)
              (funcall test (funcall key x) delimiter))
            sequence
            args)))
 
-(defun split-sequence-if (pred sequence &rest args &key start end from-end count remove-empty-subseqs key)
+(defun split-if (pred sequence &rest args &key start end from-end count remove-empty-subseqs key)
   #.(or (documentation 'split-sequence:split-sequence-if 'function) "")
   (declare (ignore start end from-end count remove-empty-subseqs key))
   (etypecase sequence
     (cl:sequence (apply #'split-sequence:split-sequence-if pred sequence args))
-    (abstract-sequence (apply #'abstract-split-sequence-if pred sequence args))))
-(define-typecase-compiler-macro split-sequence-if (&whole form pred sequence &rest args)
+    (abstract-sequence (apply #'abstract-split-if pred sequence args))))
+(define-typecase-compiler-macro split-if (&whole form pred sequence &rest args)
   (typecase sequence
     (cl:sequence `(split-sequence:split-sequence-if ,@(cdr form)))))
 
-(defgeneric abstract-split-sequence-if (pred sequence &key start end from-end count remove-empty-subseqs key)
+(defgeneric abstract-split-if (pred sequence &key start end from-end count remove-empty-subseqs key)
   (:method (pred (sequence abstract-sequence) &key (start 0) end from-end count remove-empty-subseqs (key #'identity))
     (let ((subseqs '())
           (buf '())
