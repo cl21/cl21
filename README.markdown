@@ -171,7 +171,6 @@ Add the following code
 * Trivial Types
 * trivial-gray-streams
 * Alexandria
-* CL-Utilities
 * Split-Sequence
 * REPL-Utilities
 
