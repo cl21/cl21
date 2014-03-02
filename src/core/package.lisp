@@ -59,7 +59,10 @@
            :add-package-local-nickname))
 (cl:in-package :cl21.core.package)
 
-(defvar *package-use* (make-hash-table :test 'eq))
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (defvar *package-use* (make-hash-table :test 'eq)))
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (defvar *package-local-nicknames* (make-hash-table :test 'eq)))
 
 (defmacro defpackage (name &rest options)
   (let* ((readtable (gensym "READTABLE"))
@@ -205,8 +208,6 @@
       (%package-not-found package-designator))
 
     (find-readtable (intern (package-name package) :keyword))))
-
-(defvar *package-local-nicknames* (make-hash-table :test 'eq))
 
 (defun find-package (package-designator &optional (package *package*))
   (or (cl:find-package package-designator)

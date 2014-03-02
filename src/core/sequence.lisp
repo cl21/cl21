@@ -1053,12 +1053,14 @@ implemented for the class of SEQUENCE."))
   (typecase sequence
     (cl:sequence `(cl:delete-if-not ,@(cdr form)))))
 
-(setf (symbol-function 'keep-if) #'remove-if-not)
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (setf (symbol-function 'keep-if) #'cl:remove-if-not))
 (define-typecase-compiler-macro keep-if (&whole form pred sequence &rest args)
   (typecase sequence
     (cl:sequence `(cl:remove-if-not ,@(cdr form)))))
 
-(setf (symbol-function 'nkeep-if) #'delete-if-not)
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (setf (symbol-function 'nkeep-if) #'cl:delete-if-not))
 (define-typecase-compiler-macro nkeep-if (&whole form pred sequence &rest args)
   (typecase sequence
     (cl:sequence `(cl:delete-if-not ,@(cdr form)))))
