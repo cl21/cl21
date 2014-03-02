@@ -257,10 +257,11 @@
 ;;
 ;; Abstract Sequence
 
-(defclass abstract-sequence () ())
-(defclass abstract-list (abstract-sequence) ())
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (defclass abstract-sequence () ())
+  (defclass abstract-list (abstract-sequence) ())
 
-(deftype sequence () '(or cl:sequence abstract-sequence))
+  (deftype sequence () '(or cl:sequence abstract-sequence)))
 
 
 ;;; Basic methods
