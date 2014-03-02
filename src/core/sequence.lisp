@@ -651,20 +651,20 @@ implemented for the class of SEQUENCE."))
             (setf (abstract-elt ,place-g ,len) ,value)
             ,place-g))))))
 
-(defmacro pushnew (value place &rest keys &key key test)
+(defmacro pushnew (value place &rest keys &key key test &environment env)
   #.(or (documentation 'cl:pushnew 'function) "")
   (declare (ignore key test))
-  (with-gensyms (place-g)
-    `(let ((,place-g ,place))
-       (etypecase ,place-g
-         (cl:vector (if (cl:find ,value ,place-g ,@keys)
-                        ,place-g
-                        (push ,value ,place)))
-         (cl:list (cl:pushnew ,value ,place ,@keys))
-         (abstract-sequence
-          (if (abstract-find ,value ,place-g ,@keys)
-              ,place-g
-              (push ,value ,place)))))))
+  (multiple-value-bind (vars vals binds set access)
+      (get-setf-expansion place env)
+    (with-gensyms (place-g value-g)
+      `(let* (,@(map #'list vars vals)
+              (,value-g ,value)
+              (,place-g ,access))
+         (multiple-value-bind ,binds
+             (if (find ,value-g ,place-g ,@keys)
+                 ,place-g
+                 (push ,value-g ,place-g))
+             ,set)))))
 
 (defmacro pushnew-back (value place &rest keys &key key test)
   (declare (ignore key test))
