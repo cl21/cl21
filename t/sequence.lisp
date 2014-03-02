@@ -4,7 +4,7 @@
         :cl-test-more))
 (in-package :cl21-test.sequence)
 
-(plan 290)
+(plan 295)
 
 (is (take 3 '(1 3 5 6 7 8))
     '(1 3 5)
@@ -150,6 +150,14 @@
     (is-type pushed 'my-list "push")
     (is (coerce pushed 'list) '(10 1 2 3) "push")
     (is (coerce seq 'list) '(10 1 2 3) "push"))
+  (let ((seq (make-my-list (list 1))))
+    (push 'a (elt seq 0))
+    (is (coerce seq 'list) '((a 1)) "push"))
+  (let ((seq (list (list) (list) (list)))
+        (index 0))
+    (push 'a (elt seq (incf index)))
+    (is seq '(() (a) ()) "push")
+    (is index 1 "push"))
   (let ((pushed-new (pushnew 0 seq)))
     (is-type pushed-new 'my-list "pushnew")
     (is (coerce pushed-new 'list) '(0 10 1 2 3) "pushnew")
@@ -184,7 +192,12 @@
     (is (coerce seq 'list) '(0 10 1 2 3) "pushnew"))
   (let ((poped (pop seq)))
     (is poped 0 "pop")
-    (is (coerce seq 'list) '(10 1 2 3) "pop")))
+    (is (coerce seq 'list) '(10 1 2 3) "pop"))
+  (let ((seq (list (list 0) (list 1) (list 2)))
+        (index 0))
+    (pop (elt seq (incf index)))
+    (is seq '((0) () (2)))
+    (is index 1 "pop")))
 
 (let ((seq (make-array 3
                        :initial-contents
