@@ -100,7 +100,7 @@
    :multiple-value-setq
    :values
    :values-list
-   :multiple-values-limit
+   :+multiple-values-limit+
    :nth-value
    :prog
    :prog*
@@ -203,7 +203,7 @@
    :untrace
    :step
    :time
-   :internal-time-units-per-second
+   :+internal-time-units-per-second+
    :get-internal-real-time
    :get-internal-run-time
    :disassemble
@@ -236,6 +236,14 @@
 
    :once-only))
 (in-package :cl21.core)
+
+(cl:defconstant +multiple-values-limit+
+  multiple-values-limit
+  #.(documentation 'multiple-values-limit 'variable))
+
+(cl:defconstant +internal-time-units-per-second+
+  internal-time-units-per-second
+  #.(documentation 'internal-time-units-per-second 'variable))
 
 ;; concatenating all sub-packages into cl21
 (cl:dolist (package-name '(:cl21.core.types

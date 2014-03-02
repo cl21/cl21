@@ -23,15 +23,30 @@
    :function-lambda-expression
    :functionp
    :compiled-function-p
-   :call-arguments-limit
-   :lambda-list-keywords
-   :lambda-parameters-limit
    :compose
    :conjoin
    :disjoin
    :curry
-   :rcurry))
+   :rcurry
+
+   ;; Variables
+   :+call-arguments-limit+
+   :+lambda-list-keywords+
+   :+lambda-parameters-limit+))
 (in-package :cl21.core.function)
+
+(defconstant +call-arguments-limit+
+  call-arguments-limit
+  #.(documentation 'call-arguments-limit 'variable))
+
+(defconstant +lambda-list-keywords+
+  lambda-list-keywords
+  #.(documentation 'lambda-list-keywords 'variable))
+
+(defconstant +lambda-parameters-limit+
+  lambda-parameters-limit
+  #.(documentation 'lambda-parameters-limit 'variable))
+
 
 (deftype function () 'cl:function)
 

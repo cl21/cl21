@@ -26,9 +26,6 @@
            :fill-pointer
            :row-major-aref
            :upgraded-array-element-type
-           :array-dimension-limit
-           :array-rank-limit
-           :array-total-size-limit
            :simple-vector-p
            :svref
            :vector
@@ -52,8 +49,25 @@
            :bit-vector-p
            :simple-bit-vector-p
 
+           ;; Variables
+           :+array-dimension-limit+
+           :+array-rank-limit+
+           :+array-total-size-limit+
+
            :copy-array))
 (in-package :cl21.core.array)
+
+(defconstant +array-dimension-limit+
+  array-dimension-limit
+  #.(documentation 'array-dimension-limit 'variable))
+
+(defconstant +array-rank-limit+
+  array-rank-limit
+  #.(documentation 'array-rank-limit 'variable))
+
+(defconstant +array-total-size-limit+
+  array-total-size-limit
+  #.(documentation 'array-total-size-limit 'variable))
 
 (defmacro adjustable-vector (&key (dimension nil dimension-specified-p) initial-contents)
   "A variant of `cl:vector' that returns an adjustable vector, not a simple-vector."
