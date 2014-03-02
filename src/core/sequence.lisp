@@ -250,7 +250,7 @@
        ,@(if cl-name
              `((define-typecase-compiler-macro ,name (&whole form item sequence &rest args)
                  (typecase sequence
-                   (cl:sequence (list* 'apply (function ,cl-name) item sequence (cdddr form))))))
+                   (cl:sequence (list* ',cl-name (cdr form))))))
              nil))))
 
 
