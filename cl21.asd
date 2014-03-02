@@ -62,6 +62,9 @@
                   :depends-on ("core")
                   :components
                   ((:file "re")
+                   #+(and (or sbcl ccl)
+                          (not windows))
+                   (:file "process")
                    (:file "lazy")
                    (:file "abbr")))))
                (:module "tools"
