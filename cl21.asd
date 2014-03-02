@@ -58,9 +58,12 @@
                    (:file "readtable" :depends-on ("function" "array" "cons" "hash-table"))
                    (:file "environment")
                    (:file "util" :depends-on ("environment"))))
-                 (:file "re" :depends-on ("core"))
-                 (:file "lazy" :depends-on ("core"))
-                 (:file "abbr" :depends-on ("core"))))
+                 (:module "stdlib"
+                  :depends-on ("core")
+                  :components
+                  ((:file "re")
+                   (:file "lazy")
+                   (:file "abbr")))))
                (:module "tools"
                 :components
                 ((:file :compare-cl-21))
