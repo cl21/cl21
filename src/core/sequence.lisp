@@ -1700,7 +1700,7 @@ of which has elements that satisfy PRED, the second which do not."
            (let* ((len (reduce #'+ sequences :key #'length))
                   (result (make-array len))
                   (i 0))
-             (dolist (sequence sequences)
+             (dolist (sequence sequences result)
                (do-abstract-sequence (x sequence) ()
                  (setf (aref result i) x)
                  (incf i)))))
