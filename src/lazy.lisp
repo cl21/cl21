@@ -32,7 +32,7 @@ Future improvements are awaited."))
                   :function (lambda ,lambda-list ,@body)))
 
 (defun %copy-memoized-lambda (object)
-  (declare (type object memoized-lambda))
+  (declare (type memoized-lambda object))
   (let ((copied
           (make-instance 'memoized-lambda
                          :function (slot-value object 'function))))
