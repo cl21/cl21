@@ -596,116 +596,121 @@ implemented for the class of SEQUENCE."))
 ;;
 ;; Macro: push, pushnew, pop, push-back, pushnew-back, pop-back
 
-(defmacro push (value place)
-  #.(documentation 'cl:push 'function)
-  (with-gensyms (place-g len new)
-    `(let ((,place-g ,place))
-       (etypecase ,place-g
-         (cl:list (cl:push ,value ,place))
-         (cl:vector
-          (let ((,len (cl:length ,place-g)))
-            (unless (adjustable-array-p ,place-g)
-              (error "~S is not an adjustable array." ,place-g))
-            (if (= ,len (array-dimension ,place-g 0))
-                (adjust-array ,place-g (1+ ,len) :fill-pointer (1+ ,len))
-                (incf (fill-pointer ,place-g)))
-            (do ((i ,len (1- i)))
-                ((< i 1))
-              (setf (aref ,place-g i)
-                    (aref ,place-g (1- i))))
-            (setf (aref ,place-g 0) ,value)
-            ,place-g))
-         (abstract-list
-          (let ((,new (make-sequence-like ,place-g 1
-                                         :initial-contents (list ,value))))
-            (setf (abstract-rest ,new) ,place-g)
-            (setf ,place ,new)))
-         (abstract-sequence
-          (setq ,place-g
-                (setf ,place (adjust-sequence ,place-g (1+ (abstract-length ,place-g)))))
-          (abstract-replace ,place-g ,place-g
-                            :start1 1)
-          (setf (abstract-elt ,place-g 0) ,value)
-          ,place-g)))))
+(defun nenque-head (value sequence)
+  (etypecase sequence
+    (cl:list (cl:cons value sequence))
+    (cl:vector (let ((len (cl:length sequence)))
+                 (unless (adjustable-array-p sequence)
+                   (error "~S is not an adjustable array." sequence))
+                 (if (= len (array-dimension sequence 0))
+                     (adjust-array sequence (1+ len) :fill-pointer (1+ len))
+                     (incf (fill-pointer sequence)))
+                 (do ((i len (1- i)))
+                     ((< i 1))
+                   (setf (aref sequence i)
+                         (aref sequence (1- i))))
+                 (setf (aref sequence 0) value)
+                 sequence))
+    (abstract-list (let ((new (make-sequence-like sequence 1
+                                                  :initial-contents
+                                                  (list value))))
+                     (setf (abstract-rest new) sequence)
+                     new))
+    (abstract-sequence (setq sequence
+                             (adjust-sequence
+                              sequence (1+ (abstract-length sequence))))
+                       (abstract-replace sequence sequence :start1 1)
+                       (setf (abstract-elt sequence 0) value)
+                       sequence)))
 
-(defmacro push-back (value place)
-  (with-gensyms (place-g last current len)
-    `(let ((,place-g ,place))
-       (etypecase ,place-g
-         (cl:list
-          (rplacd (cl:last ,place-g) (list ,value))
-          ,place-g)
-         (cl:vector
-          (cl:vector-push-extend ,value ,place-g))
-         (abstract-list
-          (let ((,last
-                  (do ((,current ,place-g (abstract-rest ,current)))
-                      ((emptyp (abstract-rest ,current)) ,current))))
-            (setf (abstract-rest ,last)
-                  (make-sequence-like ,place-g 1
-                                      :initial-contents (list ,value))))
-          ,place-g)
-         (abstract-sequence
-          (let ((,len (abstract-length ,place-g)))
-            (adjust-sequence ,place-g (1+ ,len))
-            (setf (abstract-elt ,place-g ,len) ,value)
-            ,place-g))))))
+(defun nenque-head-new (value sequence &rest args)
+  (if (apply #'find value sequence args)
+      sequence
+      (nenque-head value sequence)))
 
-(defmacro pushnew (value place &rest keys &key key test &environment env)
-  #.(or (documentation 'cl:pushnew 'function) "")
-  (declare (ignore key test))
+(defun nenque-tail (value sequence)
+  (etypecase sequence
+    (cl:list (if sequence
+                 (rplacd (cl:last sequence) (list value))
+                 (list value)))
+    (cl:vector (cl:vector-push-extend value sequence)
+               sequence)
+    (abstract-list (if (emptyp sequence)
+                       (make-sequence-like sequence 1
+                                           :initial-contents (list value))
+                       (let ((last
+                              (do ((current sequence (abstract-rest current)))
+                                  ((emptyp (abstract-rest current)) current))))
+                         (setf (abstract-rest last)
+                               (make-sequence-like sequence 1
+                                                   :initial-contents
+                                                   (list value)))
+                         sequence)))
+    (abstract-sequence (let ((len (abstract-length sequence)))
+                         (adjust-sequence sequence (1+ len))
+                         (setf (abstract-elt sequence len) value)
+                         sequence))))
+
+(defun nenque-tail-new (value sequence &rest args)
+  (if (apply #'find value sequence args)
+      sequence
+      (nenque-tail value sequence)))
+
+(defmacro _f2 (op arg1 place &rest args &environment env)
   (multiple-value-bind (vars vals binds set access)
       (get-setf-expansion place env)
-    (with-gensyms (place-g value-g)
-      `(let* (,@(map #'list vars vals)
-              (,value-g ,value)
-              (,place-g ,access))
-         (multiple-value-bind ,binds
-             (if (find ,value-g ,place-g ,@keys)
-                 ,place-g
-                 (push ,value-g ,place-g))
-             ,set)))))
+    `(let* (,@(map #'list vars vals))
+       (multiple-value-bind ,binds (,op ,arg1 ,access ,@args)
+         ,set))))
+
+(defmacro push (value place)
+  #.(documentation 'cl:push 'function)
+  `(_f2 nenque-head ,value ,place))
+
+(defmacro push-back (value place)
+  `(_f2 nenque-tail ,value ,place))
+
+(defmacro pushnew (value place &rest keys &key key test)
+  #.(or (documentation 'cl:pushnew 'function) "")
+  (declare (ignore key test))
+  `(_f2 nenque-head-new ,value ,place ,@keys))
 
 (defmacro pushnew-back (value place &rest keys &key key test)
   (declare (ignore key test))
-  (with-gensyms (place-g)
-    `(let ((,place-g ,place))
-       (etypecase ,place-g
-         (cl:vector (if (cl:find ,value ,place-g ,@keys)
-                        ,place-g
-                        (push-back ,value ,place)))
-         (cl:list
-          (unless (cl:find ,value ,place-g ,@keys)
-            (rplacd (cl:last ,place-g) (list ,value)))
-          ,place-g)
-         (abstract-sequence
-          (if (abstract-find ,value ,place-g ,@keys)
-              ,place-g
-              (push-back ,value ,place)))))))
+  `(_f2 nenque-tail-new ,value ,place ,@keys))
 
-(defmacro pop (place)
+(defmacro pop (place &environment env)
   #.(documentation 'cl:pop 'function)
-  (with-gensyms (place-g len i)
-    `(let ((,place-g ,place))
-       (etypecase ,place-g
-         (cl:list (cl:pop ,place))
-         (cl:vector
-          (unless (adjustable-array-p ,place-g)
-            (error "~S is not an adjustable array." ,place-g))
-          (prog1 (aref ,place-g 0)
-            (let ((,len (length ,place-g)))
-              (do ((,i 0 (1+ ,i)))
-                  ((= i (1- ,len)))
-                (setf (aref ,place-g ,i)
-                      (aref ,place-g (1+ ,i))))
-              (decf (fill-pointer ,place-g)))))
-         (abstract-sequence
-          (prog1
-              (abstract-first ,place-g)
-            (abstract-replace ,place-g ,place-g
-                              :start2 1)
-            (setf ,place
-                  (adjust-sequence ,place-g (1- (abstract-length ,place-g))))))))))
+  (multiple-value-bind (vars vals binds set access)
+      (get-setf-expansion place env)
+    (with-gensyms (place-g len i ret)
+      `(let* (,@(map #'list vars vals)
+              (,place-g ,access))
+         (multiple-value-bind (,@binds ,ret)
+             (etypecase ,place-g
+               (cl:list (values (cl:cdr ,place-g)
+                                (cl:car ,place-g)))
+               (cl:vector
+                (unless (adjustable-array-p ,place-g)
+                  (error "~S is not an adjustable array." ,place-g))
+                (let ((,len (length ,place-g))
+                      (,ret (aref ,place-g 0)))
+                  (do ((,i 0 (1+ ,i)))
+                      ((= ,i (1- ,len)))
+                    (setf (aref ,place-g ,i)
+                          (aref ,place-g (1+ ,i))))
+                  (decf (fill-pointer ,place-g))
+                  (values ,place-g
+                          ,ret)))
+               (abstract-sequence
+                (let ((,ret (abstract-first ,place-g)))
+                  (abstract-replace ,place-g ,place-g
+                                    :start2 1)
+                  (values (adjust-sequence ,place-g
+                                           (1- (abstract-length ,place-g)))
+                          ,ret))))
+           ,set
+           ,ret)))))
 
 (defmacro pop-back (place)
   (with-gensyms (place-g last2 current len)
