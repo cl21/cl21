@@ -115,6 +115,17 @@ Discussion is highly welcome, join the issues thread and post some ideas!
 
 (take 3 (drop-while (lambda (x) (< x 500)) (fib-seq)))
 ;=> (610 987 1597)
+
+
+;; package-local-nickname
+
+CL21-USER> (defpackage mypack (:use :cl21))           ; -> #<PACKAGE "MYPACK">
+CL21-USER> (in-package :mypack)                       ; -> #<PACKAGE "MYPACK">
+MYPACK> (defun *2 (x) (* x x))                        ; -> *2
+MYPACK> (export '*2)                                  ; -> T
+MYPACK> (in-package :cl21-user)                       ; -> #<PACKAGE "CL21-USER">
+CL21-USER> (add-package-local-nickname :mp :mypack)   ; -> #<PACKAGE "CL21-USER">
+CL21-USER> (mp:*2 5)                                  ; -> 25
 ```
 
 ### Deferred List

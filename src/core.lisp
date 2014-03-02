@@ -9,6 +9,7 @@
   (:import-from :alexandria
                 :with-gensyms
                 :once-only
+                :with-gensyms
                 :if-let
                 :when-let
                 :xor
