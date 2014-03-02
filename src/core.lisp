@@ -8,6 +8,7 @@
                 :maptree)
   (:import-from :alexandria
                 :once-only
+                :with-gensyms
                 :if-let
                 :when-let
                 :xor
