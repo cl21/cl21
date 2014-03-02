@@ -1035,101 +1035,100 @@ implemented for the class of SEQUENCE."))
 ;; Function: remove, remove-if, remove-if-not, delete, delete-if, delete-if-not, keep, keep-if, nkeep, nkeep-if
 ;; Generic Function: abstract-remove, abstract-remove-if, abstract-delete, abstract-delete-if
 
-(defun remove-if (pred sequence &rest args &key from-end start end count key)
-  #.(or (documentation 'cl:remove-if 'function) "")
-  (declare (ignore from-end start end count key))
-  (etypecase sequence
-    (cl:sequence (apply #'cl:remove-if pred sequence args))
-    (abstract-sequence (apply #'abstract-remove-if pred sequence args))))
-
-(defgeneric abstract-remove-if (pred sequence &key from-end start end count key)
-  (:method (pred (sequence abstract-sequence) &rest args &key from-end start end count key)
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (defun remove-if (pred sequence &rest args &key from-end start end count key)
+    #.(or (documentation 'cl:remove-if 'function) "")
     (declare (ignore from-end start end count key))
-    (apply #'abstract-delete-if pred (abstract-copy-seq sequence) args)))
-(define-typecase-compiler-macro remove-if (&whole form pred sequence &rest args)
-  (typecase sequence
-    (cl:sequence `(cl:remove-if ,@(cdr form)))))
+    (etypecase sequence
+      (cl:sequence (apply #'cl:remove-if pred sequence args))
+      (abstract-sequence (apply #'abstract-remove-if pred sequence args))))
 
-(define-sequence-function-by-if remove remove-if)
+  (defgeneric abstract-remove-if (pred sequence &key from-end start end count key)
+    (:method (pred (sequence abstract-sequence) &rest args &key from-end start end count key)
+      (declare (ignore from-end start end count key))
+      (apply #'abstract-delete-if pred (abstract-copy-seq sequence) args)))
+  (define-typecase-compiler-macro remove-if (&whole form pred sequence &rest args)
+    (typecase sequence
+      (cl:sequence `(cl:remove-if ,@(cdr form)))))
 
-(defun remove-if-not (pred sequence &rest args &key from-end start end count key)
-  #.(or (documentation 'cl:remove-if-not 'function) "")
-  (declare (ignore from-end start end count key))
-  (etypecase sequence
-    (cl:sequence (apply #'cl:remove-if-not pred sequence args))
-    (abstract-sequence
-     (apply #'abstract-remove-if (complement pred) sequence args))))
-(define-typecase-compiler-macro remove-if-not (&whole form pred sequence &rest args)
-  (typecase sequence
-    (cl:sequence `(cl:remove-if-not ,@(cdr form)))))
+  (define-sequence-function-by-if remove remove-if)
 
-(defun delete-if (pred sequence &rest args &key from-end start end count key)
-  #.(or (documentation 'cl:delete-if 'function) "")
-  (declare (ignore from-end start end count key))
-  (etypecase sequence
-    (cl:sequence (apply #'cl:delete-if pred sequence args))
-    (abstract-sequence
-     (apply #'abstract-delete-if pred sequence args))))
-(define-typecase-compiler-macro delete-if (&whole form pred sequence &rest args)
-  (typecase sequence
-    (cl:sequence `(cl:delete-if ,@(cdr form)))))
+  (defun remove-if-not (pred sequence &rest args &key from-end start end count key)
+    #.(or (documentation 'cl:remove-if-not 'function) "")
+    (declare (ignore from-end start end count key))
+    (etypecase sequence
+      (cl:sequence (apply #'cl:remove-if-not pred sequence args))
+      (abstract-sequence
+       (apply #'abstract-remove-if (complement pred) sequence args))))
+  (define-typecase-compiler-macro remove-if-not (&whole form pred sequence &rest args)
+    (typecase sequence
+      (cl:sequence `(cl:remove-if-not ,@(cdr form)))))
 
-(define-sequence-function-by-if delete delete-if)
+  (defun delete-if (pred sequence &rest args &key from-end start end count key)
+    #.(or (documentation 'cl:delete-if 'function) "")
+    (declare (ignore from-end start end count key))
+    (etypecase sequence
+      (cl:sequence (apply #'cl:delete-if pred sequence args))
+      (abstract-sequence
+       (apply #'abstract-delete-if pred sequence args))))
+  (define-typecase-compiler-macro delete-if (&whole form pred sequence &rest args)
+    (typecase sequence
+      (cl:sequence `(cl:delete-if ,@(cdr form)))))
 
-(defgeneric abstract-delete-if (pred sequence &key from-end start end count key)
-  (:method (pred (sequence abstract-sequence) &key from-end (start 0) end count (key #'identity))
-    (let* ((removed-count 0)
-           (loop-end (or end
-                         (abstract-length sequence)))
-           (index (if from-end
-                      loop-end
-                      0)))
-      (do-abstract-sequence (x sequence) (i start loop-end from-end)
-        (if (and (not (eql removed-count count))
-                 (funcall pred (funcall key x)))
-            (incf removed-count)
-            (progn
-              (setf (abstract-elt sequence index) x)
-              (if from-end
-                  (decf index)
-                  (incf index)))))
-      (if from-end
-          (replace sequence sequence
-                   :start1 start :end1 (- (length sequence) removed-count)
-                   :start2 (+ start removed-count) :end2 (length sequence))
-          (unless (or (null end)
-                      (= end (length sequence)))
+  (define-sequence-function-by-if delete delete-if)
+
+  (defgeneric abstract-delete-if (pred sequence &key from-end start end count key)
+    (:method (pred (sequence abstract-sequence) &key from-end (start 0) end count (key #'identity))
+      (let* ((removed-count 0)
+             (loop-end (or end
+                           (abstract-length sequence)))
+             (index (if from-end
+                        loop-end
+                        0)))
+        (do-abstract-sequence (x sequence) (i start loop-end from-end)
+          (if (and (not (eql removed-count count))
+                   (funcall pred (funcall key x)))
+              (incf removed-count)
+              (progn
+                (setf (abstract-elt sequence index) x)
+                (if from-end
+                    (decf index)
+                    (incf index)))))
+        (if from-end
             (replace sequence sequence
-                     :start1 (- end removed-count) :end1 (- (length sequence) removed-count)
-                     :start2 end)))
-      (adjust-sequence sequence (- (length sequence) removed-count)))))
+                     :start1 start :end1 (- (length sequence) removed-count)
+                     :start2 (+ start removed-count) :end2 (length sequence))
+            (unless (or (null end)
+                        (= end (length sequence)))
+              (replace sequence sequence
+                       :start1 (- end removed-count) :end1 (- (length sequence) removed-count)
+                       :start2 end)))
+        (adjust-sequence sequence (- (length sequence) removed-count)))))
 
-(defun delete-if-not (pred sequence &rest args &key from-end (start 0) end count (key #'identity))
-  #.(or (documentation 'cl:delete-if-not 'function) "")
-  (declare (ignore from-end start end count key))
-  (etypecase sequence
-    (cl:sequence (apply #'cl:delete-if-not args))
-    (abstract-sequence
-     (apply #'abstract-delete-if (complement pred) sequence args))))
-(define-typecase-compiler-macro delete-if-not (&whole form pred sequence &rest args)
-  (typecase sequence
-    (cl:sequence `(cl:delete-if-not ,@(cdr form)))))
+  (defun delete-if-not (pred sequence &rest args &key from-end (start 0) end count (key #'identity))
+    #.(or (documentation 'cl:delete-if-not 'function) "")
+    (declare (ignore from-end start end count key))
+    (etypecase sequence
+      (cl:sequence (apply #'cl:delete-if-not args))
+      (abstract-sequence
+       (apply #'abstract-delete-if (complement pred) sequence args))))
+  (define-typecase-compiler-macro delete-if-not (&whole form pred sequence &rest args)
+    (typecase sequence
+      (cl:sequence `(cl:delete-if-not ,@(cdr form)))))
 
-(eval-when (:compile-toplevel :load-toplevel :execute)
-  (setf (symbol-function 'keep-if) #'cl:remove-if-not))
-(define-typecase-compiler-macro keep-if (&whole form pred sequence &rest args)
-  (typecase sequence
-    (cl:sequence `(cl:remove-if-not ,@(cdr form)))))
+  (setf (symbol-function 'keep-if) #'remove-if-not)
+  (define-typecase-compiler-macro keep-if (&whole form pred sequence &rest args)
+    (typecase sequence
+      (cl:sequence `(cl:remove-if-not ,@(cdr form)))))
 
-(eval-when (:compile-toplevel :load-toplevel :execute)
-  (setf (symbol-function 'nkeep-if) #'cl:delete-if-not))
-(define-typecase-compiler-macro nkeep-if (&whole form pred sequence &rest args)
-  (typecase sequence
-    (cl:sequence `(cl:delete-if-not ,@(cdr form)))))
+  (setf (symbol-function 'nkeep-if) #'delete-if-not)
+  (define-typecase-compiler-macro nkeep-if (&whole form pred sequence &rest args)
+    (typecase sequence
+      (cl:sequence `(cl:delete-if-not ,@(cdr form)))))
 
-(define-sequence-function-by-if keep keep-if nil)
+  (define-sequence-function-by-if keep keep-if nil)
 
-(define-sequence-function-by-if nkeep nkeep-if nil)
+  (define-sequence-function-by-if nkeep nkeep-if nil))
 
 (defun %partition-if (pred sequence &key from-end (start 0) end (key #'identity))
   (let ((yes nil)
