@@ -57,6 +57,7 @@
            :map
            :append)
   (:shadowing-import-from :cl21.core.generic
+                          :getf
                           :emptyp
                           :coerce)
   (:import-from :cl21.core.condition
@@ -72,8 +73,8 @@
   (:import-from :alexandria
                 :delete-from-plist
                 :with-gensyms)
-  (:export :split-sequence
-           :split-sequence-if
+  (:export :split
+           :split-if
 
            :sequence
            :fill
@@ -103,7 +104,6 @@
 
            :map
            :map-to
-           :map-into
 
            :remove
            :remove-if
@@ -127,6 +127,9 @@
            :push
            :pushnew
            :pop
+           :push-back
+           :pushnew-back
+           :pop-back
            :last
            :butlast
            :nbutlast
@@ -147,9 +150,6 @@
            :notevery
            :notany
 
-           ;; Alexandria
-           :length=
-
            :take
            :drop
            :take-while
@@ -160,7 +160,6 @@
            :append
 
            :abstract-sequence
-           :abstract-vector
            :abstract-list
            :make-sequence-like
            :adjust-sequence
@@ -201,8 +200,8 @@
            :abstract-nsubstitute-if
            :abstract-remove-duplicates
            :abstract-delete-duplicates
-           :abstract-split-sequence
-           :abstract-split-sequence-if
+           :abstract-split
+           :abstract-split-if
            :abstract-copy-seq
            :abstract-replace
            :abstract-fill
@@ -213,16 +212,6 @@
            :iterator-next
            :with-sequence-iterator))
 (in-package :cl21.core.sequence)
-
-(defun append (sequence &rest more-sequences)
-  (let ((type (etypecase sequence
-                (string 'string)
-                (list   'list)
-                (vector 'vector))))
-    (apply #'concatenate
-           type
-           sequence
-           more-sequences)))
 
 
 ;;
@@ -261,18 +250,18 @@
        ,@(if cl-name
              `((define-typecase-compiler-macro ,name (&whole form item sequence &rest args)
                  (typecase sequence
-                   (cl:sequence (list* 'apply (function ,cl-name) item sequence (cdddr form))))))
+                   (cl:sequence (list* ',cl-name (cdr form))))))
              nil))))
 
 
 ;;
 ;; Abstract Sequence
 
-(defclass abstract-sequence () ())
-(defclass abstract-vector (abstract-sequence) ())
-(defclass abstract-list (abstract-sequence) ())
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (defclass abstract-sequence () ())
+  (defclass abstract-list (abstract-sequence) ())
 
-(deftype sequence () '(or cl:sequence abstract-sequence))
+  (deftype sequence () '(or cl:sequence abstract-sequence)))
 
 
 ;;; Basic methods
@@ -281,6 +270,14 @@
   "Returns T if SEQUENCE is an empty sequence and NIL
 otherwise."
   (zerop (abstract-length object)))
+
+(defmethod getf ((place abstract-sequence) key &optional default)
+  (if (< key (abstract-length place))
+      (values (abstract-elt place key) t)
+      (values default nil)))
+
+(defmethod (setf getf) (newval (place abstract-sequence) key)
+  (setf (abstract-elt place key) newval))
 
 (defun length (sequence)
   #.(documentation 'cl:length 'function)
@@ -292,7 +289,7 @@ otherwise."
     (cl:sequence `(cl:length ,sequence))))
 
 (defgeneric abstract-length (sequence)
-  (:method ((sequence abstract-vector))
+  (:method ((sequence abstract-sequence))
     (method-unimplemented-error 'abstract-length sequence))
 
   (:documentation "Returns the length of SEQUENCE or signals a ABSTRACT-METHOD-UNIMPLEMENTED
@@ -309,7 +306,7 @@ SEQUENCE."))
     (cl:sequence `(cl:elt ,sequence ,index))))
 
 (defgeneric abstract-elt (sequence index)
-  (:method ((sequence abstract-vector) index)
+  (:method ((sequence abstract-sequence) index)
     (declare (ignore index))
     (method-unimplemented-error 'abstract-elt sequence))
 
@@ -323,7 +320,7 @@ implemented for the class of SEQUENCE."))
     (cl:sequence (setf (cl:elt sequence index) newval))
     (abstract-sequence (setf (abstract-elt sequence index) newval))))
 (defgeneric (setf abstract-elt) (newval sequence index)
-  (:method (newval (sequence abstract-vector) index)
+  (:method (newval (sequence abstract-sequence) index)
     (method-unimplemented-error '(setf abstract-elt) sequence))
 
   (:documentation "Replaces the element at position INDEX of SEQUENCE with NEWVAL
@@ -350,11 +347,11 @@ SEQUENCE."))
     (abstract-sequence (setf (abstract-first seq) newval))))
 
 (defgeneric abstract-first (seq)
-  (:method ((seq abstract-vector))
+  (:method ((seq abstract-sequence))
     (abstract-elt seq 0)))
 
 (defgeneric (setf abstract-first) (newval seq)
-  (:method (newval (seq abstract-vector))
+  (:method (newval (seq abstract-sequence))
     (setf (abstract-elt seq 0) newval)))
 
 #.`(progn
@@ -382,10 +379,10 @@ SEQUENCE."))
                           (cl:sequence (setf (cl:elt seq ,n) newval))
                           (abstract-sequence (setf (,abstract-fun seq) newval))))
                       (defgeneric ,abstract-fun (seq)
-                        (:method ((seq abstract-vector))
+                        (:method ((seq abstract-sequence))
                           (abstract-elt seq ,n)))
                       (defgeneric (setf ,abstract-fun) (newval seq)
-                        (:method (newval (seq abstract-vector))
+                        (:method (newval (seq abstract-sequence))
                           (setf (abstract-elt seq ,n) newval))))))
 
 (defun rest (seq)
@@ -400,7 +397,7 @@ SEQUENCE."))
     (cl:sequence `(drop 1 ,seq))))
 
 (defgeneric abstract-rest (seq)
-  (:method ((seq abstract-vector))
+  (:method ((seq abstract-sequence))
     (abstract-subseq seq 1)))
 
 (defun (setf rest) (newval seq)
@@ -414,7 +411,7 @@ SEQUENCE."))
      (setf (abstract-rest seq) newval))))
 
 (defgeneric (setf abstract-rest) (newval seq)
-  (:method (newval (seq abstract-vector))
+  (:method (newval (seq abstract-sequence))
     (replace seq newval
              :start1 1)
     (adjust-sequence seq (1+ (length newval)))))
@@ -494,7 +491,7 @@ SEQUENCE."))
                       (<= (fill-pointer newseq) length))
              (setf (fill-pointer newseq) length))
            newseq))))
-  (:method ((seq abstract-vector) length &key initial-element initial-contents)
+  (:method ((seq abstract-sequence) length &key initial-element initial-contents)
     (declare (ignore length initial-element initial-contents))
     (method-unimplemented-error 'adjust-sequence seq))
 
@@ -566,7 +563,7 @@ implemented for the class of SEQUENCE."))
 ;;
 ;; coerce
 
-(defmethod coerce ((object abstract-vector) type)
+(defmethod coerce ((object abstract-sequence) type)
   (ecase type
     (list
      (let ((results '()))
@@ -592,83 +589,152 @@ implemented for the class of SEQUENCE."))
     (abstract-sequence (abstract-copy-seq sequence))))
 
 (defgeneric abstract-copy-seq (sequence)
-  (:method ((sequence abstract-vector))
+  (:method ((sequence abstract-sequence))
     (abstract-subseq sequence 0)))
 
 
 ;;
-;; Macro: push, pushnew, pop
+;; Macro: push, pushnew, pop, push-back, pushnew-back, pop-back
+
+(defun nenque-head (value sequence)
+  (etypecase sequence
+    (cl:list (cl:cons value sequence))
+    (cl:vector (let ((len (cl:length sequence)))
+                 (unless (adjustable-array-p sequence)
+                   (error "~S is not an adjustable array." sequence))
+                 (if (= len (array-dimension sequence 0))
+                     (adjust-array sequence (1+ len) :fill-pointer (1+ len))
+                     (incf (fill-pointer sequence)))
+                 (do ((i len (1- i)))
+                     ((< i 1))
+                   (setf (aref sequence i)
+                         (aref sequence (1- i))))
+                 (setf (aref sequence 0) value)
+                 sequence))
+    (abstract-list (let ((new (make-sequence-like sequence 1
+                                                  :initial-contents
+                                                  (list value))))
+                     (setf (abstract-rest new) sequence)
+                     new))
+    (abstract-sequence (setq sequence
+                             (adjust-sequence
+                              sequence (1+ (abstract-length sequence))))
+                       (abstract-replace sequence sequence :start1 1)
+                       (setf (abstract-elt sequence 0) value)
+                       sequence)))
+
+(defun nenque-head-new (value sequence &rest args)
+  (if (apply #'find value sequence args)
+      sequence
+      (nenque-head value sequence)))
+
+(defun nenque-tail (value sequence)
+  (etypecase sequence
+    (cl:list (if sequence
+                 (rplacd (cl:last sequence) (list value))
+                 (list value)))
+    (cl:vector (cl:vector-push-extend value sequence)
+               sequence)
+    (abstract-list (if (emptyp sequence)
+                       (make-sequence-like sequence 1
+                                           :initial-contents (list value))
+                       (let ((last
+                              (do ((current sequence (abstract-rest current)))
+                                  ((emptyp (abstract-rest current)) current))))
+                         (setf (abstract-rest last)
+                               (make-sequence-like sequence 1
+                                                   :initial-contents
+                                                   (list value)))
+                         sequence)))
+    (abstract-sequence (let ((len (abstract-length sequence)))
+                         (adjust-sequence sequence (1+ len))
+                         (setf (abstract-elt sequence len) value)
+                         sequence))))
+
+(defun nenque-tail-new (value sequence &rest args)
+  (if (apply #'find value sequence args)
+      sequence
+      (nenque-tail value sequence)))
+
+(defmacro _f2 (op arg1 place &rest args &environment env)
+  (multiple-value-bind (vars vals binds set access)
+      (get-setf-expansion place env)
+    `(let* (,@(map #'list vars vals))
+       (multiple-value-bind ,binds (,op ,arg1 ,access ,@args)
+         ,set))))
 
 (defmacro push (value place)
   #.(documentation 'cl:push 'function)
-  (let ((place-g (gensym "PLACE")))
-    `(let ((,place-g ,place))
-       (etypecase ,place-g
-         (cl:list (cl:push ,value ,place))
-         (cl:vector
-          (let ((len (cl:length ,place-g)))
-            (unless (adjustable-array-p ,place-g)
-              (error "~S is not an adjustable array." ,place-g))
-            (if (= len (array-dimension ,place-g 0))
-                (adjust-array ,place-g (1+ len) :fill-pointer (1+ len))
-                (incf (fill-pointer ,place-g)))
-            (do ((i len (1- i)))
-                ((< i 1))
-              (setf (aref ,place-g i)
-                    (aref ,place-g (1- i))))
-            (setf (aref ,place-g 0) ,value)
-            ,place-g))
-         (abstract-vector
-          (setf ,place (adjust-sequence ,place-g (1+ (abstract-length ,place-g))))
-          (abstract-replace ,place ,place
-                            :start1 1)
-          (setf (abstract-elt ,place 0) ,value)
-          ,place)
-         (abstract-list
-          (let ((new (make-sequence-like ,place-g 1
-                                         :initial-contents (list ,value))))
-            (setf (abstract-rest new) ,place-g)
-            (setf ,place new)
-            ,place))))))
+  `(_f2 nenque-head ,value ,place))
 
-(defmacro pushnew (value place &rest keys &key key test test-not)
+(defmacro push-back (value place)
+  `(_f2 nenque-tail ,value ,place))
+
+(defmacro pushnew (value place &rest keys &key key test)
   #.(or (documentation 'cl:pushnew 'function) "")
-  (declare (ignore key test test-not))
-  (let ((place-g (gensym "PLACE")))
-    `(let ((,place-g ,place))
-       (etypecase ,place-g
-         (cl:vector (if (cl:find ,value ,place-g ,@keys)
-                        ,place-g
-                        (push ,value ,place)))
-         (cl:list (cl:pushnew ,value ,place-g ,@keys))
-         (abstract-sequence
-          (if (abstract-find ,value ,place-g ,@keys)
-              ,place-g
-              (push ,value ,place)))))))
+  (declare (ignore key test))
+  `(_f2 nenque-head-new ,value ,place ,@keys))
 
-(defmacro pop (place)
+(defmacro pushnew-back (value place &rest keys &key key test)
+  (declare (ignore key test))
+  `(_f2 nenque-tail-new ,value ,place ,@keys))
+
+(defmacro pop (place &environment env)
   #.(documentation 'cl:pop 'function)
-  (let ((place-g (gensym "PLACE")))
+  (multiple-value-bind (vars vals binds set access)
+      (get-setf-expansion place env)
+    (with-gensyms (place-g len i ret)
+      `(let* (,@(map #'list vars vals)
+              (,place-g ,access))
+         (multiple-value-bind (,@binds ,ret)
+             (etypecase ,place-g
+               (cl:list (values (cl:cdr ,place-g)
+                                (cl:car ,place-g)))
+               (cl:vector
+                (unless (adjustable-array-p ,place-g)
+                  (error "~S is not an adjustable array." ,place-g))
+                (let ((,len (length ,place-g))
+                      (,ret (aref ,place-g 0)))
+                  (do ((,i 0 (1+ ,i)))
+                      ((= ,i (1- ,len)))
+                    (setf (aref ,place-g ,i)
+                          (aref ,place-g (1+ ,i))))
+                  (decf (fill-pointer ,place-g))
+                  (values ,place-g
+                          ,ret)))
+               (abstract-sequence
+                (let ((,ret (abstract-first ,place-g)))
+                  (abstract-replace ,place-g ,place-g
+                                    :start2 1)
+                  (values (adjust-sequence ,place-g
+                                           (1- (abstract-length ,place-g)))
+                          ,ret))))
+           ,set
+           ,ret)))))
+
+(defmacro pop-back (place)
+  (with-gensyms (place-g last2 current len)
     `(let ((,place-g ,place))
        (etypecase ,place-g
-         (cl:list (cl:pop ,place))
+         (cl:list
+          (let ((,last2 (cl:last ,place-g 2)))
+            (prog1
+                (cadr ,last2)
+              (rplacd ,last2 nil))))
          (cl:vector
-          (unless (adjustable-array-p ,place-g)
-            (error "~S is not an adjustable array." ,place-g))
-          (prog1 (aref ,place-g 0)
-            (let ((len (length ,place-g)))
-              (do ((i 0 (1+ i)))
-                  ((= i (1- len)))
-                (setf (aref ,place-g i)
-                      (aref ,place-g (1+ i))))
-              (decf (fill-pointer ,place-g)))))
+          (cl:vector-pop ,place-g))
+         (abstract-list
+          (let ((,last2
+                  (do ((,current ,place-g (abstract-rest ,current)))
+                      ((emptyp (abstract-rest (abstract-rest ,current))) ,current))))
+            (prog1
+                (second ,last2)
+              (setf (abstract-rest ,last2)
+                    (make-sequence-like ,place-g 0)))))
          (abstract-sequence
-          (prog1
-              (abstract-first ,place-g)
-            (abstract-replace ,place-g ,place-g
-                              :start2 1)
-            (setf ,place
-                  (adjust-sequence ,place-g (1- (abstract-length ,place-g))))))))))
+          (let ((,len (abstract-length ,place-g)))
+            (prog1 (abstract-elt ,place-g (1- ,len))
+              (adjust-sequence ,place-g (1- ,len)))))))))
 
 
 ;;
@@ -685,7 +751,7 @@ implemented for the class of SEQUENCE."))
     (cl:sequence `(cl:subseq ,@(cdr form)))))
 
 (defgeneric abstract-subseq (sequence start &optional end)
-  (:method ((sequence abstract-vector) start &optional end)
+  (:method ((sequence abstract-sequence) start &optional end)
     (let* ((end (or end
                     (abstract-length sequence)))
            (result (make-sequence-like sequence (- end start))))
@@ -753,7 +819,7 @@ implemented for the class of SEQUENCE."))
     (cl:sequence `(cl:fill ,@(cdr form)))))
 
 (defgeneric abstract-fill (sequence item &key start end)
-  (:method ((sequence abstract-vector) item &key (start 0) end)
+  (:method ((sequence abstract-sequence) item &key (start 0) end)
     (do-abstract-sequence (() sequence sequence) (i start end)
       (setf (abstract-elt sequence i) item))))
 
@@ -771,7 +837,7 @@ implemented for the class of SEQUENCE."))
     (cl:sequence `(cl:subseq ,sequence 0 ,n))))
 
 (defgeneric abstract-take (n sequence)
-  (:method (n (sequence abstract-vector))
+  (:method (n (sequence abstract-sequence))
     (abstract-subseq sequence 0 n)))
 
 (defun drop (n sequence)
@@ -785,7 +851,7 @@ implemented for the class of SEQUENCE."))
     (cl:sequence `(cl:subseq ,sequence ,n))))
 
 (defgeneric abstract-drop (n sequence)
-  (:method (n (sequence abstract-vector))
+  (:method (n (sequence abstract-sequence))
     (abstract-subseq sequence n)))
 
 
@@ -808,7 +874,7 @@ implemented for the class of SEQUENCE."))
     (sequence `(%sequence-take-while ,pred ,sequence))))
 
 (defgeneric abstract-take-while (pred sequence)
-  (:method (pred (sequence abstract-vector))
+  (:method (pred (sequence abstract-sequence))
     (do-abstract-sequence (x sequence) (i 0)
       (unless (funcall pred x)
         (return (abstract-subseq sequence 0 (1- i)))))))
@@ -828,7 +894,7 @@ implemented for the class of SEQUENCE."))
     (cl:sequence `(%sequence-drop-while ,pred ,sequence))))
 
 (defgeneric abstract-drop-while (pred sequence)
-  (:method (pred (sequence abstract-vector))
+  (:method (pred (sequence abstract-sequence))
     (do-abstract-sequence (x sequence) (i 0)
       (unless (funcall pred x)
         (return (abstract-subseq sequence i))))))
@@ -850,7 +916,7 @@ implemented for the class of SEQUENCE."))
     (cl:sequence `(cl:elt ,sequence (1- (cl:length ,sequence))))))
 
 (defgeneric abstract-last (sequence)
-  (:method ((sequence abstract-vector))
+  (:method ((sequence abstract-sequence))
     (abstract-elt sequence (1- (abstract-length sequence)))))
 
 
@@ -873,7 +939,7 @@ implemented for the class of SEQUENCE."))
 (defgeneric abstract-butlast (sequence &optional n)
   (:method ((sequence abstract-sequence) &optional (n 1))
     (abstract-nbutlast (abstract-copy-seq sequence) n))
-  (:method ((sequence abstract-vector) &optional (n 1))
+  (:method ((sequence abstract-sequence) &optional (n 1))
     (abstract-subseq sequence 0 (- (abstract-length sequence) n))))
 
 (defun nbutlast (sequence &optional (n 1))
@@ -905,7 +971,7 @@ implemented for the class of SEQUENCE."))
     (cl:sequence `(cl:find-if ,@(cdr form)))))
 
 (defgeneric abstract-find-if (pred sequence &key from-end start end key)
-  (:method (pred (sequence abstract-vector) &key from-end (start 0) end (key #'identity))
+  (:method (pred (sequence abstract-sequence) &key from-end (start 0) end (key #'identity))
     (do-abstract-sequence (x sequence) (i start end from-end)
       (when (funcall pred (funcall key x))
         (return x)))))
@@ -928,7 +994,7 @@ implemented for the class of SEQUENCE."))
     (cl:sequence `(apply #'cl:position-if ,pred ,sequence ,@(cdddr form)))))
 
 (defgeneric abstract-position-if (pred sequence &key from-end start end key)
-  (:method (pred (sequence abstract-vector) &key from-end (start 0) end (key #'identity))
+  (:method (pred (sequence abstract-sequence) &key from-end (start 0) end (key #'identity))
     (do-abstract-sequence (x sequence) (i start end from-end)
       (when (funcall pred (funcall key x))
         (return i)))))
@@ -951,7 +1017,7 @@ implemented for the class of SEQUENCE."))
     (cl:sequence `(cl:search ,@(cdr form)))))
 
 (defgeneric abstract-search (sequence1 sequence2 &key from-end test start1 end1 start2 end2 key)
-  (:method (sequence1 (sequence2 abstract-vector) &key from-end (test #'eql) (start1 0) end1 (start2 0) end2 (key #'identity))
+  (:method (sequence1 (sequence2 abstract-sequence) &key from-end (test #'eql) (start1 0) end1 (start2 0) end2 (key #'identity))
     (when (typep sequence1 'abstract-sequence)
       (setq sequence1 (coerce sequence1 'vector)))
     (setq sequence1 (cl:subseq sequence1 start1 end1))
@@ -975,99 +1041,100 @@ implemented for the class of SEQUENCE."))
 ;; Function: remove, remove-if, remove-if-not, delete, delete-if, delete-if-not, keep, keep-if, nkeep, nkeep-if
 ;; Generic Function: abstract-remove, abstract-remove-if, abstract-delete, abstract-delete-if
 
-(defun remove-if (pred sequence &rest args &key from-end start end count key)
-  #.(or (documentation 'cl:remove-if 'function) "")
-  (declare (ignore from-end start end count key))
-  (etypecase sequence
-    (cl:sequence (apply #'cl:remove-if pred sequence args))
-    (abstract-sequence (apply #'abstract-remove-if pred sequence args))))
-
-(defgeneric abstract-remove-if (pred sequence &key from-end start end count key)
-  (:method (pred (sequence abstract-sequence) &rest args &key from-end start end count key)
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (defun remove-if (pred sequence &rest args &key from-end start end count key)
+    #.(or (documentation 'cl:remove-if 'function) "")
     (declare (ignore from-end start end count key))
-    (apply #'abstract-delete-if pred (abstract-copy-seq sequence) args)))
-(define-typecase-compiler-macro remove-if (&whole form pred sequence &rest args)
-  (typecase sequence
-    (cl:sequence `(cl:remove-if ,@(cdr form)))))
+    (etypecase sequence
+      (cl:sequence (apply #'cl:remove-if pred sequence args))
+      (abstract-sequence (apply #'abstract-remove-if pred sequence args))))
 
-(define-sequence-function-by-if remove remove-if)
+  (defgeneric abstract-remove-if (pred sequence &key from-end start end count key)
+    (:method (pred (sequence abstract-sequence) &rest args &key from-end start end count key)
+      (declare (ignore from-end start end count key))
+      (apply #'abstract-delete-if pred (abstract-copy-seq sequence) args)))
+  (define-typecase-compiler-macro remove-if (&whole form pred sequence &rest args)
+    (typecase sequence
+      (cl:sequence `(cl:remove-if ,@(cdr form)))))
 
-(defun remove-if-not (pred sequence &rest args &key from-end start end count key)
-  #.(or (documentation 'cl:remove-if-not 'function) "")
-  (declare (ignore from-end start end count key))
-  (etypecase sequence
-    (cl:sequence (apply #'cl:remove-if-not pred sequence args))
-    (abstract-sequence
-     (apply #'abstract-remove-if (complement pred) sequence args))))
-(define-typecase-compiler-macro remove-if-not (&whole form pred sequence &rest args)
-  (typecase sequence
-    (cl:sequence `(cl:remove-if-not ,@(cdr form)))))
+  (define-sequence-function-by-if remove remove-if)
 
-(defun delete-if (pred sequence &rest args &key from-end start end count key)
-  #.(or (documentation 'cl:delete-if 'function) "")
-  (declare (ignore from-end start end count key))
-  (etypecase sequence
-    (cl:sequence (apply #'cl:delete-if pred sequence args))
-    (abstract-sequence
-     (apply #'abstract-delete-if pred sequence args))))
-(define-typecase-compiler-macro delete-if (&whole form pred sequence &rest args)
-  (typecase sequence
-    (cl:sequence `(cl:delete-if ,@(cdr form)))))
+  (defun remove-if-not (pred sequence &rest args &key from-end start end count key)
+    #.(or (documentation 'cl:remove-if-not 'function) "")
+    (declare (ignore from-end start end count key))
+    (etypecase sequence
+      (cl:sequence (apply #'cl:remove-if-not pred sequence args))
+      (abstract-sequence
+       (apply #'abstract-remove-if (complement pred) sequence args))))
+  (define-typecase-compiler-macro remove-if-not (&whole form pred sequence &rest args)
+    (typecase sequence
+      (cl:sequence `(cl:remove-if-not ,@(cdr form)))))
 
-(define-sequence-function-by-if delete delete-if)
+  (defun delete-if (pred sequence &rest args &key from-end start end count key)
+    #.(or (documentation 'cl:delete-if 'function) "")
+    (declare (ignore from-end start end count key))
+    (etypecase sequence
+      (cl:sequence (apply #'cl:delete-if pred sequence args))
+      (abstract-sequence
+       (apply #'abstract-delete-if pred sequence args))))
+  (define-typecase-compiler-macro delete-if (&whole form pred sequence &rest args)
+    (typecase sequence
+      (cl:sequence `(cl:delete-if ,@(cdr form)))))
 
-(defgeneric abstract-delete-if (pred sequence &key from-end start end count key)
-  (:method (pred (sequence abstract-vector) &key from-end (start 0) end count (key #'identity))
-    (let* ((removed-count 0)
-           (loop-end (or end
-                         (abstract-length sequence)))
-           (index (if from-end
-                      loop-end
-                      0)))
-      (do-abstract-sequence (x sequence) (i start loop-end from-end)
-        (if (and (not (eql removed-count count))
-                 (funcall pred (funcall key x)))
-            (incf removed-count)
-            (progn
-              (setf (abstract-elt sequence index) x)
-              (if from-end
-                  (decf index)
-                  (incf index)))))
-      (if from-end
-          (replace sequence sequence
-                   :start1 start :end1 (- (length sequence) removed-count)
-                   :start2 (+ start removed-count) :end2 (length sequence))
-          (unless (or (null end)
-                      (= end (length sequence)))
+  (define-sequence-function-by-if delete delete-if)
+
+  (defgeneric abstract-delete-if (pred sequence &key from-end start end count key)
+    (:method (pred (sequence abstract-sequence) &key from-end (start 0) end count (key #'identity))
+      (let* ((removed-count 0)
+             (loop-end (or end
+                           (abstract-length sequence)))
+             (index (if from-end
+                        loop-end
+                        0)))
+        (do-abstract-sequence (x sequence) (i start loop-end from-end)
+          (if (and (not (eql removed-count count))
+                   (funcall pred (funcall key x)))
+              (incf removed-count)
+              (progn
+                (setf (abstract-elt sequence index) x)
+                (if from-end
+                    (decf index)
+                    (incf index)))))
+        (if from-end
             (replace sequence sequence
-                     :start1 (- end removed-count) :end1 (- (length sequence) removed-count)
-                     :start2 end)))
-      (adjust-sequence sequence (- (length sequence) removed-count)))))
+                     :start1 start :end1 (- (length sequence) removed-count)
+                     :start2 (+ start removed-count) :end2 (length sequence))
+            (unless (or (null end)
+                        (= end (length sequence)))
+              (replace sequence sequence
+                       :start1 (- end removed-count) :end1 (- (length sequence) removed-count)
+                       :start2 end)))
+        (adjust-sequence sequence (- (length sequence) removed-count)))))
 
-(defun delete-if-not (pred sequence &rest args &key from-end (start 0) end count (key #'identity))
-  #.(or (documentation 'cl:delete-if-not 'function) "")
-  (declare (ignore from-end start end count key))
-  (etypecase sequence
-    (cl:sequence (apply #'cl:delete-if-not args))
-    (abstract-sequence
-     (apply #'abstract-delete-if (complement pred) sequence args))))
-(define-typecase-compiler-macro delete-if-not (&whole form pred sequence &rest args)
-  (typecase sequence
-    (cl:sequence `(cl:delete-if-not ,@(cdr form)))))
+  (defun delete-if-not (pred sequence &rest args &key from-end (start 0) end count (key #'identity))
+    #.(or (documentation 'cl:delete-if-not 'function) "")
+    (declare (ignore from-end start end count key))
+    (etypecase sequence
+      (cl:sequence (apply #'cl:delete-if-not args))
+      (abstract-sequence
+       (apply #'abstract-delete-if (complement pred) sequence args))))
+  (define-typecase-compiler-macro delete-if-not (&whole form pred sequence &rest args)
+    (typecase sequence
+      (cl:sequence `(cl:delete-if-not ,@(cdr form)))))
 
-(setf (symbol-function 'keep-if) #'remove-if-not)
-(define-typecase-compiler-macro keep-if (&whole form pred sequence &rest args)
-  (typecase sequence
-    (cl:sequence `(cl:remove-if-not ,@(cdr form)))))
+  (setf (symbol-function 'keep-if) #'remove-if-not)
+  (define-typecase-compiler-macro keep-if (&whole form pred sequence &rest args)
+    (typecase sequence
+      (cl:sequence `(cl:remove-if-not ,@(cdr form)))))
 
-(setf (symbol-function 'nkeep-if) #'delete-if-not)
-(define-typecase-compiler-macro nkeep-if (&whole form pred sequence &rest args)
-  (typecase sequence
-    (cl:sequence `(cl:delete-if-not ,@(cdr form)))))
+  (setf (symbol-function 'nkeep-if) #'delete-if-not)
+  (define-typecase-compiler-macro nkeep-if (&whole form pred sequence &rest args)
+    (typecase sequence
+      (cl:sequence `(cl:delete-if-not ,@(cdr form)))))
 
-(define-sequence-function-by-if keep keep-if nil)
+  (define-sequence-function-by-if keep keep-if nil)
 
-(define-sequence-function-by-if nkeep nkeep-if nil)
+  (define-sequence-function-by-if nkeep nkeep-if nil))
 
 (defun %partition-if (pred sequence &key from-end (start 0) end (key #'identity))
   (let ((yes nil)
@@ -1164,7 +1231,7 @@ of which has elements that satisfy PRED, the second which do not."
   (:method ((sequence1 abstract-sequence) (sequence2 cl:sequence) &rest args &key from-end test start1 end1 start2 end2 key)
     (declare (ignore from-end test start1 end1 start2 end2 key))
     (apply #'abstract-mismatch sequence2 sequence1 args))
-  (:method (sequence1 (sequence2 abstract-vector) &key from-end (test #'eql) (start1 0) end1 (start2 0) end2 (key #'identity))
+  (:method (sequence1 (sequence2 abstract-sequence) &key from-end (test #'eql) (start1 0) end1 (start2 0) end2 (key #'identity))
     (let* ((end1 (or end1
                      (length sequence1)))
            (end2 (or end2
@@ -1194,50 +1261,6 @@ of which has elements that satisfy PRED, the second which do not."
 
 
 ;;
-;; Function: length=
-
-(defun length= (&rest sequences)
-  (if (cl:every (lambda (seq) (not (typep seq 'abstract-sequence)))
-                sequences)
-      (apply #'alexandria:length= sequences)
-      (multiple-value-bind (intargs sequences)
-          (partition-if #'integerp sequences)
-        (labels ((check-take (n seq)
-                   (cond
-                     ((zerop n) t)
-                     ((emptyp seq) nil)
-                     (T (check-take (1- n) (rest seq)))))
-                 (check-seqs (sequences)
-                   (if (cl:every (lambda (seq) (check-take 1 seq)) sequences)
-                       (check-seqs (mapcar #'rest sequences))
-                       (cl:every #'emptyp sequences))))
-          (cond
-            ((and (cdr intargs)
-                  (not (apply #'= intargs)))
-             nil)
-            (intargs
-             (if (zerop (car intargs))
-                 (cl:every #'emptyp sequences)
-                 (not (cl:some (lambda (seq) (check-take (1+ (car intargs)) seq))
-                               sequences))))
-            (T (check-seqs sequences)))))))
-(define-compiler-macro length= (&whole form &environment env &rest sequences)
-  (flet ((get-type (x)
-           (if (constantp x)
-               (type-of x)
-               (and (symbolp x)
-                    (assoc 'type
-                           (nth-value 2 (variable-information x env)))))))
-    (if (cl:every (lambda (seq)
-                    (let ((type (get-type seq)))
-                      (and type
-                           (subtypep type 'sequence))))
-               sequences)
-        `(alexandria:length= ,@(cdr form))
-        form)))
-
-
-;;
 ;; Function: count, count-if
 ;; Generic Function: abstract-count, abstract-count-if
 
@@ -1252,7 +1275,7 @@ of which has elements that satisfy PRED, the second which do not."
     (cl:sequence `(cl:count-if ,@(cdr form)))))
 
 (defgeneric abstract-count-if (pred sequence &key from-end start end key)
-  (:method (pred (sequence abstract-vector) &key from-end (start 0) end (key #'identity))
+  (:method (pred (sequence abstract-sequence) &key from-end (start 0) end (key #'identity))
     (let ((count 0))
       (do-abstract-sequence (x sequence count) (i start end from-end)
         (when (funcall pred (funcall key x))
@@ -1288,7 +1311,7 @@ of which has elements that satisfy PRED, the second which do not."
     (cl:sequence `(cl:nreverse ,sequence))))
 
 (defgeneric abstract-nreverse (sequence)
-  (:method ((sequence abstract-vector))
+  (:method ((sequence abstract-sequence))
     (do ((i 0 (1+ i))
          (j (1- (abstract-length sequence)) (1- j)))
         ((>= i j) sequence)
@@ -1422,7 +1445,7 @@ of which has elements that satisfy PRED, the second which do not."
     (cl:sequence `(cl:nsubstitute-if ,@(cdr form)))))
 
 (defgeneric abstract-nsubstitute-if (new pred sequence &key from-end start end count key)
-  (:method (new pred (sequence abstract-vector) &key from-end (start 0) end count (key #'identity))
+  (:method (new pred (sequence abstract-sequence) &key from-end (start 0) end count (key #'identity))
     (let ((subst-count 0))
       (do-abstract-sequence (x sequence sequence) (i start end from-end)
         (when (eql count subst-count)
@@ -1445,41 +1468,41 @@ of which has elements that satisfy PRED, the second which do not."
 
 
 ;;
-;; Function: split-sequence, split-sequence-if
-;; Generic Function: abstract-split-sequence, abstract-split-sequence-if
+;; Function: split, split-if
+;; Generic Function: abstract-split, abstract-split-if
 
-(defun split-sequence (delimiter sequence &rest args &key start end from-end count remove-empty-subseqs test key)
+(defun split (delimiter sequence &rest args &key start end from-end count remove-empty-subseqs test key)
   #.(or (documentation 'split-sequence:split-sequence 'function) "")
   (declare (ignore start end from-end count remove-empty-subseqs test key))
   (etypecase sequence
     (cl:sequence (apply #'split-sequence:split-sequence delimiter sequence args))
-    (abstract-sequence (apply #'abstract-split-sequence delimiter sequence args))))
-(define-typecase-compiler-macro split-sequence (&whole form delimiter sequence &rest args)
+    (abstract-sequence (apply #'abstract-split delimiter sequence args))))
+(define-typecase-compiler-macro split (&whole form delimiter sequence &rest args)
   (typecase sequence
     (cl:sequence `(split-sequence:split-sequence ,@(cdr form)))))
 
-(defgeneric abstract-split-sequence (delimiter sequence &key start end from-end count remove-empty-subseqs test key)
+(defgeneric abstract-split (delimiter sequence &key start end from-end count remove-empty-subseqs test key)
   (:method (delimiter (sequence abstract-sequence) &rest args &key start end from-end count remove-empty-subseqs (test #'eql test-specified-p) (key #'identity))
     (declare (ignore start end from-end count remove-empty-subseqs))
     (when test-specified-p
       (setq args (delete-from-plist args :test)))
-    (apply #'abstract-split-sequence-if
+    (apply #'abstract-split-if
            (lambda (x)
              (funcall test (funcall key x) delimiter))
            sequence
            args)))
 
-(defun split-sequence-if (pred sequence &rest args &key start end from-end count remove-empty-subseqs key)
+(defun split-if (pred sequence &rest args &key start end from-end count remove-empty-subseqs key)
   #.(or (documentation 'split-sequence:split-sequence-if 'function) "")
   (declare (ignore start end from-end count remove-empty-subseqs key))
   (etypecase sequence
     (cl:sequence (apply #'split-sequence:split-sequence-if pred sequence args))
-    (abstract-sequence (apply #'abstract-split-sequence-if pred sequence args))))
-(define-typecase-compiler-macro split-sequence-if (&whole form pred sequence &rest args)
+    (abstract-sequence (apply #'abstract-split-if pred sequence args))))
+(define-typecase-compiler-macro split-if (&whole form pred sequence &rest args)
   (typecase sequence
     (cl:sequence `(split-sequence:split-sequence-if ,@(cdr form)))))
 
-(defgeneric abstract-split-sequence-if (pred sequence &key start end from-end count remove-empty-subseqs key)
+(defgeneric abstract-split-if (pred sequence &key start end from-end count remove-empty-subseqs key)
   (:method (pred (sequence abstract-sequence) &key (start 0) end from-end count remove-empty-subseqs (key #'identity))
     (let ((subseqs '())
           (buf '())
@@ -1539,7 +1562,7 @@ of which has elements that satisfy PRED, the second which do not."
     (cl:sequence `(cl:delete-duplicates ,@(cdr form)))))
 
 (defgeneric abstract-delete-duplicates (sequence &key from-end test start end key)
-  (:method ((sequence abstract-vector) &key from-end (test #'eql) (start 0) end (key #'identity))
+  (:method ((sequence abstract-sequence) &key from-end (test #'eql) (start 0) end (key #'identity))
     (let* ((length (abstract-length sequence))
            (end (or end length))
            (step (if from-end -1 +1))
@@ -1579,43 +1602,124 @@ of which has elements that satisfy PRED, the second which do not."
 ;;
 ;; Function: every, some, notevery, notany
 
+(defmacro do-sequences ((x sequences &rest result-form) &body body)
+  (let ((iterators (gensym "ITERATORS")))
+    `(let ((,iterators (mapcar #'make-sequence-iterator ,sequences)))
+       (do ()
+           ((cl:some #'iterator-endp ,iterators) ,@result-form)
+         ,(if x
+              `(let ((,x (mapcar #'iterator-next ,iterators)))
+                 ,@body)
+              `(progn (mapc #'iterator-next ,iterators)
+                      ,@body))))))
+
 (defun every (pred &rest sequences)
-  (let ((iterators (mapcar #'make-sequence-iterator sequences)))
-    (do ()
-        ((cl:some #'iterator-endp iterators) t)
-      (unless (apply pred (mapcar #'iterator-next iterators))
-        (return)))))
+  (do-sequences (x sequences t)
+    (unless (apply pred x)
+      (return nil))))
 
 (defun some (pred &rest sequences)
-  (let ((iterators (mapcar #'make-sequence-iterator sequences)))
-    (do ()
-        ((cl:some #'iterator-endp iterators) nil)
-      (when (apply pred (mapcar #'iterator-next iterators))
-        (return t)))))
+  (do-sequences (x sequences nil)
+    (when (apply pred x)
+      (return t))))
 
 (defun notevery (pred &rest sequences)
-  (let ((iterators (mapcar #'make-sequence-iterator sequences)))
-    (do ()
-        ((cl:some #'iterator-endp iterators) nil)
-      (unless (apply pred (mapcar #'iterator-next iterators))
-        (return t)))))
+  (do-sequences (x sequences nil)
+    (unless (apply pred x)
+      (return t))))
 
 (defun notany (pred &rest sequences)
-  (let ((iterators (mapcar #'make-sequence-iterator sequences)))
-    (do ()
-        ((cl:some #'iterator-endp iterators) t)
-      (when (apply pred (mapcar #'iterator-next iterators))
-        (return nil)))))
+  (do-sequences (x sequences t)
+    (when (apply pred x)
+      (return nil))))
 
 
 ;;
-;; Function: map
+;; Function: map, map-to
+
+(defun map-to (type function &rest sequences)
+  (cond
+    ((eq type 'string)
+     (with-output-to-string (s)
+       (do-sequences (x sequences)
+         (write-char (apply function x) s))))
+    ((eq type 'cl:hash-table)
+     (let ((hash (make-hash-table :test 'equal)))
+       (do-sequences (x sequences)
+         (let ((res (apply function x)))
+           (setf (gethash (car res) hash) (cdr res))))
+       hash))
+    ((or (eq type 'list)
+         (subtypep type 'abstract-list))
+     (let ((results '())
+           (length 0))
+       (do-sequences (x sequences)
+         (cl:push (apply function x) results)
+         (incf length))
+       (if (eq type 'list)
+           (nreverse results)
+           (make-sequence-like (allocate-instance type) length
+                               :initial-contents (nreverse results)))))
+    ((or (subtypep type 'vector)
+         (subtypep type 'abstract-sequence))
+     (let ((min-len 0))
+       (do-sequences (nil sequences)
+         (incf min-len))
+       (let ((result (if (subtypep type 'vector)
+                         (make-array min-len)
+                         (make-sequence-like (allocate-instance type) min-len)))
+             (pointer 0))
+         (do-sequences (x sequences)
+           (setf (elt result pointer) (apply function x))
+           (incf pointer))
+         result)))
+    (T (error "Invalid type specifier: ~S" type))))
 
 (defun map (function &rest sequences)
   (let ((type (etypecase (car sequences)
                 (string 'string)
-                (list   'list)
-                (vector 'vector))))
-    (apply #'cl:map type function sequences)))
+                (hash-table 'hash-table)
+                (vector 'vector)
+                (list 'list)
+                (abstract-sequence (type-of (car sequences))))))
+    (apply #'map-to type function sequences)))
 
-(setf (symbol-function 'map-to) #'cl:map)
+
+;;
+;; Function: append
+
+(defun append (&rest sequences)
+  (flet ((append-to-list (sequences)
+           (let* ((results (cons nil nil))
+                  (current results))
+             (dolist (sequence sequences)
+               (if (typep sequence 'sequence)
+                   (do-abstract-sequence (x sequence) ()
+                     (setf (cdr current) (cons x nil))
+                     (setq current (cdr current)))
+                   (progn
+                     (setf (cdr current) sequence)
+                     (setq current (cdr current)))))
+             (cdr results)))
+         (append-to-vector (sequences)
+           (let* ((len (reduce #'+ sequences :key #'length))
+                  (result (make-array len))
+                  (i 0))
+             (dolist (sequence sequences result)
+               (do-abstract-sequence (x sequence) ()
+                 (setf (aref result i) x)
+                 (incf i)))))
+         (append-to-string (sequences)
+           (with-output-to-string (s)
+             (dolist (sequence sequences)
+               (do-abstract-sequence (x sequence) ()
+                 (write-char x s))))))
+    (etypecase (car sequences)
+      (string (append-to-string sequences))
+      (list (append-to-list sequences))
+      (vector (append-to-vector sequences))
+      (abstract-sequence
+       (let ((result (append-to-vector sequences)))
+         (make-sequence-like (car sequences)
+                             (cl:length result)
+                             :initial-contents (cl:coerce result 'list)))))))

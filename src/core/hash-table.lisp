@@ -13,11 +13,19 @@
            :hash-table-size
            :hash-table-test)
   (:shadowing-import-from :cl21.core.generic
-                          :coerce)
+                          :coerce
+                          :getf
+                          :emptyp)
   (:import-from :cl21.core.condition
                 :method-unimplemented-error)
   (:import-from :cl21.core.sequence
+                :make-sequence-iterator
+                :iterator-pointer
+                :iterator-next
+                :iterator-endp
                 :subdivide)
+  (:shadowing-import-from :cl21.core.sequence
+                          :map)
   (:import-from :cl21.core.util
                 :define-typecase-compiler-macro)
   (:import-from :alexandria
@@ -91,6 +99,45 @@
 
 
 ;;
+;; Sequence Iterator
+
+(defmethod make-sequence-iterator ((hash-table cl:hash-table) &key start end from-end)
+  (assert (not (or start end from-end)))
+  (with-hash-table-iterator (next hash-table)
+    (make-hash-table-iterator hash-table (lambda () (next)))))
+
+(defstruct (hash-table-iterator (:constructor %make-hash-table-iterator))
+  (pointer 0 :type integer)
+  (endp nil :type boolean)
+  (next-kv nil :type cons)
+  (next-fn nil :type function))
+
+(defun make-hash-table-iterator (hash-table next-fn)
+  (let ((emptyp (emptyp hash-table)))
+    (multiple-value-bind (more key val) (funcall next-fn)
+      (%make-hash-table-iterator
+       :next-fn next-fn
+       :next-kv (cons key val)
+       :endp (or emptyp (not more))))))
+
+(defmethod iterator-pointer ((iterator hash-table-iterator))
+  (hash-table-iterator-pointer iterator))
+
+(defmethod iterator-endp ((iterator hash-table-iterator))
+  (hash-table-iterator-endp iterator))
+
+(defmethod iterator-next ((iterator hash-table-iterator))
+  (incf (hash-table-iterator-pointer iterator))
+  (prog1
+      (hash-table-iterator-next-kv iterator)
+    (multiple-value-bind (more key val)
+        (funcall (hash-table-iterator-next-fn iterator))
+      (if more
+          (setf (hash-table-iterator-next-kv iterator) (cons key val))
+          (setf (hash-table-iterator-endp iterator) t)))))
+
+
+;;
 ;; Macro
 
 (defmacro define-hash-compiler-macro (name lambda-list &optional default-form)
@@ -111,6 +158,21 @@
 
 (defun hash-table-p (object)
   (typep object 'hash-table))
+
+(defmethod make-sequence-iterator ((hash-table abstract-hash-table) &key start end from-end)
+  (declare (ignore start end from-end))
+  (method-unimplemented-error 'make-sequence-iterator hash-table))
+
+(defmethod getf ((place abstract-hash-table) key &optional (default nil default-specified-p))
+  (apply #'abstract-gethash key place (if default-specified-p
+                                          (list default)
+                                          nil)))
+
+(defmethod (setf getf) (newval (place abstract-hash-table) key)
+  (setf (abstract-gethash key place) newval))
+
+(defmethod emptyp ((object abstract-hash-table))
+  (method-unimplemented-error 'emptyp hash-table))
 
 
 ;;
@@ -175,17 +237,11 @@
 
 ;;
 ;; Function: maphash
-;; Generic Function: abstract-maphash
 
 (defun maphash (function hash)
-  (etypecase hash
-    (cl:hash-table (cl:maphash function hash))
-    (abstract-hash-table (abstract-maphash function hash))))
-(define-hash-compiler-macro maphash (function hash))
-
-(defgeneric abstract-maphash (function hash)
-  (:method (function (hash abstract-hash-table))
-    (method-unimplemented-error 'abstract-maphash hash)))
+  (map (lambda (pair)
+         (funcall function (car pair) (cdr pair)))
+       hash))
 
 
 ;;
@@ -201,11 +257,12 @@
 
 (defgeneric abstract-hash-table-keys (hash)
   (:method ((hash abstract-hash-table))
-    (let ((results '()))
-      (abstract-maphash (lambda (k v)
-                          (declare (ignore v))
-                          (push k results))
-                        hash)
+    (let ((results '())
+          (iterator (make-sequence-iterator hash)))
+      (do ()
+          ((iterator-endp iterator))
+        (push (car (iterator-next iterator))
+              results))
       results)))
 
 
@@ -222,11 +279,12 @@
 
 (defgeneric abstract-hash-table-values (hash)
   (:method ((hash abstract-hash-table))
-    (let ((results '()))
-      (abstract-maphash (lambda (k v)
-                          (declare (ignore k))
-                          (push v results))
-                        hash)
+    (let ((results '())
+          (iterator (make-sequence-iterator hash)))
+      (do ()
+          ((iterator-endp iterator))
+        (push (cdr (iterator-next iterator))
+              results))
       results)))
 
 

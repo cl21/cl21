@@ -2,7 +2,13 @@
 (defpackage cl21.lazy
   (:use :cl21)
   (:export :lazy-sequence
-           :cycle))
+           :cycle)
+  (:documentation
+   "An implementation of lazy evaluation.
+Note that the basic features are implemented with funcallable-standard-class
+in Meta Object Protocol, which is not so fast because most implementations
+do not optimize the call related to MOP and CLOS objects.
+Future improvements are awaited."))
 (in-package :cl21.lazy)
 
 (defclass memoized-lambda ()
@@ -26,7 +32,7 @@
                   :function (lambda ,lambda-list ,@body)))
 
 (defun %copy-memoized-lambda (object)
-  (declare (type object memoized-lambda))
+  (declare (type memoized-lambda object))
   (let ((copied
           (make-instance 'memoized-lambda
                          :function (slot-value object 'function))))
@@ -90,7 +96,7 @@
 
 (defvar *return-lazy* t)
 
-(defmethod abstract-split-sequence-if (pred (sequence lazy-sequence) &rest args &key count end &allow-other-keys)
+(defmethod abstract-split-if (pred (sequence lazy-sequence) &rest args &key count end &allow-other-keys)
   (if *return-lazy*
       (if (or (and count
                    (< count 1))
@@ -98,7 +104,7 @@
           nil
           (lazy-sequence
             (multiple-value-bind (res i) (let ((*return-lazy* nil))
-                                           (apply #'split-sequence-if pred sequence :count 1 args))
+                                           (apply #'split-if pred sequence :count 1 args))
               (if (and end (= end i))
                   res
                   `(,@res .
@@ -108,7 +114,7 @@
                              (setf (getf args :start) 0)
                              (when end
                                (decf (getf args :end) i))
-                             (apply #'split-sequence-if pred (drop i sequence) args)))))))
+                             (apply #'split-if pred (drop i sequence) args)))))))
       (call-next-method)))
 
 ;; FIXME: Doesn't work for infinite sequences without :count argument.
@@ -120,7 +126,7 @@
 ;;                 (lazy-sequence (cons a (rec b (+ a b))))))
 ;;        (rec 0 1)))
 ;;
-;;     (take 1 (remove-if #'null (split-sequence-if #'oddp (fib-seq))))
+;;     (take 1 (remove-if #'null (split-if #'oddp (fib-seq))))
 ;;
 (defmethod abstract-remove-if (pred (sequence lazy-sequence) &rest args &key &allow-other-keys)
   (if *return-lazy*

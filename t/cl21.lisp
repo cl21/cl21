@@ -4,7 +4,7 @@
         :cl-test-more))
 (in-package :cl21-test)
 
-(plan 963)
+(plan 959)
 
 (defvar *ignore-symbols*
   '(prog2
@@ -21,13 +21,22 @@
     gentemp
     provide
     set
+    mapl
+    mapc
+    mapcar
+    map-into
     *modules*))
 
 (let ((cl21 (find-package :cl21)))
   (let (symbols)
     (do-external-symbols (symbol (find-package :cl))
       (unless (member symbol *ignore-symbols*)
-        (push symbol symbols)))
+        (if (and (boundp symbol)
+                 (not (typep symbol 'boolean))
+                 (not (member symbol '(+ ++ +++ - / // ///)))
+                 (not (char= #\* (aref (symbol-name symbol) 0))))
+            (push (intern (format nil "+~A+" symbol)) symbols)
+            (push symbol symbols))))
     (dolist (symbol (sort symbols #'string<))
       (ok (eq (nth-value 1 (intern (string symbol) cl21))
               :external)

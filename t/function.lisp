@@ -6,9 +6,9 @@
 
 (plan 7)
 
-(is (mapcar (compose #'sin #'1+) '(1 2 3))
+(is (map (compose #'sin #'1+) '(1 2 3))
     '(0.9092974 0.14112 -0.7568025))
-(is (mapcar #'(compose sin 1+) '(1 2 3))
+(is (map #'(compose sin 1+) '(1 2 3))
     '(0.9092974 0.14112 -0.7568025))
 (is (keep-if (conjoin #'integerp #'evenp) '(1 2 3 2.0 4))
     '(2 4))

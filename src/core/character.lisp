@@ -32,6 +32,13 @@
            :char-code
            :char-int
            :code-char
-           :char-code-limit
            :char-name
-           :name-char))
+           :name-char
+
+           ;; Variables
+           :+char-code-limit+))
+(in-package :cl21.core.character)
+
+(defconstant +char-code-limit+
+  char-code-limit
+  #.(documentation 'char-code-limit 'variable))

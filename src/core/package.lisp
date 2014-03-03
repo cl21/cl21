@@ -59,9 +59,37 @@
            :add-package-local-nickname))
 (cl:in-package :cl21.core.package)
 
-(defvar *package-use* (make-hash-table :test 'eq))
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (defvar *package-use* (make-hash-table :test 'eq)))
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (defvar *package-local-nicknames* (make-hash-table :test 'eq)))
 
 (defmacro defpackage (name &rest options)
+  "A redefined version of cl:defpackage with package-local-nicknames and readtable support.
+It compiles to cl:defpackage and some additional operations.
+
+Additional/modified options compared to cl:defpackage:
+
+ (defpackage :somepkg
+   (:use :otherpkg :as :nick1 :nick2 :nick3)
+   ...
+
+When the third argument to :use is string= to :as, the rest of the arguments are
+interpreted as the package-local nickname to :otherpkg . Within :somepkg,
+symbols such as `nick1:x' and `nick2:x' is interpreted as `otherpkg:x'.
+Otherwise, the sytax is the same as cl:defpackage.
+Note that this feature is quite experimental.
+
+
+ (defpackage :somepkg
+   (:use-syntax :syntax-name1 :syntax-name-2)
+   (:use-syntax :syntax-name3) ...
+
+Creates a fresh readtable implicitly (so that it does not collapse the other
+readtable) and apply the specified syntaxes to that readtable.
+Multiple :use-syntax declarations are available.
+For details about syntax, read the documentation of `use-syntax' .
+"
   (let* ((readtable (gensym "READTABLE"))
          package-local-nicknames
          import-syntaxes
@@ -206,8 +234,6 @@
 
     (find-readtable (intern (package-name package) :keyword))))
 
-(defvar *package-local-nicknames* (make-hash-table :test 'eq))
-
 (defun find-package (package-designator &optional (package *package*))
   (or (cl:find-package package-designator)
       (let ((package (cl:find-package package)))
@@ -216,6 +242,8 @@
                (gethash package-designator package-nicknames))))))
 
 (defun add-package-local-nickname (nickname actual-package &optional (package-designator *package*))
+  "Adds a local-nickname A' of a package A to a package B.
+Local nickname A' is available only in package B."
   (let ((package (cl:find-package package-designator)))
     (unless package
       (%package-not-found package-designator))

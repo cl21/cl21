@@ -60,6 +60,7 @@
                           :copy-seq)
   (:shadowing-import-from :cl21.core.generic
                           :emptyp
+                          :getf
                           :coerce)
   (:import-from :cl21.core.util
                 :define-typecase-compiler-macro)
@@ -133,10 +134,7 @@
            :nreconc
            :ldiff
            :tailp
-           :mapc
-           :mapcar
            :mapcan
-           :mapl
            :maplist
            :mapcon
            :acons
@@ -171,8 +169,6 @@
            :list-pushnew
            :list-pop
 
-           :last-cons
-
            ;; Alexandria
            :mappend
 
@@ -187,7 +183,10 @@
            :abstract-member-if
 
            :flatten
-           :abstract-flatten))
+           :abstract-flatten
+
+           :last-cons
+           :abstract-last-cons))
 (in-package :cl21.core.cons)
 
 (setf (symbol-function 'nappend) #'nconc)
@@ -198,8 +197,6 @@
   `(cl:pushnew ,value ,place ,@keys))
 (defmacro list-pop (place)
   `(cl:pop ,place))
-
-(setf (symbol-function 'last-cons) #'last)
 
 (defun maptree (fn tree)
   (labels ((rec (tree)
@@ -221,6 +218,18 @@
 
 ;;
 ;; Abstract List
+
+(defmethod emptyp ((sequence abstract-list))
+  (method-unimplemented-error 'emptyp sequence))
+
+(defmethod getf ((place abstract-list) key &optional default)
+  (let ((rest (%nthrest key place)))
+    (if (emptyp rest)
+        (values default nil)
+        (values (abstract-first rest) t))))
+
+(defmethod (setf getf) (newval (place abstract-list) key)
+  (setf (abstract-elt place key) newval))
 
 (defmethod abstract-length ((sequence abstract-list))
   (do-abstract-sequence (nil sequence i) (i)))
@@ -417,14 +426,6 @@
   (do-abstract-cons (x sequence sequence) (i start end)
     (setf (abstract-first x) item)))
 
-(defmethod abstract-take (n (sequence abstract-list))
-  (let ((results '()))
-    (do-abstract-sequence (x sequence (make-sequence-like sequence n
-                                                          :initial-contents
-                                                          (cl:nreverse results)))
-        (i 0 n)
-      (cl:push x results))))
-
 (defmethod abstract-drop (n (sequence abstract-list))
   (copy-seq (%nthrest n sequence)))
 
@@ -447,16 +448,6 @@
   (do-abstract-cons (x sequence) ()
     (when (emptyp (abstract-rest x))
       (return (abstract-first x)))))
-
-(defmethod abstract-find-if (pred (sequence abstract-list) &key from-end (start 0) end (key #'identity))
-  (do-abstract-sequence (x sequence) (i start end from-end)
-    (when (funcall pred (funcall key x))
-      (return x))))
-
-(defmethod abstract-position-if (pred (sequence abstract-list) &key from-end (start 0) end (key #'identity))
-  (do-abstract-sequence (x sequence) (i start end from-end)
-    (when (funcall pred (funcall key x))
-      (return i))))
 
 (defmethod abstract-search (sequence1 (sequence2 abstract-list) &key from-end (test #'eql) (start1 0) end1 (start2 0) end2 (key #'identity))
   (when (typep sequence1 'abstract-sequence)
@@ -514,12 +505,6 @@
                     (- end1 i)
                     i)))
       (setq current (rest current)))))
-
-(defmethod abstract-count-if (pred (sequence abstract-list) &key from-end (start 0) end (key #'identity))
-  (let ((count 0))
-    (do-abstract-sequence (x sequence count) (i start end from-end)
-      (when (funcall pred (funcall key x))
-        (incf count)))))
 
 (defmethod abstract-nreverse ((sequence abstract-list))
   (if (emptyp sequence)
@@ -647,3 +632,18 @@
         (cl:push (flatten x) buf))
       (make-sequence-like tree length
                           :initial-contents (nreverse buf)))))
+
+
+;;
+;; Function: last-cons
+;; Generic Function: abstract-last-cons
+
+(defun last-cons (list &optional (n 1))
+  (etypecase list
+    (cl:list (cl:last list n))
+    (abstract-list (abstract-last-cons list n))))
+
+(defgeneric abstract-last-cons (list &optional n)
+  (:method ((list abstract-list) &optional (n 1))
+    (do ((current list (abstract-rest current)))
+        ((emptyp (%nthrest n current)) current))))

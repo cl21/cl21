@@ -1,17 +1,37 @@
 # CL21 - Common Lisp in the 21st Century.
 
-This is an experimental project redesigning Common Lisp.
+This is an experimental project aiming at redesigning *a new successor of Common Lisp*.
+Discussion is highly welcome, join the issues thread and post some ideas!
+(However, please read the older posts before you actually post something!)
+
+<!-- The aim is both at -->
+<!-- catching the newcomer's eye and still attracting the old-lispers -->
+
+## Philosophy and Features
+
+* Trying to be the true successor -- Cooperate with existing Common Lisp applications/libraries
+* Clean names and clean packages -- Symbols are re-considered and re-organized
+* CLOS-based functions and MOP -- write fast, tune later
+* Brought more functional facilities. -- Lazyness, etc.
+* Aggressive use of reader-macros.
+  * Regexp literals.
+  * Hash-table literals.
+  * String Interpolation (once deleted, but is going to appear again in the other
+    form)
+* Includes Gray streams, CLtL2 Environment, etc
+* Package local nicknames. (experimental)
 
 ## Usage
 
 ```common-lisp
+;; Installation
+(ql-dist:install-dist "http://qldists.8arrow.org/cl21.txt")
+(ql:quickload :cl21)
+
 (in-package :cl21-user)
-(defpackage myapp
-  (:use :cl21))
+(defpackage myapp (:use :cl21))
 (in-package :myapp)
 
-
-;;
 ;; Hello, World!
 
 (princ "Hello, World!\n")
@@ -19,90 +39,58 @@ This is an experimental project redesigning Common Lisp.
 ;=> "Hello, World!
 ;   "
 
-
-;;
-;; Hash Table
+;; Hash Table  --  consistent interface!
 
 (defvar *hash* #{})
+(getf *hash* :name)                            ;=> NIL
+(setf (getf *hash* :name) "Eitarow Fukamachi") ;=> "Eitarow Fukamachi"
+(setf (getf *hash* :living) "Japan")           ;=> "Japan"
+(getf *hash* :name)                            ;=> "Eitarow Fukamachi"
+(coerce *hash* 'plist)                         ;=> (:LIVING "Japan" :NAME "Eitarow Fukamachi")
 
-(getf *hash* :name)
-;=> NIL
-
-(setf (getf *hash* :name) "Eitarow Fukamachi")
-;=> "Eitarow Fukamachi"
-(setf (getf *hash* :living) "Japan")
-;=> "Japan"
-
-(getf *hash* :name)
-;=> "Eitarow Fukamachi"
-
-(coerce *hash* 'plist)
-;=> (:LIVING "Japan" :NAME "Eitarow Fukamachi")
-
-
-;;
-;; Vector
+;; Vector      --  consistent interface again!
 
 (defvar *vector* #())
-
 (push 1 *vector*)
-(elt *vector* 0)
-;=> 1
-
+(elt *vector* 0)   ;=> 1
 (push 3 *vector*)
-(elt *vector* 1)
-;=> 3
+(elt *vector* 0)   ;=> 3
+(pop *vector*)     ;=> 3
+(pop *vector*)     ;=> 1
 
-(pop *vector*)
-;=> 3
-(pop *vector*)
-;=> 1
-
-
-;;
-;; Iteration
-;;
-;;   `doeach` is similar to `dolist`, but it can be used with all sequences.
-;;
+;; Iteration -- `doeach` is similar to `dolist`, but it can be used with all sequences.
 
 (doeach (x '("al" "bob" "joe"))
   (when (> (length x) 2)
-    (princ x)
-    (fresh-line)))
+    (princ #"${x}\n")))
 ;-> bob
 ;   joe
 
 
-;;
 ;; Functional programming
 
-(mapcar (compose #'sin #'1+) '(1 2 3))
+(map (compose #'sin #'1+) '(1 2 3))
 ;=> (0.9092974 0.14112 -0.7568025)
 
-(keep-if (conjoin #'integerp #'evenp) '(1 2 3 2.0 4))
-;=> (2 4)
-(keep-if (disjoin #'oddp #'zerop) (0.. 10))
-;=> (0 1 3 5 7 9)
+;; remove-if-not -> keep-if
+(keep-if (conjoin #'integerp #'evenp) '(1 2 3 2.0 4))  ;=> (2 4)
+(keep-if (disjoin #'oddp #'zerop) (0.. 10))            ;=> (0 1 3 5 7 9)
 
-;; Sharpsign quote (#') is overwritten.
-(keep-if #'(and integerp evenp) '(1 2 3 2.0 4))
-;=> (2 4)
-(keep-if #'(and integerp (or oddp zerop)) (0.. 10))
-;=> (0 1 3 5 7 9)
+;; Useful Shapsign-Quote reader macro
+(keep-if #'(and integerp evenp) '(1 2 3 2.0 4))        ;=> (2 4)
+(keep-if #'(and integerp (or oddp zerop)) (0.. 10))    ;=> (0 1 3 5 7 9)
 
 
-;;
-;; Regular Expression
+;; Regular Expression (based on cl-ppcre)
 
-(use-package :cl21.re)
-
-;; #/.../ is a literal regular expression.
+(use-package :cl21.re)   ; in/use-package are redefined so that they
+                         ; load the associated syntax at the same time
 
 (re-match #/^Hello, (.+?)!$/ "Hello, World!")
 ;=> "Hello, World!"
 ;   #("World")
 
-;; Regular expression can be called like a function.
+;; Regular expressions are ... functions!
 
 (#/^(\d{4})-(\d{2})-(\d{2})$/ "2014-01-23")
 ;=> "2014-01-23"
@@ -113,7 +101,6 @@ This is an experimental project redesigning Common Lisp.
 ;   T
 
 
-;;
 ;; Lazy Sequence
 
 (use-package :cl21.lazy)
@@ -128,29 +115,28 @@ This is an experimental project redesigning Common Lisp.
 
 (take 3 (drop-while (lambda (x) (< x 500)) (fib-seq)))
 ;=> (610 987 1597)
+
+
+;; package-local-nickname
+
+CL21-USER> (defpackage mypack (:use :cl21))           ; -> #<PACKAGE "MYPACK">
+CL21-USER> (in-package :mypack)                       ; -> #<PACKAGE "MYPACK">
+MYPACK> (defun *2 (x) (* x x))                        ; -> *2
+MYPACK> (export '*2)                                  ; -> T
+MYPACK> (in-package :cl21-user)                       ; -> #<PACKAGE "CL21-USER">
+CL21-USER> (add-package-local-nickname :mp :mypack)   ; -> #<PACKAGE "CL21-USER">
+CL21-USER> (mp:*2 5)                                  ; -> 25
 ```
-
-## Features
-
-* Can completely cooperate with existing Common Lisp applications/libraries.
-* More object oriented.
-* Add more functional programming facilities.
-* Organize symbols into several packages.
-* Include MOP.
-* Include trivial-gray-streams.
-* Literal regular expression.
-* Package local nicknames. (experimental)
 
 ### Deferred List
 
-* Threads.
-* POSIX.
-* Functions to run shell commands.
+* Multi-Threading and Multi-Processing.
+* POSIX interactions.
+* Shell interactions.
 
 ## Requirements
 
 CL21 is written in pure Common Lisp and intended to run on a Common Lisp implementation.
-
 It is tested on the latest version of SBCL, Clozure CL, GNU CLISP and Allegro CL.
 
 ## Installation
@@ -162,11 +148,9 @@ It is tested on the latest version of SBCL, Clozure CL, GNU CLISP and Allegro CL
 
 ## List of major changes from standard CL
 
-See [CHANGES](./CHANGES.markdown) .  We also have another version of
-the list at [HERE](./CHANGES_AUTO.markdown) which is automatically
-generated by a script.
+We have a list about differences between CL and CL21 at [CHANGES_AUTO.markdown](./CHANGES_AUTO.markdown) which is automatically generated by a script.
 
-## Update to the latest version
+## Updating to the latest version
 
 CL21 is continuously released at 1:00 JST (= 16:00 UTC). You can update to the HEAD version by this command.
 
@@ -176,13 +160,15 @@ CL21 is continuously released at 1:00 JST (= 16:00 UTC). You can update to the H
 
 ## Setting the startup package of SLIME
 
-1) Load CL21 in your Lisp init file.
+Add the following code
+
+1) to your Lisp init file.
 
 ```common-lisp
 (ql:quickload :cl21)
 ```
 
-2) Add this to you .emacs.el.
+2) or, to your `.emacs.el` .
 
 ```common-lisp
 (add-hook 'slime-connected-hook (lambda ()
@@ -196,7 +182,6 @@ CL21 is continuously released at 1:00 JST (= 16:00 UTC). You can update to the H
 * Trivial Types
 * trivial-gray-streams
 * Alexandria
-* CL-Utilities
 * Split-Sequence
 * REPL-Utilities
 

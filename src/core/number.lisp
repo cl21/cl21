@@ -44,7 +44,6 @@
            :asin
            :acos
            :atan
-           :pi
            :sinh
            :cosh
            :tanh
@@ -97,22 +96,6 @@
            :integerp
            :parse-integer
            :boole
-           :boole-1
-           :boole-2
-           :boole-and
-           :boole-andc1
-           :boole-andc2
-           :boole-c1
-           :boole-c2
-           :boole-clr
-           :boole-eqv
-           :boole-ior
-           :boole-nand
-           :boole-nor
-           :boole-orc1
-           :boole-orc2
-           :boole-set
-           :boole-xor
            :logand
            :logandc1
            :logandc2
@@ -135,8 +118,6 @@
            :ldb
            :ldb-test
            :mask-field
-           :most-positive-fixnum
-           :most-negative-fixnum
            :decode-float
            :scale-float
            :float-radix
@@ -146,38 +127,6 @@
            :integer-decode-float
            :float
            :floatp
-           :most-positive-short-float
-           :least-positive-short-float
-           :least-positive-normalized-short-float
-           :most-positive-double-float
-           :least-positive-double-float
-           :least-positive-normalized-double-float
-           :most-positive-long-float
-           :least-positive-long-float
-           :least-positive-normalized-long-float
-           :most-positive-single-float
-           :least-positive-single-float
-           :least-positive-normalized-single-float
-           :most-negative-short-float
-           :least-negative-short-float
-           :least-negative-normalized-short-float
-           :most-negative-single-float
-           :least-negative-single-float
-           :least-negative-normalized-single-float
-           :most-negative-double-float
-           :least-negative-double-float
-           :least-negative-normalized-double-float
-           :most-negative-long-float
-           :least-negative-long-float
-           :least-negative-normalized-long-float
-           :short-float-epsilon
-           :short-float-negative-epsilon
-           :single-float-epsilon
-           :single-float-negative-epsilon
-           :double-float-epsilon
-           :double-float-negative-epsilon
-           :long-float-epsilon
-           :long-float-negative-epsilon
            :arithmetic-error
            :arithmetic-error-operands
            :arithmetic-error-operation
@@ -187,14 +136,129 @@
            :floating-point-overflow
            :floating-point-underflow
 
-           :imaginary-i
-           :ii
-           :exponential-e
-           :ee))
+           :+pi+
+           :+ii+
+           :+ee+
+
+           :+most-positive-fixnum+
+           :+most-negative-fixnum+
+
+           :+boole-1+
+           :+boole-2+
+           :+boole-and+
+           :+boole-andc1+
+           :+boole-andc2+
+           :+boole-c1+
+           :+boole-c2+
+           :+boole-clr+
+           :+boole-eqv+
+           :+boole-ior+
+           :+boole-nand+
+           :+boole-nor+
+           :+boole-orc1+
+           :+boole-orc2+
+           :+boole-set+
+           :+boole-xor+
+
+           :+most-positive-short-float+
+           :+least-positive-short-float+
+           :+least-positive-normalized-short-float+
+           :+most-positive-double-float+
+           :+least-positive-double-float+
+           :+least-positive-normalized-double-float+
+           :+most-positive-long-float+
+           :+least-positive-long-float+
+           :+least-positive-normalized-long-float+
+           :+most-positive-single-float+
+           :+least-positive-single-float+
+           :+least-positive-normalized-single-float+
+           :+most-negative-short-float+
+           :+least-negative-short-float+
+           :+least-negative-normalized-short-float+
+           :+most-negative-single-float+
+           :+least-negative-single-float+
+           :+least-negative-normalized-single-float+
+           :+most-negative-double-float+
+           :+least-negative-double-float+
+           :+least-negative-normalized-double-float+
+           :+most-negative-long-float+
+           :+least-negative-long-float+
+           :+least-negative-normalized-long-float+
+           :+short-float-epsilon+
+           :+short-float-negative-epsilon+
+           :+single-float-epsilon+
+           :+single-float-negative-epsilon+
+           :+double-float-epsilon+
+           :+double-float-negative-epsilon+
+           :+long-float-epsilon+
+           :+long-float-negative-epsilon+))
 (in-package :cl21.core.number)
 
-(defconstant imaginary-i #C(0 1) "The imaginary number `i = sqrt(-1)`.")
-(defconstant ii #C(0 1) "The imaginary number `i = sqrt(-1)`.")
+(defconstant +pi+ pi
+  #.(documentation 'pi 'variable))
 
-(defconstant exponential-e (exp 1.0d0) "The exponential number `e = 2.71828...`.")
-(defconstant ee (exp 1.0d0) "The exponential number `e = 2.71828...`.")
+(defconstant +ii+ #C(0 1) "The imaginary number `i = sqrt(-1)`.")
+
+(defconstant +ee+ (exp 1.0d0) "The exponential number `e = 2.71828...`.")
+
+(defconstant +most-negative-fixnum+
+  most-negative-fixnum
+  #.(documentation 'most-negative-fixnum 'variable))
+
+(defconstant +most-positive-fixnum+
+  most-positive-fixnum
+  #.(documentation 'most-positive-fixnum 'variable))
+
+#.`(progn
+     ,@(loop for var in '(boole-1
+                          boole-2
+                          boole-and
+                          boole-andc1
+                          boole-andc2
+                          boole-c1
+                          boole-c2
+                          boole-clr
+                          boole-eqv
+                          boole-ior
+                          boole-nand
+                          boole-nor
+                          boole-orc1
+                          boole-orc2
+                          boole-set
+                          boole-xor
+
+                          most-positive-short-float
+                          least-positive-short-float
+                          least-positive-normalized-short-float
+                          most-positive-double-float
+                          least-positive-double-float
+                          least-positive-normalized-double-float
+                          most-positive-long-float
+                          least-positive-long-float
+                          least-positive-normalized-long-float
+                          most-positive-single-float
+                          least-positive-single-float
+                          least-positive-normalized-single-float
+                          most-negative-short-float
+                          least-negative-short-float
+                          least-negative-normalized-short-float
+                          most-negative-single-float
+                          least-negative-single-float
+                          least-negative-normalized-single-float
+                          most-negative-double-float
+                          least-negative-double-float
+                          least-negative-normalized-double-float
+                          most-negative-long-float
+                          least-negative-long-float
+                          least-negative-normalized-long-float
+
+                          short-float-epsilon
+                          short-float-negative-epsilon
+                          single-float-epsilon
+                          single-float-negative-epsilon
+                          double-float-epsilon
+                          double-float-negative-epsilon
+                          long-float-epsilon
+                          long-float-negative-epsilon)
+             collect `(defconstant ,(intern (format nil "+~A+" var))
+                        ,var ,(documentation var 'variable))))
