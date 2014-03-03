@@ -3,6 +3,9 @@
   (:use :cl)
   (:import-from :alexandria
                 :copy-array)
+  (:import-from :cl21.core.types
+			  :octet
+			  :hex)
   (:export :array
            :simple-array
            :vector
@@ -33,6 +36,9 @@
            :vector-push
            :vector-push-extend
            :vectorp
+	   :bits
+	   :octets
+	   :hexs
            :bit
            :sbit
            :bit-and
@@ -68,6 +74,22 @@
 (defconstant +array-total-size-limit+
   array-total-size-limit
   #.(documentation 'array-total-size-limit 'variable))
+
+(defmacro bits (&rest elements)
+  "Make a bit array."
+  `(make-array ,(length elements)
+	       :element-type 'bit
+	       :initial-contents ',elements))
+(defmacro octets (&rest elements)
+  "Make an octet array."
+  `(make-array ,(length elements)
+	       :element-type 'octet
+	       :initial-contents ',elements))
+(defmacro hexs (&rest elements)
+  "Make a hexadecimal array."
+  `(make-array ,(length elements)
+	       :element-type 'hex
+	       :initial-contents ',elements))
 
 (defmacro adjustable-vector (&key (dimension nil dimension-specified-p) initial-contents)
   "A variant of `cl:vector' that returns an adjustable vector, not a simple-vector."

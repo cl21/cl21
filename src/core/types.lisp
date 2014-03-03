@@ -59,6 +59,10 @@
 
            :compiled-function
            :octet
+	   :hex
+	   :bits
+	   :octets
+	   :hexs
            :boolean
 
            :satisfies
@@ -93,3 +97,16 @@ specified, then `(octet n)` represents `8n` bits. This can often be
 used for optimization in Common Lisp."
   (check-type n (integer 1))
   `(unsigned-byte ,(* 8 n)))
+(deftype hex ()
+  "A type representing a hexadecimal: 16 bits."
+'(unsigned-byte 16))
+
+(deftype bits (&optional (dimension '*))
+  "A bit vector. The optional argument `dimension` is vector length."
+  `(vector cl:bit ,dimension))
+(deftype octets (&optional (dimension '*))
+  "An octet vector. The optional argument `dimension` is vector length."
+  `(vector octet ,dimension))
+(deftype hexs (&optional (dimension '*))
+  "A hexadecimal vector. The optional argument `dimension` is vector length."
+  `(vector hex ,dimension))

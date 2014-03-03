@@ -6,7 +6,10 @@
            :getf)
   (:import-from :cl21.core.types
                 :plist
-                :alist)
+                :alist
+		:bits
+		:octets
+		:hexs)
   (:import-from :alexandria
                 :hash-table-plist
                 :hash-table-alist)
@@ -68,14 +71,15 @@
 
 (defmethod coerce ((object vector) output-type-spec)
   (case output-type-spec
-    (number (let ((shift (etypecase object
-			   ((vector (unsigned-byte 2) *) 1)
-			   ((vector (unsigned-byte 8) *) 3)
-			   ((vector (unsigned-byte 16) *) 4)))
+    (number (let ((shift-amount
+		   (etypecase object
+		     (bits 1)
+		     (octets 8)
+		     (hexs 16)))
 		  (result 0))
-	     (loop :for bit :across object :do
-		(setf result (+ (ash result shift) bit)))
-	     result))
+	      (loop :for elm :across object :do
+		 (setf result (+ (ash result shift-amount) elm)))
+	      result))
     (T (cl:coerce object output-type-spec))))
 
 (defmethod coerce ((object hash-table) output-type-spec)
