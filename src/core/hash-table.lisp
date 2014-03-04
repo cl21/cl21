@@ -66,6 +66,12 @@
            :abstract-hash-table-test))
 (in-package :cl21.core.hash-table)
 
+(defun hash-table (test-fn &rest contents)
+  (let ((hash (make-hash-table :test test-fn)))
+    (loop for (k v) on contents by #'cddr
+          do (setf (gethash k hash) v))
+    hash))
+
 (defmacro equal-hash-table (&rest contents)
   (flet ((repeated-keys-p (pairs)
            (dolist (p pairs)
