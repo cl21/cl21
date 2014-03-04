@@ -111,8 +111,7 @@
 (defun lambda-reader (stream char)
   (when *in-lambda-reader*
     (error "Nested ~A()s are not allowed" char))
-  (setf *in-lambda-reader* t)
-  (let ((form (read stream t nil t))
+  (let ((form (let ((*in-lambda-reader* t))(read stream t nil t)))
         (args (make-array 5 :element-type 'bit :initial-element 0))
         (restargs (gensym))
         (%-used nil))
