@@ -7,7 +7,8 @@
                 :conjoin
                 :disjoin
                 :curry
-                :rcurry)
+                :rcurry
+                :define-constant)
   (:export
    :lambda
    :apply
@@ -35,17 +36,17 @@
    :+lambda-parameters-limit+))
 (in-package :cl21.core.function)
 
-(defconstant +call-arguments-limit+
+(define-constant +call-arguments-limit+
   call-arguments-limit
-  #.(documentation 'call-arguments-limit 'variable))
+  :documentation #.(documentation 'call-arguments-limit 'variable))
 
-(defconstant +lambda-list-keywords+
+(define-constant +lambda-list-keywords+
   lambda-list-keywords
-  #.(documentation 'lambda-list-keywords 'variable))
+  :documentation #.(documentation 'lambda-list-keywords 'variable))
 
-(defconstant +lambda-parameters-limit+
+(define-constant +lambda-parameters-limit+
   lambda-parameters-limit
-  #.(documentation 'lambda-parameters-limit 'variable))
+  :documentation #.(documentation 'lambda-parameters-limit 'variable))
 
 
 (deftype function () 'cl:function)

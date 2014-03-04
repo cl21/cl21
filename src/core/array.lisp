@@ -2,7 +2,8 @@
 (defpackage cl21.core.array
   (:use :cl)
   (:import-from :alexandria
-                :copy-array)
+                :copy-array
+                :define-constant)
   (:export :array
            :simple-array
            :vector
@@ -57,17 +58,17 @@
            :copy-array))
 (in-package :cl21.core.array)
 
-(defconstant +array-dimension-limit+
+(define-constant +array-dimension-limit+
   array-dimension-limit
-  #.(documentation 'array-dimension-limit 'variable))
+  :documentation #.(documentation 'array-dimension-limit 'variable))
 
-(defconstant +array-rank-limit+
+(define-constant +array-rank-limit+
   array-rank-limit
-  #.(documentation 'array-rank-limit 'variable))
+  :documentation #.(documentation 'array-rank-limit 'variable))
 
-(defconstant +array-total-size-limit+
+(define-constant +array-total-size-limit+
   array-total-size-limit
-  #.(documentation 'array-total-size-limit 'variable))
+  :documentation #.(documentation 'array-total-size-limit 'variable))
 
 (defmacro adjustable-vector (&key (dimension nil dimension-specified-p) initial-contents)
   "A variant of `cl:vector' that returns an adjustable vector, not a simple-vector."

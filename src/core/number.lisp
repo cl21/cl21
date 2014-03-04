@@ -1,6 +1,8 @@
 (in-package :cl-user)
 (defpackage cl21.core.number
   (:use :cl)
+  (:import-from :alexandria
+                :define-constant)
   (:export :number
            :complex
            :real
@@ -194,20 +196,22 @@
            :+long-float-negative-epsilon+))
 (in-package :cl21.core.number)
 
-(defconstant +pi+ pi
-  #.(documentation 'pi 'variable))
+(define-constant +pi+ pi
+  :documentation #.(documentation 'pi 'variable))
 
-(defconstant +ii+ #C(0 1) "The imaginary number `i = sqrt(-1)`.")
+(define-constant +ii+ #C(0 1)
+  :documentation "The imaginary number `i = sqrt(-1)`.")
 
-(defconstant +ee+ (exp 1.0d0) "The exponential number `e = 2.71828...`.")
+(define-constant +ee+ (exp 1.0d0)
+  :documentation "The exponential number `e = 2.71828...`.")
 
-(defconstant +most-negative-fixnum+
+(define-constant +most-negative-fixnum+
   most-negative-fixnum
-  #.(documentation 'most-negative-fixnum 'variable))
+  :documentation #.(documentation 'most-negative-fixnum 'variable))
 
-(defconstant +most-positive-fixnum+
+(define-constant +most-positive-fixnum+
   most-positive-fixnum
-  #.(documentation 'most-positive-fixnum 'variable))
+  :documentation #.(documentation 'most-positive-fixnum 'variable))
 
 #.`(progn
      ,@(loop for var in '(boole-1
@@ -260,5 +264,5 @@
                           double-float-negative-epsilon
                           long-float-epsilon
                           long-float-negative-epsilon)
-             collect `(defconstant ,(intern (format nil "+~A+" var))
-                        ,var ,(documentation var 'variable))))
+             collect `(define-constant ,(intern (format nil "+~A+" var))
+                        ,var :documentation ,(documentation var 'variable))))
