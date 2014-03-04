@@ -16,14 +16,15 @@
                           :coerce
                           :getf
                           :emptyp)
+  (:import-from :cl21.core.package
+                :cl21-available-p)
   (:import-from :cl21.core.condition
                 :method-unimplemented-error)
   (:import-from :cl21.core.sequence
                 :make-sequence-iterator
                 :iterator-pointer
                 :iterator-next
-                :iterator-endp
-                :subdivide)
+                :iterator-endp)
   (:shadowing-import-from :cl21.core.sequence
                           :map)
   (:import-from :cl21.core.util
@@ -70,36 +71,19 @@
           do (setf (gethash k hash) v))
     hash))
 
-(defmacro equal-hash-table (&rest contents)
-  (flet ((repeated-keys-p (pairs)
-           (dolist (p pairs)
-             (if (< 1
-                    (count (car p) pairs :key #'car))
-                 (return t)))))
-    (if (oddp (length contents))
-        (error "Odd number of values in hash-table literal")
-        (if (repeated-keys-p (subdivide contents 2))
-            (error "Repeated keys in hash-table literal")
-            (let ((hash (gensym "HASH")))
-              `(let ((,hash (make-hash-table :test 'equal)))
-                 (setf ,@(do ((lst contents
-                                   (cddr lst))
-                              (acc nil))
-                             ((null lst) (nreverse acc))
-                             (push `(gethash ,(car lst) ,hash) acc)
-                             (push (cadr lst) acc)))
-                 ,hash))))))
-
-(defun hash-table-reader (stream sub-char numarg)
-  (declare (ignore sub-char numarg))
-  `(equal-hash-table ,@(read-delimited-list #\} stream t)))
 
 (defun hash-table-key-exists-p (hash key)
   (nth-value 1 (gethash hash key)))
 
 (defmethod print-object ((object cl:hash-table) stream)
-  (format stream "~<#{~;~\@{~S ~S~^ ~_~}~;}~:>"
-          (hash-table-plist object)))
+  (if (cl21-available-p (package-name *package*))
+      (format stream "~<#{~;~\@{~S ~S~^ ~_~}~;}~:>"
+              (hash-table-plist object))
+      (print-unreadable-object (object stream :type t :identity t)
+        (format stream
+                ":TEST ~S :COUNT ~S"
+                (hash-table-test object)
+                (hash-table-count object)))))
 
 
 ;;

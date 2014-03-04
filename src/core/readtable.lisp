@@ -4,10 +4,10 @@
   (:shadow :copy-readtable)
   (:import-from :cl21.core.array
                 :adjustable-vector)
-  (:import-from :cl21.core.hash-table
-                :hash-table-reader)
   (:shadowing-import-from :cl21.core.function
                           :function)
+  (:import-from :cl21.core.sequence
+                :subdivide)
   (:import-from :cl21.core.cons
                 :maptree)
   (:import-from :cl-interpol
@@ -175,7 +175,31 @@
         ,@(if numarg
               `(:dimension ,numarg)
               nil)
-        :initial-contents ,list))))
+        :initial-contents ,list)))
+
+  (defmacro equal-hash-table (&rest contents)
+    (flet ((repeated-keys-p (pairs)
+             (dolist (p pairs)
+               (if (< 1
+                      (count (car p) pairs :key #'car))
+                   (return t)))))
+      (if (oddp (length contents))
+          (error "Odd number of values in hash-table literal")
+          (if (repeated-keys-p (subdivide contents 2))
+              (error "Repeated keys in hash-table literal")
+              (let ((hash (gensym "HASH")))
+                `(let ((,hash (make-hash-table :test 'equal)))
+                   (setf ,@(do ((lst contents
+                                     (cddr lst))
+                                (acc nil))
+                               ((null lst) (nreverse acc))
+                             (push `(gethash ,(car lst) ,hash) acc)
+                             (push (cadr lst) acc)))
+                   ,hash))))))
+
+  (defun hash-table-reader (stream sub-char numarg)
+    (declare (ignore sub-char numarg))
+    `(equal-hash-table ,@(read-delimited-list #\} stream t))))
 
 
 ;;

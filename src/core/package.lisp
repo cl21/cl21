@@ -157,8 +157,8 @@ For details about syntax, read the documentation of `use-syntax' .
         (create-readtable-for-package name)
         (find-readtable name))))
 
-(defun cl21-readtable-available-p (name)
-  (or (eq name :cl21)
+(defun cl21-available-p (name)
+  (or (string= name :cl21)
       (find :cl21 (gethash (intern (string name) :keyword) *package-use*))))
 
 (defmacro in-package (name)
@@ -168,7 +168,7 @@ For details about syntax, read the documentation of `use-syntax' .
            (cl:in-package ,name)
          (if (find-readtable ,keyword-name)
              (in-readtable ,keyword-name)
-             (when (and ,(not (cl21-readtable-available-p name))
+             (when (and ,(not (cl21-available-p name))
                         (eq *readtable* *standard-readtable*))
                (setf *readtable*
                      #+ccl ccl::%initial-readtable%
