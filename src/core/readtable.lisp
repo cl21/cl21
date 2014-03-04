@@ -106,8 +106,12 @@
         `(cl21.core.function:function ,expr)
         `(cl:function ,expr))))
 
+(defvar *in-lambda-reader* nil)
+
 (defun lambda-reader (stream char)
-  (declare (ignore char))
+  (when *in-lambda-reader*
+    (error "Nested ~A()s are not allowed" char))
+  (setf *in-lambda-reader* t)
   (let ((form (read stream t nil t))
         (args (make-array 5 :element-type 'bit :initial-element 0))
         (restargs (gensym))
