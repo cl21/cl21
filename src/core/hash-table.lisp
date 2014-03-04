@@ -29,7 +29,6 @@
   (:import-from :cl21.core.util
                 :define-typecase-compiler-macro)
   (:import-from :alexandria
-                :plist-hash-table
                 :alist-hash-table
                 :hash-table-plist)
   (:export :hash-table
@@ -51,7 +50,6 @@
            :hash-table-values
            :hash-table-key-exists-p
            :copy-hash-table
-           :plist-hash-table
            :alist-hash-table
 
            :abstract-hash-table
