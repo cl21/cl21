@@ -62,8 +62,12 @@
    :find-syntax
    :use-syntax
    :export-syntax
-   :_
-   :_..))
+   :%
+   :%1
+   :%2
+   :%3
+   :%4
+   :%5))
 (in-package :cl21.core.readtable)
 
 (defun string-reader (stream char)
@@ -105,21 +109,29 @@
 (defun lambda-reader (stream char)
   (declare (ignore char))
   (let ((form (read stream t nil t))
-        (args '()))
-    (flet ((add-arg ()
-             (let ((symb (gensym "ARG")))
-               (push symb args)
-               symb)))
+        (args (make-array 5 :element-type 'symbol :initial-element nil))
+        (max-arg-number 0))
+    (flet ((add-arg (n)
+             (setf max-arg-number (max n max-arg-number))
+             (or (aref args (1- n))
+                 (setf (aref args (1- n)) (gensym (format nil "ARG" n))))))
       (let ((form
               (maptree (lambda (x)
                          (case x
-                           (_ (add-arg))
-                           (_..
-                            (push 'cl:&rest args)
-                            (add-arg))
+                           (% (add-arg 1))
+                           ((%1 %2 %3 %4 %5)
+                            (add-arg
+                             (parse-integer (subseq (string x) 1))))
                            (otherwise x)))
-                       form)))
-        `(lambda ,(nreverse args) ,form)))))
+                       form))
+            (ignored-args '()))
+        (dotimes (i max-arg-number)
+          (unless (aref args i)
+            (setf (aref args i) (gensym (format nil "ARG~D" (1+ i))))
+            (push (aref args i) ignored-args)))
+        `(lambda (,@(coerce (subseq args 0 max-arg-number) 'list))
+           ,@(and ignored-args `((declare (ignore ,@ignored-args))))
+           ,form)))))
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defun read-token (stream)
