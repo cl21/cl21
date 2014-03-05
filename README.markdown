@@ -101,6 +101,25 @@ Discussion is highly welcome, join the issues thread and post some ideas!
 ;   T
 
 
+;; Running external programs (cl21.process)
+
+(use-package :cl21.process)
+
+(run-process '("ls" "-l" "/Users"))
+;-> total 0
+;   drwxrwxrwt    5 root         wheel   170 Nov  1 18:00 Shared
+;   drwxr-xr-x+ 174 nitro_idiot  staff  5916 Mar  5 21:41 nitro_idiot
+;=> #<PROCESS /bin/sh -c ls -l /Users (76468) EXITED 0>
+
+#`ls -l /Users`
+;=> "total 0
+;   drwxrwxrwt    5 root         wheel   170 Nov  1 18:00 Shared
+;   drwxr-xr-x+ 174 nitro_idiot  staff  5916 Mar  5 21:41 nitro_idiot
+;   "
+;   ""
+;   0
+
+
 ;; Lazy Sequence
 
 (use-package :cl21.lazy)
@@ -132,7 +151,6 @@ CL21-USER> (mp:*2 5)                                  ; -> 25
 
 * Multi-Threading and Multi-Processing.
 * POSIX interactions.
-* Shell interactions.
 
 ## Requirements
 
