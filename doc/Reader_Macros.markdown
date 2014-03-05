@@ -45,10 +45,9 @@ This reader is same as `(function ...)`.
 This is a shorthand for `lambda`.
 
 ```common-lisp
-^(coerce _ 'list)   <=> (lambda (x) (coerce x 'list))
-^(* (sin (1+ _)) _) <=> (lambda (x y) (* (sin (1+ x)) y))
-^(apply #'list _ (length _) _..)
-  <=> (lambda (x y &rest z) (apply #'list x (length y) z))
+^(random 10)          <=> (lambda (&rest rest) (declare (ignore rest)) (random 10))
+^(coerce % 'list)     <=> (lambda (x &rest rest) (declare (ignore rest)) (coerce x 'list))
+^(* (sin (1+ %1)) %2) <=> (lambda (x y &rest rest) (declare (ignore rest)) (* (sin (1+ x)) y))
 ```
 
 The specification isn't fixed yet. The discussion is still going at [#35](https://github.com/fukamachi/cl21/issues/35).
