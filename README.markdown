@@ -130,9 +130,13 @@ Discussion is highly welcome, join the issues thread and post some ideas!
     (rec 0 1)))
 
 (take 20 (fib-seq))
+;=> #<LAZY-SEQUENCE {1009F7A893}>
+(coerce * 'list)
 ;=> (0 1 1 2 3 5 8 13 21 34 55 89 144 233 377 610 987 1597 2584 4181)
 
 (take 3 (drop-while ^(< % 500) (fib-seq)))
+;=> #<LAZY-SEQUENCE {1009F33693}>
+(coerce * 'list)
 ;=> (610 987 1597)
 
 
