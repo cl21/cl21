@@ -197,15 +197,16 @@
 ;; Function: remhash
 ;; Generic Function: abstract-remhash
 
-(defun remhash (key hash)
+(defun remhash (hash key)
   (etypecase hash
     (cl:hash-table
      (cl:remhash key hash))
-    (abstract-hash-table (abstract-remhash key hash))))
-(define-hash-compiler-macro remhash (key hash))
+    (abstract-hash-table (abstract-remhash hash key))))
+(define-hash-compiler-macro remhash (hash key))
 
-(defgeneric abstract-remhash (key hash)
-  (:method (key (hash abstract-hash-table))
+(defgeneric abstract-remhash (hash key)
+  (:method ((hash abstract-hash-table) key)
+    (declare (ignore key))
     (method-unimplemented-error 'abstract-remhash hash)))
 
 
