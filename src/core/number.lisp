@@ -16,7 +16,6 @@
            :integer
            :signed-byte
            :unsigned-byte
-           :specifier
            :mod
            :bit
            :fixnum
