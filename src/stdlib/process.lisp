@@ -71,6 +71,21 @@ Currently, SBCL and Clozure CL on UNIX are supported now."))
 ;;
 ;; Functions
 
+(defun escape-shell-commands (command)
+  (flet ((escape (str)
+           (with-output-to-string (s)
+             (doeach (char str)
+               (if (char= char #\')
+                   (princ "'\\'" s)
+                   (write-char char s))))))
+    (etypecase command
+      (string (escape command))
+      (list
+       (destructuring-bind (program &rest args) command
+         (format nil "~A ~{'~A'~^ ~}"
+                 program
+                 (map #'escape args)))))))
+
 (defun run-process (command &key input (output *standard-output*) (error *error-output*) (wait t) shell)
   "Creates a new process and runs a shell command in that process.
 
@@ -85,7 +100,7 @@ Example:
                      command
                      `(,*shell-path* "-c" ,(if (stringp command)
                                                command
-                                               (format nil "~{~A~^ ~}" command))))))
+                                               (escape-shell-commands command))))))
     #+sbcl
     (handler-case
         (let* ((sb-proc
