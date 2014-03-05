@@ -77,7 +77,7 @@
 
 (defmethod print-object ((object cl:hash-table) stream)
   (if (cl21-available-p (package-name *package*))
-      (format stream "~<#{~;~\@{~S ~S~^ ~_~}~;}~:>"
+      (format stream "~<#H(~;~@{~S ~S~^ ~_~}~;)~:>"
               (hash-table-plist object))
       (print-unreadable-object (object stream :type t :identity t)
         (format stream
