@@ -132,7 +132,7 @@ Discussion is highly welcome, join the issues thread and post some ideas!
 (take 20 (fib-seq))
 ;=> (0 1 1 2 3 5 8 13 21 34 55 89 144 233 377 610 987 1597 2584 4181)
 
-(take 3 (drop-while (lambda (x) (< x 500)) (fib-seq)))
+(take 3 (drop-while ^(< % 500) (fib-seq)))
 ;=> (610 987 1597)
 
 
