@@ -2,7 +2,9 @@
 (defpackage cl21.core.cons
   (:use :cl)
   (:shadow :member
-           :member-if)
+           :member-if
+           :nth
+           :nthcdr)
   (:import-from :cl21.core.sequence
                 :abstract-sequence
                 :abstract-list
@@ -221,7 +223,7 @@
   (method-unimplemented-error 'emptyp sequence))
 
 (defmethod getf ((place abstract-list) key &optional default)
-  (let ((rest (%nthrest key place)))
+  (let ((rest (nthcdr place key)))
     (if (emptyp rest)
         (values default nil)
         (values (abstract-first rest) t))))
@@ -236,7 +238,7 @@
   (abstract-first (drop index sequence)))
 
 (defmethod (setf abstract-elt) (newval (sequence abstract-list) index)
-  (setf (abstract-first (%nthrest index sequence)) newval))
+  (setf (abstract-first (nthcdr sequence index)) newval))
 
 (defmethod abstract-first ((sequence abstract-list))
   (method-unimplemented-error 'abstract-first sequence))
@@ -265,12 +267,53 @@
                    (setq sequence (abstract-rest sequence)))
                  (setf (abstract-first sequence) newval)))))
 
+(defun nth (list n)
+  (etypecase list
+    (cl:list (cl:nth n list))
+    (abstract-list (dotimes (i n (abstract-first list))
+                     (setq list (abstract-rest list))))))
+(define-typecase-compiler-macro nth (list n)
+  (typecase list
+    (cl:list `(cl:nth ,n ,list))))
+
+(defun (setf nth) (newval list n)
+  (etypecase list
+    (cl:list (setf (cl:nth n list) newval))
+    (abstract-list
+     (dotimes (i n)
+       (setq list (abstract-rest list)))
+     (setf (abstract-first list) newval))))
+(define-typecase-compiler-macro (setf nth) (newval list n)
+  (typecase list
+    (cl:list `(setf (cl:nth ,n ,list) ,newval))))
+
 (defmethod abstract-rest ((sequence abstract-list))
   (method-unimplemented-error 'abstract-rest sequence))
 
 (defmethod (setf abstract-rest) (newval (sequence abstract-list))
   (declare (ignore newval))
   (method-unimplemented-error '(setf abstract-rest) sequence))
+
+(defun nthcdr (list n)
+  (etypecase list
+    (cl:list (cl:nthcdr n list))
+    (abstract-list (dotimes (i n list)
+                     (setq list (abstract-rest list))))))
+(define-typecase-compiler-macro nthcdr (list n)
+  (typecase list
+    (cl:list `(cl:nthcdr ,n ,list))))
+
+(defun (setf nthcdr) (newval list n)
+  (etypecase list
+    (cl:list (setf (cl:nthcdr n list) newval))
+    (abstract-list
+     (when (> n 1)
+       (dotimes (i (1- n))
+         (setq list (abstract-rest list))))
+     (setf (abstract-rest list) newval))))
+(define-typecase-compiler-macro (setf nthcdr) (newval list n)
+  (typecase list
+    (cl:list `(setf (cl:nthcdr ,n ,list) ,newval))))
 
 (defmethod adjust-sequence ((seq abstract-list) length &key initial-element (initial-contents nil icp))
   (if (eql length 0)
@@ -282,7 +325,7 @@
                (abstract-replace seq initial-contents)
                seq))
           ((< length olength)
-           (setf (%nthrest length seq) (make-sequence-like seq 0))
+           (setf (nthcdr seq length) (make-sequence-like seq 0))
            (if icp
                (abstract-replace seq initial-contents)
                seq))
@@ -291,7 +334,7 @@
              (if icp
                  (abstract-replace result initial-contents)
                  result)))
-          (t (setf (%nthrest olength seq)
+          (t (setf (nthcdr seq olength)
                    (make-sequence-like seq
                                        (- length olength)
                                        :initial-element initial-element))
@@ -327,7 +370,7 @@
                                :pointer (1- end)
                                :step -1
                                :limit (1- start)))
-        (%make-list-iterator (%nthrest start sequence)
+        (%make-list-iterator (nthcdr sequence start)
                              :pointer start
                              :step +1
                              :limit end)))
@@ -376,7 +419,7 @@
                                :pointer (1- end)
                                :step -1
                                :limit (1- start)))
-        (%make-list-iterator (%nthrest start sequence)
+        (%make-list-iterator (nthcdr sequence start)
                              :pointer start
                              :step +1
                              :limit end
@@ -387,19 +430,6 @@
     `(let ((,iterator (make-cons-iterator ,sequence :start ,start :end ,end :from-end ,from-end)))
        (with-sequence-iterator (,var ,iterator ,@result-form) (,i)
          ,@body))))
-
-;; Generic version of nthcdr.
-(defun %nthrest (i sequence)
-  (if (zerop i)
-      sequence
-      (dotimes (n (1- i) (rest sequence))
-        (setq sequence (rest sequence)))))
-
-(defun (setf %nthrest) (newrest i sequence)
-  (when (> i 1)
-    (dotimes (n (1- i))
-      (setq sequence (rest sequence))))
-  (setf (rest sequence) newrest))
 
 (defmethod abstract-copy-seq ((sequence abstract-list))
   (cond
@@ -425,7 +455,7 @@
     (setf (abstract-first x) item)))
 
 (defmethod abstract-drop (n (sequence abstract-list))
-  (copy-seq (%nthrest n sequence)))
+  (copy-seq (nthcdr sequence n)))
 
 (defmethod abstract-take-while (pred (sequence abstract-list))
   (let ((results '()))
@@ -543,8 +573,8 @@
                  :end1 end)
         (if end
             (progn
-              (setf (%nthrest (+ start length -1) sequence)
-                    (%nthrest end sequence))
+              (setf (nthcdr sequence (+ start length -1))
+                    (nthcdr sequence end))
               sequence)
             (adjust-sequence sequence (+ start (cl:length buf)))))
 
@@ -552,7 +582,7 @@
                (do-abstract-sequence (y seq) (i start end nil)
                  (when (funcall test (funcall key x) (funcall key y))
                    (return t)))))
-        (let ((seq (%nthrest start sequence)))
+        (let ((seq (nthcdr sequence start)))
           (loop while (find-dup (abstract-first seq) (abstract-rest seq)
                                 :start 0 :end (and end (1- end)))
                 do (setq seq (abstract-rest seq)))
@@ -569,7 +599,7 @@
             ((zerop start) (setq sequence seq))
             ((= start 1)
              (setf (abstract-rest sequence) seq))
-            (t (setf (%nthrest sequence start)
+            (t (setf (nthcdr start sequence)
                      seq)))
           sequence))))
 
@@ -644,4 +674,4 @@
 (defgeneric abstract-last-cons (list &optional n)
   (:method ((list abstract-list) &optional (n 1))
     (do ((current list (abstract-rest current)))
-        ((emptyp (%nthrest n current)) current))))
+        ((emptyp (nthcdr current n)) current))))
