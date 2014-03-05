@@ -11,6 +11,7 @@
                 :define-constant)
   (:export
    :lambda
+   :lm
    :apply
    :defun
    :fdefinition
@@ -66,3 +67,9 @@
               (mapcar (lambda (x) `(function ,x))
                       (cdr name-or-form))
               (cdr name-or-form)))))
+
+(defmacro lm (args &body body)
+  "A shorthand for LAMBDA.
+
+Currently this cannot be used at a function position."
+  `(lambda ,args ,@body))
