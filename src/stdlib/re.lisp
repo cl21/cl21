@@ -1,3 +1,4 @@
+;; -*- mode: cl21 -*-
 (in-package :cl21-user)
 (defpackage cl21.re
   (:use :cl21)
