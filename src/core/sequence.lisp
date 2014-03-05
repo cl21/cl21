@@ -75,6 +75,7 @@
                 :with-gensyms)
   (:export :split
            :split-if
+           :join
 
            :sequence
            :fill
@@ -1530,6 +1531,39 @@ of which has elements that satisfy PRED, the second which do not."
                 (incf split-counts)
                 (setq buf nil))
               (cl:push x buf)))))))
+
+
+;;
+;; Function: join
+
+(defun join (joint list-of-sequences)
+  (etypecase (car list-of-sequences)
+    (cl:list (loop for (x . xs) on list-of-sequences
+                   append x
+                   when xs
+                     collect joint))
+    (cl:string (with-output-to-string (s)
+                 (loop for (x . xs) on list-of-sequences
+                       do (princ x s)
+                       when xs
+                         do (write-char joint s))))
+    ((or cl:vector
+         abstract-sequence)
+     (let* ((length (loop for (x . xs) on list-of-sequences
+                          summing (length x)
+                          when xs
+                            summing 1))
+            (result (make-sequence-like (car list-of-sequences)
+                                        length)))
+       (loop with i = 0
+             for (seq . xs) on list-of-sequences
+             do (do-abstract-sequence (x seq) ()
+                  (setf (elt result i) x)
+                  (incf i))
+             when xs
+               do (setf (elt result i) joint)
+                  (incf i))
+       result))))
 
 
 ;;
