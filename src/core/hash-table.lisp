@@ -159,7 +159,7 @@
 (defmethod (setf getf) (newval (place abstract-hash-table) key)
   (setf (abstract-gethash place key) newval))
 
-(defmethod emptyp ((object abstract-hash-table))
+(defmethod emptyp ((hash-table abstract-hash-table))
   (method-unimplemented-error 'emptyp hash-table))
 
 
