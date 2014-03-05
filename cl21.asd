@@ -28,6 +28,11 @@
                :alexandria
                :repl-utilities
                #+sbcl :sb-cltl2
+
+               ;; for cl21.os
+               #-windows
+               :osicat
+
                ;; for package-diff
                :iterate)
   :components ((:module "src"
@@ -65,6 +70,8 @@
                    #+(and (or sbcl ccl)
                           (not windows))
                    (:file "process")
+                   #-windows
+                   (:file "os")
                    (:file "lazy")
                    (:file "abbr")))))
                (:module "tools"
