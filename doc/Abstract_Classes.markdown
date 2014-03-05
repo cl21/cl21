@@ -256,8 +256,8 @@ And, you can also define the following methods as you needed.
 * abstract-clrhash
 * abstract-copy-hash-table
 * emptyp
-* abstract-hash-table-keys
-* abstract-hash-table-values
+* abstract-hash-keys
+* abstract-hash-values
 
 ### Limitations
 

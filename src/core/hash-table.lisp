@@ -47,9 +47,9 @@
            :hash-table-test
            :with-hash-table-iterator
 
-           :hash-table-keys
-           :hash-table-values
-           :hash-table-key-exists-p
+           :hash-keys
+           :hash-values
+           :hash-exists-p
            :copy-hash-table
            :alist-hash-table
 
@@ -57,6 +57,8 @@
            :abstract-gethash
            :abstract-remhash
            :abstract-clrhash
+           :abstract-hash-keys
+           :abstract-hash-values
            :abstract-copy-hash-table
            :abstract-hash-table-count
            :abstract-hash-table-rehash-size
@@ -72,7 +74,7 @@
     hash))
 
 
-(defun hash-table-key-exists-p (hash key)
+(defun hash-exists-p (hash key)
   (nth-value 1 (gethash hash key)))
 
 (defmethod print-object ((object cl:hash-table) stream)
@@ -235,17 +237,17 @@
 
 
 ;;
-;; Function: hash-table-keys
-;; Generic Function: abstract-hash-table-keys
+;; Function: hash-keys
+;; Generic Function: abstract-hash-keys
 
-(defun hash-table-keys (hash)
+(defun hash-keys (hash)
   (etypecase hash
     (cl:hash-table (alexandria:hash-table-keys hash))
-    (abstract-hash-table (abstract-hash-table-keys hash))))
-(define-hash-compiler-macro hash-table-keys (hash)
+    (abstract-hash-table (abstract-hash-keys hash))))
+(define-hash-compiler-macro hash-keys (hash)
   `(alexandria:hash-table-keys ,hash))
 
-(defgeneric abstract-hash-table-keys (hash)
+(defgeneric abstract-hash-keys (hash)
   (:method ((hash abstract-hash-table))
     (let ((results '())
           (iterator (make-sequence-iterator hash)))
@@ -257,17 +259,17 @@
 
 
 ;;
-;; Function: hash-table-values
-;; Generic Function: abstract-hash-table-values
+;; Function: hash-values
+;; Generic Function: abstract-hash-values
 
-(defun hash-table-values (hash)
+(defun hash-values (hash)
   (etypecase hash
     (cl:hash-table (alexandria:hash-table-values hash))
-    (abstract-hash-table (abstract-hash-table-values hash))))
-(define-hash-compiler-macro hash-table-values (hash)
+    (abstract-hash-table (abstract-hash-values hash))))
+(define-hash-compiler-macro hash-values (hash)
   `(alexandria:hash-table-values ,hash))
 
-(defgeneric abstract-hash-table-values (hash)
+(defgeneric abstract-hash-values (hash)
   (:method ((hash abstract-hash-table))
     (let ((results '())
           (iterator (make-sequence-iterator hash)))

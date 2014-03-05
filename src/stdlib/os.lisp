@@ -34,7 +34,7 @@
   val)
 
 (defmethod abstract-remhash ((env env) key)
-  (if (hash-table-key-exists-p env key)
+  (if (hash-exists-p env key)
       (zerop (makunbound-environment-variable key))
       nil))
 
