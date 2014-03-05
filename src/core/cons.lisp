@@ -79,7 +79,6 @@
            :cons
            :atom
            :consp
-           :atom
            :rplaca
            :rplacd
            :nth
