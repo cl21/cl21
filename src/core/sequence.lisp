@@ -1467,6 +1467,12 @@ of which has elements that satisfy PRED, the second which do not."
   (typecase sequence
     (cl:sequence `(cl:nsubstitute ,@(cdr form)))))
 
+(defgeneric abstract-nsubstitute (new old sequence &key from-end start end key test count)
+  (:method (new old (sequence abstract-sequence) &rest args &key from-end start end key (test #'eql) count)
+    (declare (ignore from-end start end key count))
+    (setq args (delete-from-plist args :test))
+    (apply #'nsubstitute-if new (lambda (x) (funcall test old x)) sequence args)))
+
 
 ;;
 ;; Function: split, split-if
