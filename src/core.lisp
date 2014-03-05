@@ -3,7 +3,11 @@
   (:use :cl)
   (:shadow :function
            :destructuring-bind
-           :defconstant)
+           :defconstant
+           :remf)
+  (:import-from :cl21.core.hash-table
+                :abstract-hash-table
+                :abstract-remhash)
   (:import-from :cl21.core.cons
                 :maptree)
   (:import-from :alexandria
@@ -112,6 +116,7 @@
    :get-setf-expansion
    :setf
    :psetf
+   :remf
    :shiftf
    :rotatef
    :undefined-function
@@ -279,6 +284,33 @@
                     (cl:documentation 'alexandria:define-constant
                                       'cl:function))
   `(alexandria:define-constant ,name ,initial-value :test ,test :documentation ,documentation))
+
+(defmacro remf (place indicator &environment env)
+  (multiple-value-bind (vars vals newval setter getter)
+      (get-setf-expansion place env)
+    (let ((ind-temp (gensym))
+          (local1 (gensym))
+          (local2 (gensym)))
+      `(let* (,@(cl:mapcar #'list vars vals)
+              (,ind-temp ,indicator)
+              (,(car newval) ,getter)
+              ,@(cdr newval))
+         (etypecase ,(car newval)
+           (cl:list
+            (do ((,local1 ,(car newval) (cddr ,local1))
+                 (,local2 nil ,local1))
+              ((atom ,local1) nil)
+              (cond ((atom (cdr ,local1))
+                     (error "Odd-length property list in REMF."))
+                    ((eq (car ,local1) ,ind-temp)
+                     (cond (,local2
+                            (rplacd (cdr ,local2) (cddr ,local1))
+                            (return t))
+                           (t (setq ,(car newval) (cddr ,(car newval)))
+                              ,setter
+                              (return t)))))))
+           (cl:hash-table (cl:remhash ,ind-temp ,(car newval)))
+           (abstract-hash-table (abstract-remhash ,(car newval) ,ind-temp)))))))
 
 (defmacro destructuring-bind (lambda-list expression &body body)
   "Bind the variables in LAMBDA-LIST to the corresponding values in the

@@ -145,7 +145,6 @@
            :rassoc
            :rassoc-if
            :get-properties
-           :remf
            :intersection
            :nintersection
            :adjoin
