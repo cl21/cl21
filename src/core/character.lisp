@@ -1,6 +1,8 @@
 (in-package :cl-user)
 (defpackage cl21.core.character
   (:use :cl)
+  (:import-from :alexandria
+               :define-constant)
   (:export :character
            :base-char
            :standard-char
@@ -39,6 +41,6 @@
            :+char-code-limit+))
 (in-package :cl21.core.character)
 
-(defconstant +char-code-limit+
+(define-constant +char-code-limit+
   char-code-limit
-  #.(documentation 'char-code-limit 'variable))
+  :documentation #.(documentation 'char-code-limit 'variable))

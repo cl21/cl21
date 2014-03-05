@@ -237,13 +237,13 @@
    :once-only))
 (in-package :cl21.core)
 
-(cl:defconstant +multiple-values-limit+
+(define-constant +multiple-values-limit+
   multiple-values-limit
-  #.(documentation 'multiple-values-limit 'variable))
+  :documentation #.(documentation 'multiple-values-limit 'variable))
 
-(cl:defconstant +internal-time-units-per-second+
+(define-constant +internal-time-units-per-second+
   internal-time-units-per-second
-  #.(documentation 'internal-time-units-per-second 'variable))
+  :documentation #.(documentation 'internal-time-units-per-second 'variable))
 
 ;; concatenating all sub-packages into cl21
 (cl:dolist (package-name '(:cl21.core.types
