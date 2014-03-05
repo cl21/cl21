@@ -71,15 +71,21 @@ Currently, SBCL and Clozure CL on UNIX are supported now."))
 ;;
 ;; Functions
 
-(defun run-process (command &key input (output *standard-output*) (error *error-output*) (wait nil) shell)
+(defun run-process (command &key input (output *standard-output*) (error *error-output*) (wait t) shell)
   "Creates a new process and runs a shell command in that process.
 
 Example:
   (run-process '(\"ls\" \"-l\") :wait t)"
 
+  (when (and shell (not (consp command)))
+    (error "~S is not a cons. COMMAND must be a list of strings if :shell is T."
+           command))
+
   (let ((command (if shell
                      command
-                     `(,*shell-path* "-c" ,(format nil "~{~A~^ ~}" command)))))
+                     `(,*shell-path* "-c" ,(if (stringp command)
+                                               command
+                                               (format nil "~{~A~^ ~}" command))))))
     #+sbcl
     (handler-case
         (let* ((sb-proc
@@ -200,3 +206,33 @@ Example:
 (defun process-continue (process)
   "Sends a signal SIGCONT to PROCESS."
   (process-send-signal process +sigcont+))
+
+
+;;
+;; Reader
+
+(defmacro run-simple-process (command)
+  (with-gensyms (output error process)
+    `(let* ((,output (make-string-output-stream))
+            (,error (make-string-output-stream))
+            (,process
+              (run-process (list ,command) :output ,output :error ,error :wait t :shell nil)))
+       (values
+        (get-output-stream-string ,output)
+        (get-output-stream-string ,error)
+        (process-exit-code ,process)))))
+
+(defun run-process-reader (stream sub-char numarg)
+  (declare (ignore sub-char numarg))
+  (let ((process
+          (with-output-to-string (s)
+            (loop for char = (peek-char nil stream nil nil)
+                  until (char= char #\`)
+                  do (write-char (read-char stream) s)))))
+    (read-char stream)
+    `(run-simple-process ,process)))
+
+(defsyntax cl21.process
+  ((#\# #\`) #'run-process-reader))
+
+(export-syntax 'cl21.process)
