@@ -41,7 +41,7 @@ Discussion is highly welcome, join the issues thread and post some ideas!
 
 ;; Hash Table  --  consistent interface!
 
-(defvar *hash* #{})
+(defvar *hash* #H())
 (getf *hash* :name)                            ;=> NIL
 (setf (getf *hash* :name) "Eitarow Fukamachi") ;=> "Eitarow Fukamachi"
 (setf (getf *hash* :living) "Japan")           ;=> "Japan"

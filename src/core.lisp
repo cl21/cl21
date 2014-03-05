@@ -335,7 +335,7 @@ Implicit destructuring-bind is available.
 
 For hash-table,
 
- (doeach ((key value) #{'a 2 'b 3})
+ (doeach ((key value) #H('a 2 'b 3))
    (when (> value 2)
      (print key)))
 ;

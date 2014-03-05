@@ -217,7 +217,8 @@
 
   (defun hash-table-reader (stream sub-char numarg)
     (declare (ignore sub-char numarg))
-    `(equal-hash-table ,@(read-delimited-list #\} stream t))))
+    (read-char stream)
+    `(equal-hash-table ,@(read-delimited-list #\) stream t))))
 
 
 ;;
@@ -297,8 +298,7 @@
     (:dispatch-macro-char #\# #\' #'function-reader)
     (:macro-char #\^ #'lambda-reader)
     (:dispatch-macro-char #\# #\( #'vector-reader)
-    (:dispatch-macro-char #\# #\{ #'hash-table-reader)
-    (:macro-char #\} (get-macro-character #\)))))
+    (:dispatch-macro-char #\# #\H #'hash-table-reader)))
 
 (defsyntax :cl21
   (#\" #'string-reader)
@@ -306,8 +306,7 @@
   ((#\# #\') #'function-reader)
   (#\^ #'lambda-reader)
   ((#\# #\() #'vector-reader)
-  ((#\# #\{) #'hash-table-reader)
-  (#\} (get-macro-character #\))))
+  ((#\# #\H) #'hash-table-reader))
 
 #.`(defreadtable cl21-package-local-nickname-syntax
      (:merge :standard)

@@ -77,15 +77,15 @@ The specification isn't fixed yet. The discussion is still going at [#35](https:
 ;=> 1
 ```
 
-## #{...}
+## #H(...)
 
-`#{...}` is a reader macro for making a hash-table whose test function is `equal`.
+`#H(...)` is a reader macro for making a hash-table whose test function is `equal`.
 
 ```common-lisp
-#{:a 1 :b 2 :c 3}
-;=> #{:C 3 :B 2 :A 1}
+#H(:a 1 :b 2 :c 3)
+;=> #H(:C 3 :B 2 :A 1)
 
-(getf #{:a 1 :b 2 :c 3} :b)
+(getf #H(:a 1 :b 2 :c 3) :b)
 ;=> 2
 ;   T
 ```
