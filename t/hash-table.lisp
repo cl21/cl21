@@ -32,21 +32,21 @@
 (ok (typep (make-instance 'my-hash-table) 'hash-table))
 (ok (typep (make-instance 'my-hash-table) 'abstract-hash-table))
 
-(defmethod abstract-gethash (key (hash my-hash-table) &optional (default 'undefined))
+(defmethod abstract-gethash ((hash my-hash-table) key &optional (default 'undefined))
   (multiple-value-bind (value existsp)
-      (gethash key (slot-value hash '%hash) default)
+      (gethash (slot-value hash '%hash) key default)
     (if existsp
         (values (format nil "[~A]" value) existsp)
         (values value existsp))))
 
-(defmethod (setf abstract-gethash) (val key (hash my-hash-table))
-  (setf (gethash key (slot-value hash '%hash)) val))
+(defmethod (setf abstract-gethash) (val (hash my-hash-table) key)
+  (setf (gethash (slot-value hash '%hash) key) val))
 
 (let ((hash (make-instance 'my-hash-table)))
-  (is (gethash :dummy hash)
+  (is (gethash hash :dummy)
       'undefined)
-  (setf (gethash :dummy hash) "Hi")
-  (is (gethash :dummy hash)
+  (setf (gethash hash :dummy) "Hi")
+  (is (gethash hash :dummy)
       "[Hi]"))
 
 (finalize)

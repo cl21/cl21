@@ -68,7 +68,7 @@
 (defun hash-table (test-fn &rest contents)
   (let ((hash (make-hash-table :test test-fn)))
     (loop for (k v) on contents by #'cddr
-          do (setf (gethash k hash) v))
+          do (setf (cl:gethash k hash) v))
     hash))
 
 
@@ -152,12 +152,12 @@
   (method-unimplemented-error 'make-sequence-iterator hash-table))
 
 (defmethod getf ((place abstract-hash-table) key &optional (default nil default-specified-p))
-  (apply #'abstract-gethash key place (if default-specified-p
+  (apply #'abstract-gethash place key (if default-specified-p
                                           (list default)
                                           nil)))
 
 (defmethod (setf getf) (newval (place abstract-hash-table) key)
-  (setf (abstract-gethash key place) newval))
+  (setf (abstract-gethash place key) newval))
 
 (defmethod emptyp ((object abstract-hash-table))
   (method-unimplemented-error 'emptyp hash-table))
@@ -167,27 +167,28 @@
 ;; Function: gethash, (setf gethash)
 ;; Generic Function: abstract-gethash, (setf abstract-gethash)
 
-(defun gethash (key hash &optional (default nil default-specified-p))
+(defun gethash (hash key &optional (default nil default-specified-p))
   (etypecase hash
     (cl:hash-table
      (apply #'cl:gethash key hash (if default-specified-p (list default) nil)))
     (abstract-hash-table
-     (apply #'abstract-gethash key hash (if default-specified-p (list default) nil)))))
-(define-hash-compiler-macro gethash (key hash &optional default))
+     (apply #'abstract-gethash hash key (if default-specified-p (list default) nil)))))
+(define-hash-compiler-macro gethash (hash key &optional default))
 
-(defgeneric abstract-gethash (key hash &optional default)
-  (:method (key (hash abstract-hash-table) &optional default)
+(defgeneric abstract-gethash (hash key &optional default)
+  (:method ((hash abstract-hash-table) key &optional default)
+    (declare (ignore default))
     (method-unimplemented-error 'abstract-gethash hash)))
 
-(defun (setf gethash) (newval key hash)
+(defun (setf gethash) (newval hash key)
   (etypecase hash
     (cl:hash-table
      (setf (cl:gethash key hash) newval))
     (abstract-hash-table
-     (setf (abstract-gethash key hash) newval))))
-(define-hash-compiler-macro (setf gethash) (newval key hash))
+     (setf (abstract-gethash hash key) newval))))
+(define-hash-compiler-macro (setf gethash) (newval hash key))
 
-(defgeneric (setf abstract-gethash) (newval key hash)
+(defgeneric (setf abstract-gethash) (newval hash key)
   (:method (newval key (hash abstract-hash-table))
     (method-unimplemented-error '(setf abstract-gethash) hash)))
 
