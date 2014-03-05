@@ -66,6 +66,7 @@
    :destructuring-bind
    :let
    :let*
+   :let1
    :progv
    :setq
    :psetq
@@ -284,6 +285,11 @@
                     (cl:documentation 'alexandria:define-constant
                                       'cl:function))
   `(alexandria:define-constant ,name ,initial-value :test ,test :documentation ,documentation))
+
+(defmacro let1 (var value &body body)
+  "Make a single `let' binding, heroically saving three columns."
+  `(let ((,var ,value))
+     ,@body))
 
 (defmacro remf (place indicator &environment env)
   (multiple-value-bind (vars vals newval setter getter)
