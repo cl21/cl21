@@ -67,10 +67,10 @@
           "destructuring-bind")
 
 (is-print (let ((list '(1 2 3)))
-            (while-let (a (pop list))
+            (while-let1 (a (pop list))
               (princ a)))
           "123"
-          "while-let")
+          "while-let1")
 
 (is (let ((results '()))
       (doeach (i '(1 2 3 4 5) results)

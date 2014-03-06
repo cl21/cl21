@@ -14,8 +14,6 @@
                 :with-gensyms
                 :once-only
                 :with-gensyms
-                :if-let
-                :when-let
                 :xor
                 :unwind-protect-case
                 :define-constant)
@@ -121,8 +119,8 @@
    :shiftf
    :rotatef
    :undefined-function
-   :if-let
-   :when-let
+   :if-let1
+   :when-let1
    :xor
    :unwind-protect-case
    :with-slots
@@ -138,7 +136,7 @@
 
    :until
    :while
-   :while-let
+   :while-let1
    :doeach
 
    ;; Printer
@@ -286,10 +284,20 @@
                                       'cl:function))
   `(alexandria:define-constant ,name ,initial-value :test ,test :documentation ,documentation))
 
-(defmacro let1 (var value &body body)
+(defmacro let1 ((var expr) &body body)
   "Make a single `let' binding, heroically saving three columns."
-  `(let ((,var ,value))
+  `(let ((,var ,expr))
      ,@body))
+
+(defmacro if-let1 ((var expr) &body (then-form &optional else-form))
+  `(let1 (,var ,expr)
+     (if ,var
+         ,then-form
+         ,else-form)))
+
+(defmacro when-let1 ((var expr) &body body)
+  `(if-let1 (,var ,expr)
+     (progn ,@body)))
 
 (defmacro remf (place indicator &environment env)
   (multiple-value-bind (vars vals newval setter getter)
@@ -346,7 +354,7 @@ CL21 Feature: NIL in LAMBDA-LIST will be ignored."
   `(until (not ,expression)
      ,@body))
 
-(defmacro while-let ((varsym expression) &body body)
+(defmacro while-let1 ((varsym expression) &body body)
   "Executes `body` while `expression` is true and binds its return value to `varsym`"
   `(let (,varsym)
      (while (setf ,varsym ,expression)

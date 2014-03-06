@@ -26,7 +26,7 @@
 (defclass env (abstract-hash-table) ())
 
 (defmethod abstract-gethash ((env env) key &optional default)
-  (if-let (envval (environment-variable key))
+  (if-let1 (envval (environment-variable key))
     (values envval t)
     (values default nil)))
 

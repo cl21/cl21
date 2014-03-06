@@ -4,17 +4,17 @@
           "\\)[ \n]"))
 
 (defvar cl21-keywords
-  '(if-let
+  '(if-let1
     once-only
     unwind-protect-case
-    when-let
+    when-let1
     with-gensyms
     xor
     doeach
     let1
     until
     while
-    while-let
+    while-let1
     lm
     defsyntax
     with-sequence-iterator))
