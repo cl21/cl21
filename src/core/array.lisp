@@ -1,6 +1,7 @@
 (in-package :cl-user)
 (defpackage cl21.core.array
   (:use :cl)
+  (:shadow :vector)
   (:import-from :alexandria
                 :copy-array
                 :define-constant)
@@ -69,6 +70,12 @@
 (define-constant +array-total-size-limit+
   array-total-size-limit
   :documentation #.(documentation 'array-total-size-limit 'variable))
+
+(defun vector (&rest objects)
+  (let ((vec (make-array 0 :adjustable t :fill-pointer 0)))
+    (loop for obj in objects
+          do (vector-push-extend obj vec))
+    vec))
 
 (defmacro adjustable-vector (&key (dimension nil dimension-specified-p) initial-contents)
   "A variant of `cl:vector' that returns an adjustable vector, not a simple-vector."
