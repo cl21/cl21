@@ -45,7 +45,7 @@ A backslash followed by some characters will be treated special.
 ```common-lisp
 "Hello\nWorld!"
 ;=> "Hello
-    World!"
+;   World!"
 ```
 
 `#"` is similar to `"`, but it allows interpolation within strings.
@@ -83,7 +83,9 @@ Note this always creates a hash-table whose test function is `EQUAL`. If you wan
       (c 3))
   #(a b c))
 ;=> #(1 2 3)
+```
 
+```
 (defvar *vec* #(0))
 
 (push 1 *vec*)
@@ -123,8 +125,12 @@ Unused arguments will be ignored automatically.
 ```common-lisp
 (map ^(random 10) (iota 10))
 ;=> (6 9 5 1 3 5 4 0 7 4)
+```
 
-(sort * ^(< %1 %2))
+`%n` designates the nth argument (1-based). `%` is a synonym for `%1`.
+
+```common-lisp
+(sort '(6 9 5 1 3 5 4 0 7 4) ^(< %1 %2))
 ;=> (0 1 3 4 4 5 5 6 7 9)
 ```
 
@@ -205,7 +211,6 @@ In addition, CL21 provides another one: `doeach`.
   (when (> value 2)
     (print key)))
 ;=> B
-
 ```
 
 Destructuring binding form can be placed at the variable position.
@@ -294,7 +299,7 @@ Syntaxes can be exported by `export-syntax`. When `use-package` the package, exp
 
 CL21 Standard Library is a set of libraries that are distributed with CL21. It is intended to offer a wide range of facilities.
 
-We are working on increasing the count of it. Currently, the following packages are provided.
+We are working on increasing the number of it. Currently, the following packages are provided.
 
 * cl21.re
 * cl21.process
