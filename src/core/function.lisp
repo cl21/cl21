@@ -62,6 +62,7 @@
            (compose 'compose)
            ((cl:lambda
              function cl:function
+             lm
              #+sbcl sb-int:named-lambda) (car name-or-form)))
         ,@(if (member (car name-or-form) '(and or not compose) :test #'eq)
               (mapcar (lambda (x) `(function ,x))
