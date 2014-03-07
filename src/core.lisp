@@ -366,7 +366,7 @@ Each body is an implicit `tagbody' and the whole form has an implicit `block'.
 
  (doeach (x '(\"al\" \"bob\" \"joe\"))
    (when (> (length x) 2)
-     (princ #\"${x}\n\"))) ; TODO: this is an older syntax for string interpolation
+     (princ #\"${x}\n\")))
 ;
 ;-> bob
 ;   joe
