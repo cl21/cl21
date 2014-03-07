@@ -87,6 +87,11 @@
                                   (alistp . association-list-p))
       do (setf (symbol-function alias) (symbol-function original)))
 
+#.`(progn
+     ,@(loop for (alias . original) in '((plist . property-list)
+                                         (alist . association-list))
+             collect `(deftype ,alias () ',original)))
+
 (deftype octet (&optional (n 1))
   "A type representing an octet: 8 bits. If a positive integer `n` is
 specified, then `(octet n)` represents `8n` bits. This can often be
