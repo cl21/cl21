@@ -43,7 +43,8 @@
 
 (define-constant +lambda-list-keywords+
   lambda-list-keywords
-  :documentation #.(documentation 'lambda-list-keywords 'variable))
+  :documentation #.(documentation 'lambda-list-keywords 'variable)
+  :test #'equal)
 
 (define-constant +lambda-parameters-limit+
   lambda-parameters-limit
