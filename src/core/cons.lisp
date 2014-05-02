@@ -64,6 +64,8 @@
                           :emptyp
                           :getf
                           :coerce)
+  (:shadowing-import-from :cl21.core.array
+                          :vector)
   (:import-from :cl21.core.util
                 :define-typecase-compiler-macro)
   (:import-from :alexandria

@@ -60,6 +60,8 @@
                           :getf
                           :emptyp
                           :coerce)
+  (:shadowing-import-from :cl21.core.array
+                          :vector)
   (:import-from :cl21.core.condition
                 :method-unimplemented-error)
   (:import-from :cl21.core.environment

@@ -5,6 +5,8 @@
   (:import-from :alexandria
                 :copy-array
                 :define-constant)
+  (:shadowing-import-from :cl21.core.generic
+                          :coerce)
   (:export :array
            :simple-array
            :vector
@@ -71,11 +73,19 @@
   array-total-size-limit
   :documentation #.(documentation 'array-total-size-limit 'variable))
 
+(deftype vector (&optional (type t) (dimention-spec '*))
+  `(cl:vector ,type ,dimention-spec))
+
 (defun vector (&rest objects)
   (let ((vec (make-array 0 :adjustable t :fill-pointer 0)))
     (loop for obj in objects
           do (vector-push-extend obj vec))
     vec))
+
+;; defining a new 'atomic type specifier' is not possible in common lisp,
+;; except it is defined by defstruct and defclass.
+(defmethod coerce ((object t) (output-type-spec (eql 'vector)))
+  (cl:coerce object 'cl:vector))
 
 (defmacro adjustable-vector (&key (dimension nil dimension-specified-p) initial-contents)
   "A variant of `cl:vector' that returns an adjustable vector, not a simple-vector."
