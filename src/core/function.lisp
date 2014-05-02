@@ -56,19 +56,20 @@
 (defmacro function (name-or-form)
   (if (atom name-or-form)
       `(cl:function ,name-or-form)
-      `(,(ecase (car name-or-form)
-           (and 'conjoin)
-           (or 'disjoin)
-           (not 'complement)
-           (compose 'compose)
-           ((cl:lambda
-             function cl:function
-             lm
-             #+sbcl sb-int:named-lambda) (car name-or-form)))
-        ,@(if (member (car name-or-form) '(and or not compose) :test #'eq)
-              (mapcar (lambda (x) `(function ,x))
-                      (cdr name-or-form))
-              (cdr name-or-form)))))
+      (destructuring-bind (head . rest) name-or-form
+        (if (eq head 'setf)
+            `(cl:function ,name-or-form)
+            `(,(ecase head
+                      (and 'conjoin)
+                      (or 'disjoin)
+                      (not 'complement)
+                      (compose 'compose)
+                      ((cl:lambda function cl:function lm
+                                  #+sbcl sb-int:named-lambda)
+                       head))
+               ,@(if (member head '(and or not compose) :test #'eq)
+                     (mapcar (lambda (x) `(function ,x)) rest)
+                     rest))))))
 
 (defmacro lm (args &body body)
   "A shorthand for LAMBDA.

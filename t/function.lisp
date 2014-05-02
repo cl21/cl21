@@ -6,6 +6,8 @@
 
 (plan 12)
 
+(ok (typep #'(setf getf) 'function) "setf function is recognized")
+
 (is (map (compose #'sin #'1+) '(1 2 3))
     '(0.9092974 0.14112 -0.7568025))
 (is (map #'(compose sin 1+) '(1 2 3))

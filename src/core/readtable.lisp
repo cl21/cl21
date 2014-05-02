@@ -4,8 +4,6 @@
   (:shadow :copy-readtable)
   (:import-from :cl21.core.array
                 :adjustable-vector)
-  (:shadowing-import-from :cl21.core.function
-                          :function)
   (:import-from :cl21.core.sequence
                 :subdivide)
   (:import-from :cl21.core.cons
@@ -98,13 +96,7 @@
 (defun function-reader (stream sub-char narg)
   (declare (ignore sub-char narg))
   (let ((expr (read stream t nil t)))
-    (if (and (consp expr)
-             (symbolp (car expr))
-             (not (member (car expr)
-                          '(cl:lambda
-                            #+sbcl sb-int:named-lambda))))
-        `(cl21.core.function:function ,expr)
-        `(cl:function ,expr))))
+    `(cl21.core.function:function ,expr)))
 
 (defvar *in-lambda-reader* nil)
 
