@@ -35,11 +35,12 @@
     (if (< key (length place))
         (values (aref place key) t)
         (values default nil)))
-  (:method ((place list) (key integer) &optional default)
-    (let ((res (cl:nthcdr key place)))
-     (if res
-         (values (car res) t)
-         (values default nil))))
+  ;; undocumented behavior, should be removed
+  ;; (:method ((place list) (key integer) &optional default)
+  ;;   (let ((res (cl:nthcdr key place)))
+  ;;    (if res
+  ;;        (values (car res) t)
+  ;;        (values default nil))))
   (:method ((place list) key &optional default)
     (let* ((undef '#:undef)
            (res (cl:getf place key undef)))
@@ -47,15 +48,34 @@
           (values default nil)
           (values res t)))))
 
+
 (defgeneric (setf getf) (val place key)
   (:method (val (place hash-table) key)
     (setf (gethash key place) val))
   (:method (val (place array) key)
     (setf (cl:aref place key) val))
-  (:method (val (place list) (key integer))
-    (setf (cl:nth key place) val))
-  (:method (val (place list) key)
+  ;; undocumented behavior, should be removed
+  ;; (:method (val (place list) (key integer))
+  ;;   (setf (cl:nth key place) val))
+
+  ;; wrong when the place is a constant NIL.
+  ;; (:method (val (place list) key)
+  ;;   (setf (cl:getf place key) val))
+  (:method (val (place cons) key)
     (setf (cl:getf place key) val)))
+
+(define-setf-expander getf (place key &environment env)
+  (multiple-value-bind (dummies vals newvals setter getter)
+      (get-setf-expansion place env)
+    (assert (= 1 (length newvals)))
+    (let ((newval (first newvals)))
+      (values dummies
+              vals
+              newvals
+              `(typecase ,getter
+                 (null (let ((,newval (list ,key ,newval))) ,setter))
+                 (t (funcall #'(setf getf) ,newval ,getter ,key)))
+              `(getf ,getter ,key)))))
 
 (defgeneric coerce (object output-type-spec)
   (:method ((object t) output-type-spec)

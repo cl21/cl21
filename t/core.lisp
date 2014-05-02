@@ -103,4 +103,19 @@
             "NAME: Eitarow Fukamachi\n"
             "doeach (hash-table)"))
 
+
+(let ((plist nil))
+  (setf (getf plist :a) 1)
+  (is (getf plist :a) 1 "(setf getf) to NIL"))
+
+(let ((tree '((:a 1 :b 2) . "!")))
+  (setf (getf (car tree) :b) 10)
+  (is (getf (car tree) :b) 10 "(setf getf) to NIL"))
+
+(let ((hash #h(:a 1)))
+  ;; nonexistent element
+  (is-print (setf (getf (getf hash :b) :c) (princ (+ 5 5))) "10" "evaluate once")
+  (is (getf hash :b) '(:c 10) "(setf getf) to NIL"))
+
+
 (finalize)
