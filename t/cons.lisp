@@ -6,6 +6,10 @@
 
 (plan nil)
 
+(let ((x (list 1 2 3)))
+  (setf (nthcdr x 2) (list 4 5))
+  (is x '(1 2 4 5) "nthcdr"))
+
 (is (maptree (lambda (x)
                (if (< x 5)
                    -1

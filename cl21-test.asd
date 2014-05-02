@@ -17,6 +17,7 @@
                 :components
                 ((:test-file "cl21")
                  (:test-file "core")
+                 (:test-file "cons")
                  (:test-file "hash-table")
                  (:test-file "vector")
                  (:test-file "sequence")

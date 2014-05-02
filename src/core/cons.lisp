@@ -307,7 +307,7 @@
 
 (defun (setf nthcdr) (newval list n)
   (etypecase list
-    (cl:list (setf (cl:nthcdr n list) newval))
+    (cl:list (setf (cdr (cl:nthcdr (1- n) list)) newval))
     (abstract-list
      (when (> n 1)
        (dotimes (i (1- n))
