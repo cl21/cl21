@@ -61,8 +61,34 @@
   ;; wrong when the place is a constant NIL.
   ;; (:method (val (place list) key)
   ;;   (setf (cl:getf place key) val))
-  (:method (val (place cons) key)
-    (setf (cl:getf place key) val)))
+
+  ;; wrong again when the key is not found
+  ;; because (setf (getf ...)) does not modify the place in such cases
+  ;; (:method (val (place cons) key)
+  ;;   (setf (cl:getf place key) val))
+
+  (:method (new-value (place cons) key)
+    ;; partly borrowed from sbcl (setf getf) implementation %putf
+    (do ((prev nil plist)
+         (plist place (cddr plist)))
+        ((endp plist)
+         (setf (cddr prev) (list key new-value))
+         place) ;; this part is changed
+      (declare (type list plist prev))
+      (when (eq (car plist) key)
+        (setf (cadr plist) new-value)
+        (return place)))))
+
+;; sbcl original putf
+;; (defun %putf (place property new-value)
+;;   (declare (type list place))
+;;   (do ((plist place (cddr plist)))
+;;       ((endp plist) (list* property new-value place))
+;;     (declare (type list plist))
+;;     (when (eq (car plist) property)
+;;       (setf (cadr plist) new-value)
+;;       (return place))))
+
 
 (define-setf-expander getf (place key &environment env)
   (multiple-value-bind (dummies vals newvals setter getter)

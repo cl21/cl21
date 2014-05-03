@@ -16,7 +16,6 @@
   :components ((:module "t"
                 :components
                 ((:test-file "cl21")
-                 (:test-file "core")
                  (:test-file "cons")
                  (:test-file "hash-table")
                  (:test-file "vector")
@@ -24,7 +23,11 @@
                  (:test-file "function")
                  (:test-file "package")
                  (:test-file "readtable")
-                 (:test-file "re"))))
+                 (:test-file "re")
+                 (:module "core"
+                          :components
+                          ((:test-file "all")
+                           (:test-file "generic"))))))
 
   :defsystem-depends-on (:cl-test-more)
   :perform (test-op :after (op c)
