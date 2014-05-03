@@ -614,17 +614,22 @@ implemented for the class of SEQUENCE."))
                          (aref sequence (1- i))))
                  (setf (aref sequence 0) value)
                  sequence))
-    (abstract-list (let ((new (make-sequence-like sequence 1
-                                                  :initial-contents
-                                                  (list value))))
-                     (setf (abstract-rest new) sequence)
-                     new))
-    (abstract-sequence (setq sequence
-                             (adjust-sequence
-                              sequence (1+ (abstract-length sequence))))
-                       (abstract-replace sequence sequence :start1 1)
-                       (setf (abstract-elt sequence 0) value)
-                       sequence)))
+    (abstract-sequence (abstract-nenque-head value sequence))))
+
+(defgeneric abstract-nenque-head (value sequence)
+  (:method (value (sequence abstract-sequence))
+    (setq sequence
+          (adjust-sequence
+           sequence (1+ (abstract-length sequence))))
+    (abstract-replace sequence sequence :start1 1)
+    (setf (abstract-elt sequence 0) value)
+    sequence)
+  (:method (value (sequence abstract-list))
+    (let ((new (make-sequence-like sequence 1
+                                   :initial-contents
+                                   (list value))))
+      (setf (abstract-rest new) sequence)
+      new)))
 
 (defun nenque-head-new (value sequence &rest args)
   (if (apply #'find value sequence args)
@@ -638,21 +643,26 @@ implemented for the class of SEQUENCE."))
                  (list value)))
     (cl:vector (cl:vector-push-extend value sequence)
                sequence)
-    (abstract-list (if (emptyp sequence)
-                       (make-sequence-like sequence 1
-                                           :initial-contents (list value))
-                       (let ((last
-                              (do ((current sequence (abstract-rest current)))
-                                  ((emptyp (abstract-rest current)) current))))
-                         (setf (abstract-rest last)
-                               (make-sequence-like sequence 1
-                                                   :initial-contents
-                                                   (list value)))
-                         sequence)))
-    (abstract-sequence (let ((len (abstract-length sequence)))
-                         (adjust-sequence sequence (1+ len))
-                         (setf (abstract-elt sequence len) value)
-                         sequence))))
+    (abstract-sequence (abstract-nenque-tail value sequence))))
+
+(defgeneric abstract-nenque-tail (value sequence)
+  (:method (value (sequence abstract-sequence))
+    (let ((len (abstract-length sequence)))
+      (adjust-sequence sequence (1+ len))
+      (setf (abstract-elt sequence len) value)
+      sequence))
+  (:method (value (sequence abstract-list))
+    (if (emptyp sequence)
+        (make-sequence-like sequence 1
+                            :initial-contents (list value))
+        (let ((last
+               (do ((current sequence (abstract-rest current)))
+                   ((emptyp (abstract-rest current)) current))))
+          (setf (abstract-rest last)
+                (make-sequence-like sequence 1
+                                    :initial-contents
+                                    (list value)))
+          sequence))))
 
 (defun nenque-tail-new (value sequence &rest args)
   (if (apply #'find value sequence args)
