@@ -39,6 +39,7 @@
                 :components
                 ((:file "cl21" :depends-on ("core"))
                  (:file "core" :depends-on ("core-subpackages"))
+                 (:file "asdf" :depends-on ("cl21" "core-subpackages"))
                  (:module "core-subpackages"
                   :pathname "core"
                   :components
