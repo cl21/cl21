@@ -54,7 +54,7 @@ Discussion is highly welcome, join the issues thread and post some ideas!
 (push 1 *vector*)
 (elt *vector* 0)   ;=> 1
 (push 3 *vector*)
-(elt *vector* 0)   ;=> 3
+(elt *vector* 1)   ;=> 3
 (pop *vector*)     ;=> 3
 (pop *vector*)     ;=> 1
 

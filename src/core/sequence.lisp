@@ -128,10 +128,13 @@
            :nsubstitute-if
 
            :push
-           :pushnew
-           :pop
+           :push-front
            :push-back
+           :pushnew
+           :pushnew-front
            :pushnew-back
+           :pop
+           :pop-front
            :pop-back
            :last
            :butlast
@@ -595,9 +598,22 @@ implemented for the class of SEQUENCE."))
   (:method ((sequence abstract-sequence))
     (abstract-subseq sequence 0)))
 
-
 ;;
-;; Macro: push, pushnew, pop, push-back, pushnew-back, pop-back
+;; Macro: push, push-front, push-back
+;; Generic Function: abstract-enque, abstract-enque-head, abstract-enque-tail
+
+(defmacro _f2 (op arg1 place &rest args &environment env)
+  (multiple-value-bind (vars vals binds set access)
+      (get-setf-expansion place env)
+    `(let* (,@(map #'list vars vals))
+       (multiple-value-bind ,binds (,op ,arg1 ,access ,@args)
+         ,set))))
+
+(defun nenque (value sequence)
+  (etypecase sequence
+    (cl:list (nenque-head value sequence))
+    (cl:vector (nenque-tail value sequence))
+    (abstract-sequence (abstract-nenque value sequence))))
 
 (defun nenque-head (value sequence)
   (etypecase sequence
@@ -616,6 +632,23 @@ implemented for the class of SEQUENCE."))
                  sequence))
     (abstract-sequence (abstract-nenque-head value sequence))))
 
+(defun nenque-tail (value sequence)
+  (etypecase sequence
+    (cl:list (if sequence
+                 (progn
+                   (rplacd (cl:last sequence) (list value))
+                   sequence)
+                 (list value)))
+    (cl:vector (cl:vector-push-extend value sequence)
+               sequence)
+    (abstract-sequence (abstract-nenque-tail value sequence))))
+
+(defgeneric abstract-nenque (value sequence)
+  (:method (value (sequence abstract-sequence))
+    (abstract-nenque-tail value sequence))
+  (:method (value (sequence abstract-list))
+    (abstract-nenque-head value sequence)))
+
 (defgeneric abstract-nenque-head (value sequence)
   (:method (value (sequence abstract-sequence))
     (setq sequence
@@ -630,22 +663,6 @@ implemented for the class of SEQUENCE."))
                                    (list value))))
       (setf (abstract-rest new) sequence)
       new)))
-
-(defun nenque-head-new (value sequence &rest args)
-  (if (apply #'find value sequence args)
-      sequence
-      (nenque-head value sequence)))
-
-(defun nenque-tail (value sequence)
-  (etypecase sequence
-    (cl:list (if sequence
-                 (progn
-                   (rplacd (cl:last sequence) (list value))
-                   sequence)
-                 (list value)))
-    (cl:vector (cl:vector-push-extend value sequence)
-               sequence)
-    (abstract-sequence (abstract-nenque-tail value sequence))))
 
 (defgeneric abstract-nenque-tail (value sequence)
   (:method (value (sequence abstract-sequence))
@@ -666,27 +683,50 @@ implemented for the class of SEQUENCE."))
                                     (list value)))
           sequence))))
 
-(defun nenque-tail-new (value sequence &rest args)
-  (if (apply #'find value sequence args)
-      sequence
-      (nenque-tail value sequence)))
-
-(defmacro _f2 (op arg1 place &rest args &environment env)
-  (multiple-value-bind (vars vals binds set access)
-      (get-setf-expansion place env)
-    `(let* (,@(map #'list vars vals))
-       (multiple-value-bind ,binds (,op ,arg1 ,access ,@args)
-         ,set))))
-
 (defmacro push (value place)
+  #.(documentation 'cl:push 'function)
+  `(_f2 nenque ,value ,place))
+
+(defmacro push-front (value place)
   #.(documentation 'cl:push 'function)
   `(_f2 nenque-head ,value ,place))
 
 (defmacro push-back (value place)
   `(_f2 nenque-tail ,value ,place))
 
+
+;;
+;; Macro: pushnew, pushnew-front, pushnew-back
+;; Generic Function: abstract-nenque-new
+
+(defun nenque-new (value sequence &rest args)
+  (etypecase sequence
+    (cl:list (apply #'nenque-head-new value sequence args))
+    (cl:vector (apply #'nenque-tail-new value sequence args))
+    (abstract-sequence (apply #'abstract-nenque-new value sequence args))))
+
+(defun nenque-head-new (value sequence &rest args)
+  (if (apply #'find value sequence args)
+      sequence
+      (nenque-head value sequence)))
+
+(defun nenque-tail-new (value sequence &rest args)
+  (if (apply #'find value sequence args)
+      sequence
+      (nenque-tail value sequence)))
+
+(defgeneric abstract-nenque-new (value sequence &rest args)
+  (:method (value (sequence abstract-sequence) &rest args)
+    (apply #'nenque-tail-new value sequence args))
+  (:method (value (sequence abstract-list) &rest args)
+    (apply #'nenque-head-new value sequence args)))
+
 (defmacro pushnew (value place &rest keys &key key test)
   #.(or (documentation 'cl:pushnew 'function) "")
+  (declare (ignore key test))
+  `(_f2 nenque-new ,value ,place ,@keys))
+
+(defmacro pushnew-front (value place &rest keys &key key test)
   (declare (ignore key test))
   `(_f2 nenque-head-new ,value ,place ,@keys))
 
@@ -694,62 +734,103 @@ implemented for the class of SEQUENCE."))
   (declare (ignore key test))
   `(_f2 nenque-tail-new ,value ,place ,@keys))
 
+
+;;
+;; Macro: pop, pop-front, pop-back
+;; Generic Function: abstract-ndequeue, abstract-ndequeue-head, abstract-ndequeue-tail
+
+(defun ndequeue (sequence)
+  (etypecase sequence
+    (cl:list (ndequeue-head sequence))
+    (cl:vector (ndequeue-tail sequence))
+    (abstract-sequence (abstract-ndequeue sequence))))
+
+(defun ndequeue-head (sequence)
+  (etypecase sequence
+    (cl:list (values (cl:cdr sequence)
+                     (cl:car sequence)))
+    (cl:vector
+     (unless (adjustable-array-p sequence)
+       (error "~S is not an adjustable array." sequence))
+     (let ((len (cl:length sequence))
+           (ret (aref sequence 0)))
+       (do ((i 0 (1+ i)))
+           ((= i (1- len)))
+         (setf (aref sequence i)
+               (aref sequence (1+ i))))
+       (decf (fill-pointer sequence))
+       (values sequence
+               ret)))
+    (abstract-sequence (abstract-ndequeue-head sequence))))
+
+(defun ndequeue-tail (sequence)
+  (etypecase sequence
+    (cl:list
+     (let* ((last-cons (cl:last sequence 2))
+            (last (cl:second last-cons)))
+       (rplacd last-cons nil)
+       (values sequence last)))
+    (cl:vector
+     (values sequence
+             (cl:vector-pop sequence)))
+    (abstract-sequence
+     (abstract-ndequeue-tail sequence))))
+
+(defgeneric abstract-ndequeue (sequence)
+  (:method ((sequence abstract-sequence))
+    (abstract-ndequeue-tail sequence))
+  (:method ((sequence abstract-list))
+    (abstract-ndequeue-head sequence)))
+
+(defgeneric abstract-ndequeue-head (sequence)
+  (:method ((sequence abstract-sequence))
+    (let ((ret (abstract-first sequence)))
+      (abstract-replace sequence sequence :start2 1)
+      (values
+       (adjust-sequence sequence
+                        (1- (abstract-length sequence)))
+       ret))))
+
+(defgeneric abstract-ndequeue-tail (sequence)
+  (:method ((sequence abstract-sequence))
+    (let* ((len (abstract-length sequence))
+           (ret (abstract-elt sequence (1- len))))
+      (adjust-sequence sequence (1- len))
+      (values sequence ret))))
+
 (defmacro pop (place &environment env)
   #.(documentation 'cl:pop 'function)
   (multiple-value-bind (vars vals binds set access)
       (get-setf-expansion place env)
-    (with-gensyms (place-g len i ret)
+    (with-gensyms (place-g ret)
       `(let* (,@(map #'list vars vals)
               (,place-g ,access))
          (multiple-value-bind (,@binds ,ret)
-             (etypecase ,place-g
-               (cl:list (values (cl:cdr ,place-g)
-                                (cl:car ,place-g)))
-               (cl:vector
-                (unless (adjustable-array-p ,place-g)
-                  (error "~S is not an adjustable array." ,place-g))
-                (let ((,len (length ,place-g))
-                      (,ret (aref ,place-g 0)))
-                  (do ((,i 0 (1+ ,i)))
-                      ((= ,i (1- ,len)))
-                    (setf (aref ,place-g ,i)
-                          (aref ,place-g (1+ ,i))))
-                  (decf (fill-pointer ,place-g))
-                  (values ,place-g
-                          ,ret)))
-               (abstract-sequence
-                (let ((,ret (abstract-first ,place-g)))
-                  (abstract-replace ,place-g ,place-g
-                                    :start2 1)
-                  (values (adjust-sequence ,place-g
-                                           (1- (abstract-length ,place-g)))
-                          ,ret))))
+             (ndequeue ,place-g)
            ,set
            ,ret)))))
 
-(defmacro pop-back (place)
-  (with-gensyms (place-g last2 current len)
-    `(let ((,place-g ,place))
-       (etypecase ,place-g
-         (cl:list
-          (let ((,last2 (cl:last ,place-g 2)))
-            (prog1
-                (cadr ,last2)
-              (rplacd ,last2 nil))))
-         (cl:vector
-          (cl:vector-pop ,place-g))
-         (abstract-list
-          (let ((,last2
-                  (do ((,current ,place-g (abstract-rest ,current)))
-                      ((emptyp (abstract-rest (abstract-rest ,current))) ,current))))
-            (prog1
-                (second ,last2)
-              (setf (abstract-rest ,last2)
-                    (make-sequence-like ,place-g 0)))))
-         (abstract-sequence
-          (let ((,len (abstract-length ,place-g)))
-            (prog1 (abstract-elt ,place-g (1- ,len))
-              (adjust-sequence ,place-g (1- ,len)))))))))
+(defmacro pop-front (place &environment env)
+  (multiple-value-bind (vars vals binds set access)
+      (get-setf-expansion place env)
+    (with-gensyms (place-g ret)
+      `(let* (,@(map #'list vars vals)
+              (,place-g ,access))
+         (multiple-value-bind (,@binds ,ret)
+             (ndequeue-head ,place-g)
+           ,set
+           ,ret)))))
+
+(defmacro pop-back (place &environment env)
+  (multiple-value-bind (vars vals binds set access)
+      (get-setf-expansion place env)
+    (with-gensyms (place-g ret)
+      `(let* (,@(map #'list vars vals)
+              (,place-g ,access))
+         (multiple-value-bind (,@binds ,ret)
+             (ndequeue-tail ,place-g)
+           ,set
+           ,ret)))))
 
 
 ;;

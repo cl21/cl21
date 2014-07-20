@@ -13,13 +13,13 @@
 (is (elt *vector* 0) 1)
 
 (push 3 *vector*)
-(is (elt *vector* 0) 3)
-(is (elt *vector* 1) 1)
+(is (elt *vector* 0) 1)
+(is (elt *vector* 1) 3)
 
 (push 5 *vector*)
-(is (elt *vector* 0) 5)
+(is (elt *vector* 0) 1)
 (is (elt *vector* 1) 3)
-(is (elt *vector* 2) 1)
+(is (elt *vector* 2) 5)
 (is (length *vector*) 3)
 
 (pushnew 5 *vector*)
