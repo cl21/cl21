@@ -180,6 +180,28 @@ CL21 is continuously released at 1:00 JST (= 16:00 UTC). You can update to the H
 (ql:update-dist "cl21")
 ```
 
+## How to use in your project
+
+CL21 is written in Common Lisp and works as a Common Lisp library. Not only you can write your application whole in CL21, but you can write only one file of your application in CL21.
+
+If you're going to write your application whole in CL21, add `:class` to `asdf:defsystem` form.
+
+```common-lisp
+(defsystem myapp
+  :defsystem-depends-on (:cl21)
+  :class :cl21-system
+  :components ((:file "src/myapp")))
+```
+
+If you wanna write some files in CL21, use `:cl21-source-file` instead of `:file`.
+
+```common-lisp
+(defsystem myapp
+  :defsystem-depends-on (:cl21)
+  :components ((:file "src/myapp")
+               (:cl21-source-file "src/myapp-written-in-cl21")))
+```
+
 ## Setting the startup package of SLIME
 
 Add the following code
