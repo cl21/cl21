@@ -9,6 +9,8 @@
                 :find-readtable)
   (:export :cl21-system
            :cl21-source-file))
+(defpackage cl21-asdf-user
+  (:use :cl21))
 (in-package :cl21.asdf)
 
 ;; Ensure Common Lisp files load in CL-USER package with a standard readtable.
@@ -39,6 +41,8 @@
 ;;     :class :cl21-system
 ;;     :components ((:file "src/myapp")))
 
+(defvar *shared-readtable* cl21:*standard-readtable*)
+
 (defclass cl21-source-file (asdf:cl-source-file) ()
   (:documentation "Same as ASDF:CL-SOURCE-FILE except it will be loaded in CL21-USER package with CL21:*STANDARD-READTABLE*."))
 
@@ -55,9 +59,14 @@
     (setf (asdf::module-default-component-class system)
           'cl21-source-file)))
 
-(defmethod asdf:perform :around ((op t) (file cl21-source-file))
-  (let ((*package* (find-package :cl21-user))
-        (*readtable* cl21:*standard-readtable*))
-    (call-next-method)))
+#.`(progn
+     ,@(loop
+         for op in '(asdf:load-source-op asdf:compile-op)
+         collect
+         `(defmethod asdf:perform :around ((op ,op) (file cl21-source-file))
+            (let ((*package* (find-package :cl21-asdf-user))
+                  (*readtable* *shared-readtable*)
+                  (*print-readably* nil))
+              (call-next-method)))))
 
 (import '(cl21-system cl21-source-file) :asdf)
