@@ -14,15 +14,18 @@
 ;; Ensure Common Lisp files load in CL-USER package with a standard readtable.
 #.`(progn
      ,@(loop
-         for op in '(asdf:load-source-op asdf:load-op asdf:compile-op)
+         for op in '(asdf:load-source-op asdf:compile-op)
          collect
          `(defmethod asdf:perform :around ((op ,op) (file asdf:cl-source-file))
             (if (and (not (typep file 'cl21-source-file))
-                     (cl21-available-p (package-name *package*))
-                     (eq *readtable*
-                         (find-readtable (intern (package-name *package*) :keyword))))
+                     (cl21-available-p (package-name *package*)))
                 (let ((*package* (find-package :cl-user))
-                      (*readtable* (copy-readtable ())))
+                      (*readtable* (if (eq *readtable*
+                                           (find-readtable (intern (package-name *package*) :keyword)))
+                                       #+sbcl sb-impl::*standard-readtable*
+                                       #+ccl ccl::%initial-readtable%
+                                       #-(or sbcl ccl) (copy-readtable ())
+                                       *readtable*)))
                   (call-next-method))
                 (call-next-method)))))
 
