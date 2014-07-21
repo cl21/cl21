@@ -15,7 +15,7 @@
 (in-package :cl21-asd)
 
 (defsystem cl21
-  :version "0.1"
+  :version "0.1.0"
   :author "Eitaro Fukamachi"
   :license "MIT"
   :depends-on (:closer-mop
