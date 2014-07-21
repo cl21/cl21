@@ -169,7 +169,7 @@
     (let ((*print-case* :downcase))
       (package-diff :cl :cl21 :stream s :separator "|"))))
 
-#+sbcl
+#+nil
 (output)
 
 
