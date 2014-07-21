@@ -229,12 +229,13 @@ Add the following code
 (ql:quickload :cl21)
 ```
 
-2) or, to your `.emacs.el` .
+2) and, to your `.emacs.el` .
 
 ```common-lisp
 (add-hook 'slime-connected-hook (lambda ()
                                   (when (slime-eval `(cl:if (cl:find-package :cl21-user) t))
-                                    (slime-repl-set-package :cl21-user))) t)
+                                    (slime-repl-set-package :cl21-user)
+                                    (slime-repl-eval-string "(cl21:enable-cl21-syntax)"))) t)
 ```
 
 ## See Also
