@@ -202,6 +202,17 @@ If you wanna write some files in CL21, use `:cl21-source-file` instead of `:file
                (:cl21-source-file "src/myapp-written-in-cl21")))
 ```
 
+If you're going to write a CL21 script, not big enough to use ASDF, ensure you're in CL21-USER package first.
+
+```common-lisp
+#!/usr/bin/env sbcl --script
+
+(ql:quickload :cl21)
+(cl21:in-package :cl21-user)
+
+;; Start your code from here.
+```
+
 ## Setting the startup package of SLIME
 
 Add the following code
