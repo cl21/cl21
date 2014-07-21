@@ -213,6 +213,12 @@ If you're going to write a CL21 script, not big enough to use ASDF, ensure you'r
 ;; Start your code from here.
 ```
 
+## Make an executable of CL21
+
+```
+$ sbcl --noinform --no-sysinit --no-userinit --eval '(load #P"~/quicklisp/setup.lisp")' --eval '(ql:quickload :cl21)' --eval '(cl21:in-package :cl21-user)' --eval '(sb-ext:save-lisp-and-die #P"cl21" :executable t)'
+```
+
 ## Setting the startup package of SLIME
 
 Add the following code
