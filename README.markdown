@@ -43,10 +43,10 @@ Discussion is highly welcome, join the issues thread and post some ideas!
 
 (defvar *hash* #H())
 (getf *hash* :name)                            ;=> NIL
-(setf (getf *hash* :name) "Eitarow Fukamachi") ;=> "Eitarow Fukamachi"
+(setf (getf *hash* :name) "Eitaro Fukamachi") ;=> "Eitaro Fukamachi"
 (setf (getf *hash* :living) "Japan")           ;=> "Japan"
-(getf *hash* :name)                            ;=> "Eitarow Fukamachi"
-(coerce *hash* 'plist)                         ;=> (:LIVING "Japan" :NAME "Eitarow Fukamachi")
+(getf *hash* :name)                            ;=> "Eitaro Fukamachi"
+(coerce *hash* 'plist)                         ;=> (:LIVING "Japan" :NAME "Eitaro Fukamachi")
 
 ;; Vector      --  consistent interface again!
 
@@ -96,7 +96,7 @@ Discussion is highly welcome, join the issues thread and post some ideas!
 ;=> "2014-01-23"
 ;   #("2014" "01" "23")
 
-(re-replace #/a/g "Eitarow Fukamachi" "α")
+(re-replace #/a/g "Eitaro Fukamachi" "α")
 ;=> "Eitαrow Fukαmαchi"
 ;   T
 
@@ -231,11 +231,11 @@ Add the following code
 
 ## Author
 
-* Eitarow Fukamachi (e.arrows@gmail.com)
+* Eitaro Fukamachi (e.arrows@gmail.com)
 
 ## Copyright
 
-Copyright (c) 2014 Eitarow Fukamachi (e.arrows@gmail.com)
+Copyright (c) 2014 Eitaro Fukamachi (e.arrows@gmail.com)
 
 # License
 

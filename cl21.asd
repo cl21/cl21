@@ -1,12 +1,12 @@
 #|
   This file is a part of cl21 project.
-  Copyright (c) 2014 Eitarow Fukamachi (e.arrows@gmail.com)
+  Copyright (c) 2014 Eitaro Fukamachi (e.arrows@gmail.com)
 |#
 
 #|
   Common Lisp in the 21st Century.
 
-  Author: Eitarow Fukamachi (e.arrows@gmail.com)
+  Author: Eitaro Fukamachi (e.arrows@gmail.com)
 |#
 
 (in-package :cl-user)
@@ -16,7 +16,7 @@
 
 (defsystem cl21
   :version "0.1"
-  :author "Eitarow Fukamachi"
+  :author "Eitaro Fukamachi"
   :license "MIT"
   :depends-on (:closer-mop
                :trivial-types

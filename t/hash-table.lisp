@@ -13,17 +13,17 @@
 (is (getf *hash* :name)
     nil)
 
-(setf (getf *hash* :name) "Eitarow Fukamachi")
+(setf (getf *hash* :name) "Eitaro Fukamachi")
 (setf (getf *hash* :living) "Japan")
 
 (is (getf *hash* :name)
-    "Eitarow Fukamachi")
+    "Eitaro Fukamachi")
 
 (let ((plist (coerce *hash* 'plist)))
   (is (getf plist :living)
       "Japan")
   (is (getf plist :name)
-      "Eitarow Fukamachi"))
+      "Eitaro Fukamachi"))
 
 (defclass my-hash-table (abstract-hash-table)
   ((%hash :initform (make-hash-table :test 'equal))))

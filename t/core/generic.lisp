@@ -8,11 +8,11 @@
 (plan nil)
 
 (let ((hash (make-hash-table :test 'eq)))
-  (setf (getf hash :name) "Eitarow Fukamachi")
+  (setf (getf hash :name) "Eitaro Fukamachi")
 
   (is-print (doeach ((key val) hash)
               (format t "~A: ~A\n" key val))
-            "NAME: Eitarow Fukamachi\n"
+            "NAME: Eitaro Fukamachi\n"
             "doeach (hash-table)"))
 
 (let ((plist nil))

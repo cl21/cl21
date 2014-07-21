@@ -24,12 +24,12 @@
   (is (elt binds 1) "01")
   (is (elt binds 2) "23"))
 
-(is (re-replace #/a/g "Eitarow Fukamachi" "α")
-    "Eitαrow Fukαmαchi")
-(is (re-replace "a" "Eitarow Fukamachi" "α")
-    "Eitαrow Fukamachi")
-(is (re-replace "a" "Eitarow Fukamachi" "α" :global t)
-    "Eitαrow Fukαmαchi")
+(is (re-replace #/a/g "Eitaro Fukamachi" "α")
+    "Eitαro Fukαmαchi")
+(is (re-replace "a" "Eitaro Fukamachi" "α")
+    "Eitαro Fukamachi")
+(is (re-replace "a" "Eitaro Fukamachi" "α" :global t)
+    "Eitαro Fukαmαchi")
 
 (is (re-split #/-/ "2014-01-23")
     '("2014" "01" "23"))

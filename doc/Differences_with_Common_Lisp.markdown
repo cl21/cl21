@@ -62,15 +62,15 @@ If `${...}` or `@{...}` is seen, it will be replaced by the result value of an e
 CL21 provides a notation for hash-tables.
 
 ```common-lisp
-#H(:name "Eitarow Fukamachi" :living "Japan")
-;=> #H(:LIVING "Japan" :NAME "Eitarow Fukamachi")
+#H(:name "Eitaro Fukamachi" :living "Japan")
+;=> #H(:LIVING "Japan" :NAME "Eitaro Fukamachi")
 ```
 
 Note this always creates a hash-table whose test function is `EQUAL`. If you want to create it with another test function, a function `hash-table` is also available.
 
 ```common-lisp
-(hash-table 'eq :name "Eitarow Fukamachi")
-;=> #H(:NAME "Eitarow Fukamachi")
+(hash-table 'eq :name "Eitaro Fukamachi")
+;=> #H(:NAME "Eitaro Fukamachi")
 ```
 
 ## Vector
@@ -181,13 +181,13 @@ There are several generic functions which have the same name to CL's normal func
 * coerce
 
 ```common-lisp
-(defvar *hash* #H(:name "Eitarow Fukamachi" :living "Japan"))
+(defvar *hash* #H(:name "Eitaro Fukamachi" :living "Japan"))
 
 (getf *hash* :name)
-;=> "Eitarow Fukamachi"
+;=> "Eitaro Fukamachi"
 
 (coerce *hash* 'plist)
-;=> (:LIVING "Japan" :NAME "Eitarow Fukamachi")
+;=> (:LIVING "Japan" :NAME "Eitaro Fukamachi")
 ```
 
 You can define these methods for your own classes.

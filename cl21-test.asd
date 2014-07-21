@@ -1,6 +1,6 @@
 #|
   This file is a part of cl21 project.
-  Copyright (c) 2014 Eitarow Fukamachi (e.arrows@gmail.com)
+  Copyright (c) 2014 Eitaro Fukamachi (e.arrows@gmail.com)
 |#
 
 (in-package :cl-user)
@@ -9,7 +9,7 @@
 (in-package :cl21-test-asd)
 
 (defsystem cl21-test
-  :author "Eitarow Fukamachi"
+  :author "Eitaro Fukamachi"
   :license "MIT"
   :depends-on (:cl21
                :cl-test-more)
