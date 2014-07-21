@@ -235,8 +235,8 @@ Add the following code
 
 ## Copyright
 
-Copyright (c) 2014 Eitaro Fukamachi (e.arrows@gmail.com)
+Copyright (c) 2014 Eitaro Fukamachi and [contributors](https://github.com/fukamachi/cl21/graphs/contributors).
 
 # License
 
-Licensed under the MIT License.
+Licensed under the MIT License. See LICENSE.
