@@ -247,14 +247,15 @@ Add the following code
 * Split-Sequence
 * REPL-Utilities
 
-## Author
+## Credits
 
-* Eitaro Fukamachi (e.arrows@gmail.com)
-
-## Copyright
-
-Copyright (c) 2014 Eitaro Fukamachi and [contributors](https://github.com/fukamachi/cl21/graphs/contributors).
+* [fukamachi](https://github.com/fukamachi)
+* [guicho271828](https://github.com/guicho271828)
+* [m-n](https://github.com/m-n)
+* [snmsts](https://github.com/snmsts)
+* [EuAndreh](https://github.com/EuAndreh)
+* [KeenS](https://github.com/KeenS)
 
 # License
 
-Licensed under the MIT License. See LICENSE.
+CL21 is free and unencumbered software released into the public domain.

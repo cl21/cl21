@@ -1,16 +1,10 @@
-#|
-  This file is a part of cl21 project.
-  Copyright (c) 2014 Eitaro Fukamachi (e.arrows@gmail.com)
-|#
-
 (in-package :cl-user)
 (defpackage cl21-test-asd
   (:use :cl :asdf))
 (in-package :cl21-test-asd)
 
 (defsystem cl21-test
-  :author "Eitaro Fukamachi"
-  :license "MIT"
+  :license "Public Domain"
   :depends-on (:cl21
                :cl-test-more)
   :components ((:module "t"

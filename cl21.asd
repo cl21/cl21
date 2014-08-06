@@ -1,14 +1,3 @@
-#|
-  This file is a part of cl21 project.
-  Copyright (c) 2014 Eitaro Fukamachi (e.arrows@gmail.com)
-|#
-
-#|
-  Common Lisp in the 21st Century.
-
-  Author: Eitaro Fukamachi (e.arrows@gmail.com)
-|#
-
 (in-package :cl-user)
 (defpackage cl21-asd
   (:use :cl :asdf))
@@ -16,8 +5,7 @@
 
 (defsystem cl21
   :version "0.1.0"
-  :author "Eitaro Fukamachi"
-  :license "MIT"
+  :license "Public Domain"
   :depends-on (:closer-mop
                :trivial-types
                :trivial-gray-streams
