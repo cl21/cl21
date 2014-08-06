@@ -837,14 +837,22 @@ implemented for the class of SEQUENCE."))
 ;; Function: subseq, (setf subseq)
 ;; Generic Function: abstract-subseq, (setf abstract-subseq)
 
+(defun cl21-subseq (sequence start &optional end)
+  (let ((len (cl:length sequence)))
+    (flet ((real-index (idx)
+             (if (and idx (< idx 0))
+                 (setf idx (- len (mod (abs idx) len)))
+                 idx)))
+      (cl:subseq sequence (real-index start) (real-index end)))))
+
 (defun subseq (sequence start &optional end)
   #.(documentation 'cl:subseq 'function)
   (etypecase sequence
-    (cl:sequence (cl:subseq sequence start end))
+    (cl:sequence (cl21-subseq sequence start end))
     (abstract-sequence (abstract-subseq sequence start end))))
 (define-typecase-compiler-macro subseq (&whole form sequence start &optional end)
   (typecase sequence
-    (cl:sequence `(cl:subseq ,@(cdr form)))))
+    (cl:sequence `(cl21-subseq ,@(cdr form)))))
 
 (defgeneric abstract-subseq (sequence start &optional end)
   (:method ((sequence abstract-sequence) start &optional end)
