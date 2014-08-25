@@ -27,7 +27,7 @@ You can specify the output dist directory by a shell env variable QLDIST_OUTPUT_
 (defparameter *project-dir*
   (make-pathname
    :directory (append (pathname-directory *projects-dir*) (list *project-name*))))
-(defparameter *qldist-base-url* "http://cl21.org/qldists/")
+(defparameter *qldist-base-url* "http://dists.cl21.org/")
 (defparameter *qldist-output-dir* (or (asdf::truenamize (asdf::getenv "QLDIST_OUTPUT_DIR"))
                                       (merge-pathnames "dists/"
                                                        (fad:pathname-parent-directory *projects-dir*))))

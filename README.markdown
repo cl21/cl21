@@ -25,7 +25,7 @@ Discussion is highly welcome, join the issues thread and post some ideas!
 
 ```common-lisp
 ;; Installation
-(ql-dist:install-dist "http://cl21.org/qldists/cl21.txt")
+(ql-dist:install-dist "http://dists.cl21.org/cl21.txt")
 (ql:quickload :cl21)
 
 (in-package :cl21-user)
@@ -164,7 +164,7 @@ It is tested on the latest version of SBCL, Clozure CL, GNU CLISP and Allegro CL
 ## Installation
 
 ```common-lisp
-(ql-dist:install-dist "http://cl21.org/qldists/cl21.txt")
+(ql-dist:install-dist "http://dists.cl21.org/cl21.txt")
 (ql:quickload :cl21)
 ```
 
