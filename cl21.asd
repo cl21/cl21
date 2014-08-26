@@ -30,6 +30,7 @@
                  (:file "asdf" :depends-on ("cl21" "core-subpackages"))
                  (:module "core-subpackages"
                   :pathname "core"
+                  :depends-on ("internal")
                   :components
                   ((:file "types")
                    (:file "condition")
@@ -43,15 +44,17 @@
                    (:file "cons" :depends-on ("generic" "sequence" "array"))
                    (:file "array" :depends-on ("generic"))
                    (:file "string")
-                   (:file "sequence" :depends-on ("generic" "condition" "environment" "util"))
-                   (:file "hash-table" :depends-on ("generic" "condition" "package" "sequence" "util"))
+                   (:file "sequence" :depends-on ("generic" "condition" "environment"))
+                   (:file "hash-table" :depends-on ("generic" "condition" "package" "sequence"))
                    (:file "file")
                    (:file "stream")
                    (:file "generic" :depends-on ("types"))
                    (:file "repl")
                    (:file "readtable" :depends-on ("function" "array" "sequence" "cons"))
-                   (:file "environment")
-                   (:file "util" :depends-on ("environment"))))
+                   (:file "environment")))
+                 (:module "internal"
+                  :components
+                  ((:file "util")))
                  (:module "stdlib"
                   :depends-on ("core")
                   :components

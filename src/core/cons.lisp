@@ -66,7 +66,7 @@
                           :coerce)
   (:shadowing-import-from :cl21.core.array
                           :vector)
-  (:import-from :cl21.core.util
+  (:import-from :cl21.internal.util
                 :define-typecase-compiler-macro)
   (:import-from :alexandria
                 :iota

@@ -66,7 +66,7 @@
                 :method-unimplemented-error)
   (:import-from :cl21.core.environment
                 :variable-information)
-  (:import-from :cl21.core.util
+  (:import-from :cl21.internal.util
                 :define-typecase-compiler-macro)
   #+nil
   (:import-from :split-sequence

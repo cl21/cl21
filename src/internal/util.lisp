@@ -1,12 +1,17 @@
 (in-package :cl-user)
-(defpackage cl21.core.util
+(defpackage cl21.internal.util
   (:use :cl)
-  (:import-from :cl21.core.environment
+  (:import-from #+sbcl :sb-cltl2
+                #+openmcl :ccl
+                #+cmu :ext
+                #+allegro :sys
+                #+ecl :si
+                #+abcl :lisp
                 :variable-information)
   (:import-from :alexandria
                 :ensure-list)
   (:export :define-typecase-compiler-macro))
-(in-package :cl21.core.util)
+(in-package :cl21.internal.util)
 
 (defmacro define-typecase-compiler-macro (name lambda-list typecase)
   (flet ((remove-from-lambda-list (target lambda-list)
