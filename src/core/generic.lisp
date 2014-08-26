@@ -103,35 +103,46 @@
                  (t (funcall #'(setf getf) ,newval ,getter ,key)))
               `(getf ,getter ,key)))))
 
+
+;;
+;; TODO: Compiler macros for efficiency.
+
 (defgeneric coerce (object output-type-spec)
   (:method ((object t) output-type-spec)
     (cl:coerce object output-type-spec)))
 
-(defmethod coerce ((object number) output-type-spec)
-  (case output-type-spec
-    (string (write-to-string object))
-    (T (cl:coerce object output-type-spec))))
+(defmethod coerce ((object number) (output-type-spec (eql 'string)))
+  (write-to-string object))
 
-(defmethod coerce ((object hash-table) output-type-spec)
-  (ecase output-type-spec
-    (plist
-     (alexandria:hash-table-plist object))
-    (alist
-     (alexandria:hash-table-alist object))))
+(defmethod coerce ((object hash-table) (output-type-spec (eql 'plist)))
+  (alexandria:hash-table-plist object))
 
-(defmethod coerce ((object string) output-type-spec)
-  (case output-type-spec
-    (integer (nth-value 0 (parse-integer object :junk-allowed t)))
-    ((number float) (let ((read (read-from-string object)))
-                      (if (numberp read)
-                          read
-                          0)))
-    (symbol  (intern object))
-    (keyword (intern object :keyword))
-    (T (cl:coerce object output-type-spec))))
+(defmethod coerce ((object hash-table) (output-type-spec (eql 'alist)))
+  (alexandria:hash-table-alist object))
 
-(defmethod coerce ((object symbol) output-type-spec)
-  (case output-type-spec
-    (string (symbol-name object))
-    (keyword (intern (symbol-name object) :keyword))
-    (T (cl:coerce object output-type-spec))))
+(defmethod coerce ((object string) (output-type-spec (eql 'integer)))
+  (nth-value 0 (parse-integer object :junk-allowed t)))
+
+(defmethod coerce ((object string) (output-type-spec (eql 'number)))
+  (let ((read (read-from-string object)))
+    (if (numberp read)
+        read
+        0)))
+
+(defmethod coerce ((object string) (output-type-spec (eql 'float)))
+  (let ((read (read-from-string object)))
+    (if (numberp read)
+        (float read)
+        0.0)))
+
+(defmethod coerce ((object string) (output-type-spec (eql 'symbol)))
+  (intern object))
+
+(defmethod coerce ((object string) (output-type-spec (eql 'keyword)))
+  (intern object :keyword))
+
+(defmethod coerce ((object symbol) (output-type-spec (eql 'string)))
+  (symbol-name object))
+
+(defmethod coerce ((object symbol) (output-type-spec (eql 'keyword)))
+  (intern (symbol-name object) :keyword))
