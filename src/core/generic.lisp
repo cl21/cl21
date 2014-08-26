@@ -121,19 +121,19 @@
   (alexandria:hash-table-alist object))
 
 (defmethod coerce ((object string) (output-type-spec (eql 'integer)))
-  (nth-value 0 (parse-integer object :junk-allowed t)))
+  (nth-value 0 (parse-integer object)))
 
 (defmethod coerce ((object string) (output-type-spec (eql 'number)))
   (let ((read (read-from-string object)))
     (if (numberp read)
         read
-        0)))
+        (error "~S cannot be coerced to a number" object))))
 
 (defmethod coerce ((object string) (output-type-spec (eql 'float)))
   (let ((read (read-from-string object)))
     (if (numberp read)
         (float read)
-        0.0)))
+        (error "~S cannot be coerced to a float" object))))
 
 (defmethod coerce ((object string) (output-type-spec (eql 'symbol)))
   (intern object))
