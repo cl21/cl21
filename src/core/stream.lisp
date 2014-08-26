@@ -109,7 +109,6 @@
            :*query-io*
            :*standard-input*
            :*standard-output*
-           :*trace-output*
            :*terminal-io*
            :stream-error
            :stream-error-stream

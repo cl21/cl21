@@ -25,7 +25,7 @@
                :iterate)
   :components ((:module "src"
                 :components
-                ((:file "cl21" :depends-on ("core"))
+                ((:file "cl21" :depends-on ("core" "ext"))
                  (:file "core" :depends-on ("core-subpackages"))
                  (:file "asdf" :depends-on ("cl21" "core-subpackages"))
                  (:module "core-subpackages"
@@ -48,10 +48,15 @@
                    (:file "file")
                    (:file "stream")
                    (:file "generic" :depends-on ("types"))
-                   (:file "repl")
                    (:file "readtable" :depends-on ("function" "array" "sequence" "cons"))
                    (:file "environment")
                    (:file "util" :depends-on ("environment"))))
+                 (:module "ext"
+                  :components
+                  ((:file "debugger")
+                   (:file "repl")
+                   (:file "compiler-macro")
+                   (:file "trace")))
                  (:module "stdlib"
                   :depends-on ("core")
                   :components

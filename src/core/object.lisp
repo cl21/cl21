@@ -257,6 +257,4 @@
    :update-instance-for-different-class
    :update-instance-for-redefined-class
 
-   :print-object
-   :describe-object
-   ))
+   :print-object))

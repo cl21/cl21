@@ -2,7 +2,11 @@
 (cl:in-package :cl21)
 
 (cl:eval-when (:compile-toplevel :load-toplevel :execute)
-  (cl:dolist (#1=#:package-name '(:cl21.core))
+  (cl:dolist (#1=#:package-name '(:cl21.core
+                                  :cl21.ext.debugger
+                                  :cl21.ext.repl
+                                  :cl21.ext.compiler-macro
+                                  :cl21.ext.trace))
     (cl:let ((#2=#:package (cl:find-package #1#)))
       (cl:unless #2#
         (cl:error "Package \"~A\" doesn't exist." #1#))
