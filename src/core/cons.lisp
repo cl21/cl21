@@ -344,7 +344,7 @@
                  (abstract-replace seq initial-contents)
                  seq))))))
 
-(defmethod coerce ((object abstract-list) type)
+(defmethod coerce ((object abstract-list) type &key)
   (ecase type
     (list
      (let ((results '()))
