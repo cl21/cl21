@@ -214,9 +214,6 @@
    :documentation
    :variable
    :compiler-macro
-   :room
-   :ed
-   :dribble
    :lisp-implementation-type
    :lisp-implementation-version
    :short-site-name
