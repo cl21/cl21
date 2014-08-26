@@ -26,8 +26,6 @@
    :t
    :nil
 
-   :compiler-macro-function
-   :define-compiler-macro
    :defmacro
    :macro-function
    :macroexpand
@@ -203,9 +201,6 @@
    :get-universal-time
    :get-decoded-time
    :sleep
-   :trace
-   :untrace
-   :step
    :time
    :+internal-time-units-per-second+
    :get-internal-real-time
@@ -213,7 +208,6 @@
    :disassemble
    :documentation
    :variable
-   :compiler-macro
    :room
    :ed
    :dribble
@@ -267,7 +261,6 @@
                            :cl21.core.file
                            :cl21.core.stream
                            :cl21.core.generic
-                           :cl21.core.repl
                            :cl21.core.readtable
                            :cl21.core.environment))
   (cl:let ((package (cl:find-package package-name)))

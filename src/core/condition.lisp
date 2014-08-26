@@ -23,9 +23,7 @@
            :simple-error
            :simple-warning
            :invoke-debugger
-           :break
-           :*debugger-hook*
-           :*break-on-signals*
+           :*break-on-signals*    ;; TODO: move to somewhere
            :handler-bind
            :handler-case
            :ignore-errors

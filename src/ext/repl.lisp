@@ -1,5 +1,5 @@
 (in-package :cl-user)
-(defpackage cl21.core.repl
+(defpackage cl21.ext.repl
   (:use :cl)
   (:import-from :repl-utilities
                 :doc
@@ -18,6 +18,7 @@
 
            :inspect
            :describe
+           :describe-object
            :apropos
            :apropos-list
 
