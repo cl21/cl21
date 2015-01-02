@@ -2,7 +2,7 @@ language: common-lisp
 
 env:
   matrix:
-    - LISP=abcl
+#    - LISP=abcl
     - LISP=allegro
     - LISP=sbcl
     - LISP=sbcl32
@@ -12,11 +12,6 @@ env:
     - LISP=clisp32
 #    - LISP=cmucl
     - LISP=ecl
-
-#matrix:
-#  allow_failures:
-    # CIM not available for CMUCL
-#    - env: LISP=cmucl
 
 install:
   - if [ -x ./install.sh ] && head -2 ./install.sh | grep '^# cl-travis' > /dev/null;
