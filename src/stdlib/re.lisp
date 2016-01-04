@@ -39,7 +39,9 @@
   (declare (ignore start end limit))
   (apply #'ppcre:split (etypecase re
                          (function (funcall re))
-                         (string re)) target-string keys))
+                         (string re)
+                         (standard-char (string re)))
+         target-string keys))
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   #-ccl
