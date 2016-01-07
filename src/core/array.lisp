@@ -84,7 +84,7 @@
 
 ;; defining a new 'atomic type specifier' is not possible in common lisp,
 ;; except it is defined by defstruct and defclass.
-(defmethod coerce ((object t) (output-type-spec (eql 'vector)))
+(defmethod coerce ((object t) (output-type-spec (eql 'vector)) &key)
   (cl:coerce object 'cl:vector))
 
 (defmacro adjustable-vector (&key (dimension nil dimension-specified-p) initial-contents)

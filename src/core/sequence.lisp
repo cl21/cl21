@@ -569,7 +569,7 @@ implemented for the class of SEQUENCE."))
 ;;
 ;; coerce
 
-(defmethod coerce ((object abstract-sequence) type)
+(defmethod coerce ((object abstract-sequence) type &key)
   (ecase type
     (list
      (let ((results '()))

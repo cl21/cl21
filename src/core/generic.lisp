@@ -103,35 +103,46 @@
                  (t (funcall #'(setf getf) ,newval ,getter ,key)))
               `(getf ,getter ,key)))))
 
-(defgeneric coerce (object output-type-spec)
-  (:method ((object t) output-type-spec)
+
+;;
+;; TODO: Compiler macros for efficiency.
+
+(defgeneric coerce (object output-type-spec &key)
+  (:method ((object t) output-type-spec &key)
     (cl:coerce object output-type-spec)))
 
-(defmethod coerce ((object number) output-type-spec)
-  (case output-type-spec
-    (string (write-to-string object))
-    (T (cl:coerce object output-type-spec))))
+(defmethod coerce ((object number) (output-type-spec (eql 'string)) &key)
+  (write-to-string object))
 
-(defmethod coerce ((object hash-table) output-type-spec)
-  (ecase output-type-spec
-    (plist
-     (alexandria:hash-table-plist object))
-    (alist
-     (alexandria:hash-table-alist object))))
+(defmethod coerce ((object hash-table) (output-type-spec (eql 'plist)) &key)
+  (alexandria:hash-table-plist object))
 
-(defmethod coerce ((object string) output-type-spec)
-  (case output-type-spec
-    (integer (nth-value 0 (parse-integer object :junk-allowed t)))
-    ((number float) (let ((read (read-from-string object)))
-                      (if (numberp read)
-                          read
-                          0)))
-    (symbol  (intern object))
-    (keyword (intern object :keyword))
-    (T (cl:coerce object output-type-spec))))
+(defmethod coerce ((object hash-table) (output-type-spec (eql 'alist)) &key)
+  (alexandria:hash-table-alist object))
 
-(defmethod coerce ((object symbol) output-type-spec)
-  (case output-type-spec
-    (string (symbol-name object))
-    (keyword (intern (symbol-name object) :keyword))
-    (T (cl:coerce object output-type-spec))))
+(defmethod coerce ((object string) (output-type-spec (eql 'integer)) &key (radix 10))
+  (nth-value 0 (parse-integer object :radix radix)))
+
+(defmethod coerce ((object string) (output-type-spec (eql 'number)) &key)
+  (let ((read (read-from-string object)))
+    (if (numberp read)
+        read
+        (error "~S cannot be coerced to a number" object))))
+
+(defmethod coerce ((object string) (output-type-spec (eql 'float)) &key)
+  (let ((read (read-from-string object)))
+    (if (numberp read)
+        (float read)
+        (error "~S cannot be coerced to a float" object))))
+
+(defmethod coerce ((object string) (output-type-spec (eql 'symbol)) &key)
+  (intern object))
+
+(defmethod coerce ((object string) (output-type-spec (eql 'keyword)) &key)
+  (intern object :keyword))
+
+(defmethod coerce ((object symbol) (output-type-spec (eql 'string)) &key)
+  (symbol-name object))
+
+(defmethod coerce ((object symbol) (output-type-spec (eql 'keyword)) &key)
+  (intern (symbol-name object) :keyword))
