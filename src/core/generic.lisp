@@ -90,7 +90,7 @@
 ;;       (return place))))
 
 
-(define-setf-expander getf (place key &environment env)
+(define-setf-expander getf (place key &optional default &environment env)
   (multiple-value-bind (dummies vals newvals setter getter)
       (get-setf-expansion place env)
     (assert (= 1 (length newvals)))
@@ -101,7 +101,7 @@
               `(typecase ,getter
                  (null (let ((,newval (list ,key ,newval))) ,setter))
                  (t (funcall #'(setf getf) ,newval ,getter ,key)))
-              `(getf ,getter ,key)))))
+              `(getf ,getter ,key ,@(and default `(,default)))))))
 
 (defgeneric coerce (object output-type-spec)
   (:method ((object t) output-type-spec)
