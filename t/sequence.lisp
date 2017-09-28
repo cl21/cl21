@@ -45,6 +45,10 @@
     #(1 3 5)
     :test #'equalp
     "take")
+(is (take 100 #(1 3 5 6 7 8))
+    #(1 3 5 6 7 8)
+    :test #'equalp
+    "take")
 (is (take 3 "Hello, World!")
     "Hel"
     "take")

@@ -934,15 +934,21 @@ implemented for the class of SEQUENCE."))
 
 (defun take (n sequence)
   (etypecase sequence
-    (cl:sequence (cl:subseq sequence 0 n))
+    (cl:sequence (cl:subseq sequence 0 (if (> n (length sequence))
+                                           (length sequence)
+                                           n)))
     (abstract-sequence (abstract-take n sequence))))
 (define-typecase-compiler-macro take (n sequence)
   (typecase sequence
-    (cl:sequence `(cl:subseq ,sequence 0 ,n))))
+    (cl:sequence `(cl:subseq ,sequence 0 (if (> ,n (length ,sequence))
+                                             (length ,sequence)
+                                             ,n)))))
 
 (defgeneric abstract-take (n sequence)
   (:method (n (sequence abstract-sequence))
-    (abstract-subseq sequence 0 n)))
+    (abstract-subseq sequence 0 (if (> n (abstract-length sequence))
+                                    (abstract-length sequence)
+                                    n))))
 
 (defun drop (n sequence)
   (etypecase sequence
