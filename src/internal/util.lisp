@@ -6,6 +6,7 @@
                 #+cmu :ext
                 #+allegro :sys
                 #+ecl :si
+                #+clasp :clasp-cltl2
                 #+abcl :lisp
                 :variable-information)
   (:import-from :alexandria
