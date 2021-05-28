@@ -6,8 +6,9 @@
         #+cmu :ext
         #+allegro :sys
         #+ecl :si
+        #+clasp :clasp-cltl2
         #+abcl :lisp)
-  #+(or sbcl openmcl cmu allegro ecl abcl)
+  #+(or sbcl openmcl cmu allegro ecl clasp abcl)
   (:export :compiler-let
            :variable-information
            :function-information

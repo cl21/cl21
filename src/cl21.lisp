@@ -17,11 +17,12 @@
   (:use :cl21))
 (cl21::in-package :cl21-user)
 
-#+(or sbcl ccl clisp allegro ecl)
+#+(or sbcl ccl clisp allegro ecl clasp)
 (cl:do-external-symbols (#1=#:symb
                          #+sbcl    :sb-ext
                          #+ccl     :ccl
                          #+clisp   :ext
                          #+allegro :excl
-                         #+ecl     :quit)
+                         #+ecl     :quit
+                         #+clasp   :ext)
   (cl:shadowing-import (cl:list #1#)))
